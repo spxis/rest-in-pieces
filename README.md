@@ -10,26 +10,40 @@ that can feed you random but consistent data.
 
 BEAN (Bootstrap, Express, AngularJS, Node.js)
 
-### What technologies are used?
+### Usage
 
-Nearly every component of the Atigeo BeanStack uses Open Source web components. These are the primary web software development technologies used on a daily basis.
+#### Names Service
 
-- **Node.js** - Powerful JavaScript platform for building fast, scalable network applications. It runs on many platforms and allows you do write JavaScript on the server! The bundled command-line *npm* package manager makes extending your server-side application effortless.
-- **Express** - Minimalistic and robust NodeJS web application framework for building web applications. This makes using Node as a web server or building a REST service very easy.
-- **AngularJS** - Industry leading front-end JavaScript environment for rapid application development. You can focus on accessing and displaying data quite easily with Angular, with its "bidirectional data binding" that makes it extremely powerful and useful. There are also many developer extensions that can be added to your Angular application, allow you to add new functionality quickly.
-- **Bootstrap** - Twitter Bootstrap is a responsive framework that allows for quick & easy HTML desktop and mobile development. It encourages consistency between applications through its templates and grid system. We use the official SASS-powered version of Bootstrap, rather than the default version (which uses the LESS CSS framework). The Bootstrap framework is an excellent starter framework for rapidly building a working website that stylistically requires minimal effort. 
-- **SASS** - Object-oriented CSS framework that extends CSS/CSS3, giving you access to powerful features such as animations and transitions. We choose to use the SCSS syntax/variation of SASS (rather than the "indented" original version of SASS). Since SASS is just an extension of CSS, you don't need to know anything special to get started.
-- **jQuery** - Industry leading JavaScript library that has enabled millions of developers to write simple JavaScript applications. AngularJS uses a "lite" version of jQuery and it is very easy to use for beginners, yet powerful enough for advanced usage. 
-- **MooTools** - Powerful Object-oriented JavaScript library to enhancing and extending JavaScript websites. A lot of Atigeo's legacy applications use MooTools as it's primary JavaScript framework and MooTools can still be used if necessary.
+Basic Use
 
-The Atigeo BeanStack embraces other web frameworks and components that extend your web applications as well. While optional, they are incredibly useful in your every day work:
+```
+http://localhost:8080/names - Returns a random set of names with the following data:
+```
 
-- **Handlebars** - Powerful semantic HTML templating on the server-side. Allows you to use templates for repetitive server-side (or client-side) tasks. This could be swapped out for Jade or EJS if desired or needed.
-- **Font Awesome** - Useful collection of scalable vector icons for web applications, using entirely HTML and CSS. Works well with both Bootstrap and SASS. A lot of time is saved using Font Awesome as you can usually find an appropriate icon that will work with your application.
-- **Moment** - JavaScript library for date parsing, manipulation, validation and displaying (usable in both front and back end JavaScript code).
-- **Underscore** - JavaScript library with numerous useful utility functions, without extending built-in objects. Underscore can make working with JavaScript objects and arrays easier than the native implementations that JavaScript originally provides you with. 
-- **Mocha** - feature-rich JavaScript framework for server and browser testing.
-- **Winston** - popular configurable Node.js logging framework. Winston is configured to write messages to both the console and filesystem for debugging purposes.
+Setting the Offset (default 0) and Limit (default 10)
+
+```
+http://localhost:8080/names?offset=5&limit=5
+```
+
+Capping out the maximum number of records the service can provide, useful for providing end-of-data scenarios.
+
+```
+http://localhost:8080/names?max=25&offset=20limit=10
+```
+
+Turning off the Metadata object to get only pure data
+
+```
+http://localhost:8080/names?metadata=1
+http://localhost:8080/names?metadata=false
+```
+
+Changing the name of the output results array
+
+```
+http://localhost:8080/names?resultsName=rows
+```
 
 ### Front-End Package Management and Automation 
 
