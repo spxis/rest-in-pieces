@@ -1,0 +1,38 @@
+<p>Users query from MongoDB {{ title }}: view <a href="/users">All Users</a></p>
+
+<div class="panel panel-primary slide-panel scroll-panel">
+    <div class="panel-heading">
+        <h3 class="panel-title">Club List
+        </h3>
+    </div>
+    <div class="scroll-table">
+        <table class="table table-hover table-scroll" id="user-table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Email Address</th>
+                <th># Emails<br/>Sent</th>
+                <th># Emails<br/>Received</th>
+                <th>Avg<br/>Length</th>
+                <th>Avg<br/>Kw Count</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{#records.users}}
+                <tr>
+                    <td>{{person.id}}</td>
+                    <td class="lowercase"><a href="/users/{{person.id}}">{{person.emailAddress}}</a></td>
+                    <td><a href="/users"><i class="fa fa-group"></i>{{features.senderNumSent}}</a></td>
+                    <td><a href="/users"><i class="fa fa-group"></i>{{features.senderNumReceived}}</a></td>
+                    <td class="lowercase">{{features.senderAvgLength}}</td>
+                    <td class="lowercase">{{features.senderAvgKwCount}}</td>
+                </tr>
+            {{/records.users}}
+            </tbody>
+        </table>
+    </div>
+    <div class="panel-footer">
+        <h3 class="panel-title">Total Users: {{records.users.length}}</h3>
+    </div>
+
+</div>

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head ng-app>
+    {{> head-meta }}
+    {{> head-css.styles }}
+    <title>{{ title }}</title>
+</head>
+<body class="xui">
+    <section class="container">
+        <p></p>
+        {{> header-title }}
+    </section>
+
+    <section class="container">
+        <p></p>
+        {{> body-js.scripts }}
+        {{{ body }}}
+    </section>
+
+    {{> footer }}
+</body>
+</html>

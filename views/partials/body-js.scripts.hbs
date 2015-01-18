@@ -1,0 +1,9 @@
+{{#if environments.production}}
+    <script type="text/javascript" src="{{ config.virtualDirectory }}/dist/js/vendor.min.js?{{ package.version }}"></script>
+    <script type="text/javascript" src="{{ config.virtualDirectory }}/dist/js/xui-bootstrap.min.js?{{ package.version }}"></script>
+    <script type="text/javascript" src="{{ config.virtualDirectory }}/dist/js/beanstack.min.js?{{ package.version }}"></script>
+{{else}}
+    <script type="text/javascript" src="{{ config.virtualDirectory }}/dist/js/vendor.js?{{ package.version }}"></script>
+    <script type="text/javascript" src="{{ config.virtualDirectory }}/dist/js/xui-bootstrap.js?{{ package.version }}"></script>
+    <script type="text/javascript" src="{{ config.virtualDirectory }}/dist/js/beanstack.js?{{ package.version }}"></script>
+{{/if}}

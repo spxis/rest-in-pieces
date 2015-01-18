@@ -1,0 +1,7 @@
+<span class="debug-container">
+    {{#unless environments.production }}
+        <a class="label {{#if environments.development}}label-danger{{/if}}
+            {{#if environments.test}}label-info{{/if}}
+            {{#if environments.staging}}label-success{{/if}}" href="#">{{ config.env }}</a>
+    {{/unless }}
+</span>

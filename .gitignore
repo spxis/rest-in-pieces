@@ -1,0 +1,107 @@
+
+# Folders to be generated via "npm install".
+lib/
+public/dist/
+public/src/css/font-awesome/
+public/src/css/bootstrap/
+public/src/css/
+public/src/scss/font-awesome/
+public/src/scss/bootstrap/
+
+# Test coverage files
+lib-cov
+lcov.info
+coverage
+test.disable
+regression/temp*.html
+performance/temp*.html
+
+# Data files
+*.csv
+*.dat
+*.out
+*.gz
+
+# Log files
+logs/
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+
+# Compiled binary addons
+results
+build
+build/Release
+.target
+out/
+
+# Grunt, Bower and Component
+.grunt
+/components/
+/node_modules/
+/bower_components/
+/scripts/bower/bower-*
+
+# Node
+npm-debug.log
+
+# Angular
+angular.js.tmproj
+angular.xcodeproj
+.agignore
+
+# Dependency directory
+node_modules
+.sass-cache
+
+# Temporary folders
+temp
+tmp/
+*.tmp
+*.bak
+*.swp
+Temporary Items
+
+*.class
+
+# Jetbrains and JIRA
+.idea/
+.idea_modules/
+*.ipr
+*.iml
+*.iws
+atlassian-ide-plugin.xml
+
+# SublimtText user-specific
+*.sublime-workspace
+# If everyone is using sublime then this should be commented out
+*.sublime-project
+sftp-config.json
+
+# OSX related
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spolight-V100
+.Trashes
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+.lock-wscript
+
+local.properties
+.settings/

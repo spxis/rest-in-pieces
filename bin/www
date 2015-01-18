@@ -1,0 +1,20 @@
+#!/usr/bin/env node
+var debug = require('debug')('rest-in-pieces');
+var app = require('../app');
+var pkg = require('../package');
+var env = process.env.NODE_ENV || 'development';
+var config = require('../config/config')[env];
+var logger = require('../config/logger');
+var util = require('util');
+
+var serverPort = process.env.PORT || config.serverPort || 3000;
+
+app.set('port', serverPort);
+
+var server = app.listen(app.get('port'), function () {
+    var message = util.format('Node/ExpressJS %s server running on %s:%s.',
+        env, config.serverUri, server.address().port);
+
+    debug(message);
+    logger.info(message);
+});

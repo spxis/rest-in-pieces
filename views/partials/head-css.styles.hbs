@@ -1,0 +1,10 @@
+<link rel="shortcut icon" href="{{ config.virtualDirectory }}/images/favicon.ico?{{ package.version }}" />
+{{#if environments.production}}
+    <link rel="stylesheet" href="{{ config.virtualDirectory }}/dist/css/vendor.min.css?{{ package.version }}" />
+    <link rel="stylesheet" href="{{ config.virtualDirectory }}/dist/css/xui-bootstrap.min.css?{{ package.version }}" />
+    <link rel="stylesheet" href="{{ config.virtualDirectory }}/dist/css/beanstack.min.css?{{ package.version }}" />
+{{else}}
+    <link rel="stylesheet" href="{{ config.virtualDirectory }}/dist/css/vendor.css?{{ package.version }}" />
+    <link rel="stylesheet" href="{{ config.virtualDirectory }}/dist/css/xui-bootstrap.css?{{ package.version }}" />
+    <link rel="stylesheet" href="{{ config.virtualDirectory }}/dist/css/beanstack.css?{{ package.version }}" />
+{{/if}}
