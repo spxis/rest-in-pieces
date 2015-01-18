@@ -1,11 +1,10 @@
-# Atigeo BeanStack Full Stack JavaScript project
+# REST in Pieces: Fully Capable REST Service for Testing Client-Side Components
 
 ### Introduction
 
-This is the Atigeo BeanStack Full Stack JavaScript framework. This bootstrapped project contains everything you need to 
-easily and quickly write a responsive web application using JavaScript as the primary language.  We've embraced many of
-best practices and industry standards used at Atigeo and allow you to focus on building great apps
-without having to worry about spending countless hours on the underlying framework.
+This is the REST in Pieces Full Stack REST service, based on the Atigeo BeanStack Full Stack JavaScript framework. 
+This REST service is used to provide your full-stack client-side applications with a quick and powerful REST service
+that can feed you random but consistent data.
 
 ### What does the BEAN stand for? 
 
@@ -44,49 +43,11 @@ The **gruntfile.js** and **bower.json** files used by Grunt and Bower are pre-co
 
 ### Databases
 
-Currently, the databases that can currently be used out of the box include:
-
-- **MongoDB w/ Mongoose** - MongoDB is the industry leading NoSQL database, with Mongoose being the interface used to 
-acccess Mongo data.
-
-Future versions of the BeanStack would include code for connecting to MySQL and PostgreSQL databases.
-
-### Working Environment Pre-Requisites
-
-- The best IDEs for JavaScript full-stack development are WebStorm and Sublime Text.
-
-### Source Control Environment
-
-The Atigeo BeanStack uses and recommends using Git, if you're not already.
-
-- **Git** - This is the industry leading open-source distributed version control system for software development. 
-Be familiar with concepts such as cloning, branching and merging.
-
-Our .gitignore file is pre-configured for daily web application development. Read through it and make sure it's not 
-ignoring a file you want commited to your repository. Also, add to it if there are files or directories you do not
-want stored in your repository.
-
-### Database Pre-requisites 
-
-- If using the MongoDB/Mongoose components, you will need to have access to a local or remote MongoDB server instance.
-- Developers can get a free 500MB fully-managed Sandbox environment at MongoLab (https://mongolab.com/). 
-This is a Mongo-DB-as-a-Service provider.
+No databases are used for this REST service, and instead all data is stored in memory.
 
 ### Developer Install Script:
 
-sudo npm install -g grunt-cli; sudo npm install -g bower;
-
-### Pre-Installation instructions:
-
-- GruntJS: Make sure it is installed globally.
-
-> grunt -v # Should get the installed version number. If not, install it.
-> npm install -g grunt-cli
-
-- Bower: Make sure it is installed globally.
-
-> bower -v # Should get the installed version number. If not, install it.
-> npm install -g bower
+sudo npm install -g grunt-cli; sudo npm install -g bower; npm install;
 
 ### Installation instructions:
 
@@ -97,32 +58,6 @@ When performing a clean install, npm looks at the package.json folder.
 Make sure there is no "node_modules" folder. The "install" command creates that folder and 
 downloads all necessary dependencies and devDependencies listed in package.json. It is best to do everything from 
 scratch for all new projects.
-
-#### Windows installations:
-
-Note to Windows users: Windows requires several .NET dependencies that will need to be installed before the 
-"install" command. 
-
-- .NET Framework 2.0 SDK
-- Microsoft Visual Studio 2005
-
-#### Handling errors during install:
-
-If you encounter errors, read through them to make sure your operating system has the correct dependencies to install 
-the packages installed by npm. 
-If all else fails, you can try running the install as sudo (an account with Administrator privileges). 
-Also read the error messages to get an idea
-what the issue is. Top issues when installing via npm:
-
-- npm is not installed.
-- permissions requiring a sudo.
-- grunt (or grunt-cli) is not installed globally.
-- bower is not installed globally.
-- dependency in package.json has been renamed or deleted from repository.
-- the node_modules folder was not empty (or pre-existed) when running "npm install" for the first time.
-
-After npm installs all dependencies from the dependencies list in package.json, bower is run. When run for the first 
-time, you will be prompted to allow/deny then sending back usage information. Enter Y/N. 
 
 ### Starting the application:
 
