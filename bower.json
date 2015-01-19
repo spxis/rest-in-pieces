@@ -1,74 +1,72 @@
 {
-  "name": "rest-in-pieces",
-  "version": "1.0.1",
-  "author": {
-    "name": "John Morris",
-    "email": "john@spxis.com"
-  },
-  "description": "This is the Atigeo BeanStack Full Stack JavaScript Project.",
-  "homepage": "http://www.atigeo.com",
-  "copyright": "© 2014-2015 Atigeo LLC. All Rights Reserved.",
-  "dependencies": {
-    "xui-bootstrap": "http://v-git.life.atigeo.com/xpatterns/xui-bootstrap.git#1.2.0",
-    "bootbox": "~4.3.0",
-    "angular": "~1.3.6",
-    "angular-bootstrap": "~0.12.0",
-    "angular-loading": "~0.1.4",
-    "angular-local-storage": "~0.1.5",
-    "angular-scroll": "~0.6.2",
-    "angular-ui-utils": "~0.1.1",
-    "ngBootbox": "*",
-    "ng-notifications-bar": "~0.0.6",
-    "fine-uploader": "=5.0.4",
-    "font-awesome": "~4.2.0",
-    "handlebars": "~2.0.0",
-    "jquery": "~1.11.1",
-    "moment": "~2.8.3",
-    "mootools": "~1.5.1",
-    "spinjs": "~2.0.1",
-    "underscore": "~1.7.0",
-    "underscore.string": "~2.3.3",
-    "mocha": "~2.0.0",
-    "expect": "~0.3.1",
-    "superagent": "^0.20.0",
-    "swagger-ui": "~2.0.24",
-    "chance": "~0.7.1",
-    "moment-timezone": "~0.3.0"
-  },
-  "resolutions": {
-    "angular": "~1.3.6",
-    "jquery": "~1.11.1"
-  },
-  "main": [
-    "./dist/js/xui-bootstrap.js",
-    "./dist/css/xui-bootstrap.css",
-    "./dist/fonts/*"
-  ],
-  "ignore": [
-    "**/.*",
-    ".DS_Store",
-    ".gitignore",
-    ".idea",
-    ".sass-cache",
-    "bower_components",
-    "node_modules",
-    "logs",
-    "temp",
-    "test",
-    "tests"
-  ],
-  "license": "MIT",
-  "keywords": [
-    "atigeo",
-    "xui",
-    "xpatterns",
-    "platform",
-    "node",
-    "mongo",
-    "express",
-    "grunt",
-    "bower",
-    "big data",
-    "beanstack"
-  ]
+    "name": "rest-in-pieces",
+    "version": "1.0.1",
+    "author": {
+        "name": "John Morris",
+        "email": "john@spxis.com"
+    },
+    "description": "This is the Atigeo BeanStack Full Stack JavaScript Project.",
+    "homepage": "http://www.atigeo.com",
+    "copyright": "© 2014-2015 Atigeo LLC. All Rights Reserved.",
+    "dependencies": {
+        "xui-bootstrap": "http://v-git.life.atigeo.com/xpatterns/xui-bootstrap.git#1.2.0",
+        "chance": "~0.7.1",
+        "bootbox": "~4.3.0",
+        "angular": "~1.3.9",
+        "angular-bootstrap": "~0.12.0",
+        "angular-loading": "~0.1.4",
+        "angular-local-storage": "~0.1.5",
+        "angular-scroll": "~0.6.2",
+        "angular-ui-utils": "~0.1.1",
+        "ngBootbox": "*",
+        "ng-notifications-bar": "~0.0.6",
+        "fine-uploader": "=5.0.4",
+        "font-awesome": "~4.2.0",
+        "handlebars": "~2.0.0",
+        "jquery": "~1.11.1",
+        "moment": "~2.8.3",
+        "moment-timezone": "~0.3.0",
+        "mootools": "~1.5.1",
+        "underscore": "~1.7.0",
+        "underscore.string": "~2.3.3",
+        "mocha": "~2.0.0",
+        "expect": "~0.3.1",
+        "superagent": "^0.20.0"
+    },
+    "resolutions": {
+        "angular": "~1.3.9",
+        "jquery": "~1.11.1"
+    },
+    "main": [
+        "./dist/js/xui-bootstrap.js",
+        "./dist/css/xui-bootstrap.css",
+        "./dist/fonts/*"
+    ],
+    "ignore": [
+        "**/.*",
+        ".DS_Store",
+        ".gitignore",
+        ".idea",
+        ".sass-cache",
+        "bower_components",
+        "node_modules",
+        "logs",
+        "temp",
+        "test",
+        "tests"
+    ],
+    "license": "MIT",
+    "keywords": [
+        "atigeo",
+        "xui",
+        "xpatterns",
+        "platform",
+        "node",
+        "mongo",
+        "express",
+        "grunt",
+        "bower",
+        "big data",
+        "beanstack"
+    ]
 }

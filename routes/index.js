@@ -5,4 +5,5 @@ module.exports = function (app) {
 
     var root = require('./root')(app);
     var names = require('./random-names')(app);
+    var countries = require('./countries')(app);
 };
