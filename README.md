@@ -61,7 +61,7 @@ No databases are used for this REST service, and instead all data is stored in m
 
 ### Developer Install Script:
 
-sudo npm install -g grunt-cli; sudo npm install -g bower; npm install;
+sudo npm install -g grunt-cli; sudo npm install -g bower; sudo npm install -g forever; npm install;
 
 ### Installation instructions:
 
@@ -74,6 +74,8 @@ downloads all necessary dependencies and devDependencies listed in package.json.
 scratch for all new projects.
 
 ### Starting the application:
+
+Please make sure the "forever" node package has been installed globally. 
 
 > npm start
 

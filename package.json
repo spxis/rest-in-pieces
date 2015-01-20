@@ -1,7 +1,7 @@
 {
   "name": "rest-in-pieces",
   "displayName": "Rest In Pieces",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": {
     "name": "John Morris",
     "email": "john@spxis.com"
@@ -14,7 +14,7 @@
   "private": false,
   "main": "app.js",
   "scripts": {
-    "start": "node ./bin/www",
+    "start": "forever -d -v -a -e logs/forever-errors.log -o logs/forever-output.log --minUptime=5000 start bin/www",
     "postinstall": "node_modules/.bin/bower install && grunt install"
   },
   "dependencies": {
@@ -24,7 +24,6 @@
     "chance": "^0.7.1",
     "connect-mongo": "^0.4.1",
     "cookie-parser": "^1.3.3",
-    "country-data": "0.0.17",
     "debug": "^2.1.1",
     "express": "^4.9.0",
     "express-handlebars": "^1.0.1",
