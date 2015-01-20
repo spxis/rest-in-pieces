@@ -14,7 +14,7 @@
   "private": false,
   "main": "app.js",
   "scripts": {
-    "start": "node ./bin/www",
+    "start": "forever -d -v -a -e logs/forever-errors.log -o logs/forever-output.log --minUptime=5000 start bin/www",
     "postinstall": "node_modules/.bin/bower install && grunt install"
   },
   "dependencies": {
