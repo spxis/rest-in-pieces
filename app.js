@@ -22,7 +22,7 @@ logger.info('Process running at "%s"', process.title);
 var app = express();
 
 // Allow all requests to have the mongoose object.
-require('./config/database')(app);
+//require('./config/database')(app);
 require('./config/view-engine')(app);
 require('./config/security')(app);
 
