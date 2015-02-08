@@ -12,7 +12,10 @@ module.exports = function users(app) {
     var defaultMaxRecords = 1000;
     var defaultLimit = 10;
     var defaultOffset = 0;
+    var defaultSortDirection = 'asc';
     var defaultResultsName = 'results';
+    var defaultCountry = 'CA';
+    var defaultTimezone = 'America/Los_Angeles';
     var names = [];
 
     var renameProperty = function (object, oldName, newName) {
@@ -29,6 +32,29 @@ module.exports = function users(app) {
     };
     var chopArray = function (array, max) {
         return (_.first(array, max));
+    };
+    var checkSort = function (parameters, sortBy, sortDirection) {
+        var regex = /^\s*([\w-]+)\s*(?::([\w-]*))?\s*$/;
+        var matches = regex.exec(sortBy);
+
+        if (matches) {
+            parameters.sortBy = matches[1];
+            parameters.sortType = matches[2] || null;
+        } else {
+            parameters.sortBy = sortBy;
+            parameters.sortType = null;
+        }
+
+        parameters.sortDirection = sortDirection || defaultSortDirection;
+    };
+    var sortArray = function (array, sortBy, sortDirection, sortType) {
+        var sortedArray = [];
+
+        sortedArray = _.sortBy(array, function (user) {
+            return (user[sortBy]);
+        });
+
+        return (sortedArray);
     };
 
     var buildNames = function (maxRecords) {
@@ -54,7 +80,7 @@ module.exports = function users(app) {
             name.city = chance.city();
             name.province = chance.province();
             name.postal = chance.postal();
-            name.country = 'CA';
+            name.country = defaultCountry;
             name.gender = gender.toLowerCase();
 
             names.push(name);
@@ -65,6 +91,8 @@ module.exports = function users(app) {
     var getNames = function (req, res, next) {
         var size = (req.query.size || req.query.length || req.query.limit) || defaultLimit;
         var offset = req.query.offset || defaultOffset;
+        var sortBy = req.query.sortby || req.query.sortBy;
+        var sortDirection = req.query.sortdirection || req.query.sortDirection;
         var max = req.query.max || req.query.maxRecords || defaultMaxRecords;
         var resultsName = req.query.resultsName || defaultResultsName;
         var showMetadata = !(req.query.metadata && (req.query.metadata === '0' || req.query.metadata === 'false'));
@@ -88,8 +116,14 @@ module.exports = function users(app) {
 
         if (!names || names.length < 1) {
             names = buildNames(metadata.total);
-            metadata.lastUpdated = moment().tz('America/Los_Angeles').format();
+            metadata.lastUpdated = moment().tz(defaultTimezone).format();
             metadata.timestamp = moment(metadata.lastUpdated).format('x');
+        }
+
+        if (sortBy) {
+            logger.info('Sorting by array field: %s', sortBy);
+            checkSort(parameters, sortBy, sortDirection);
+            names = sortArray(names, parameters.sortBy, parameters.sortDirection, parameters.sortType);
         }
 
         metadata.parameters = parameters;
