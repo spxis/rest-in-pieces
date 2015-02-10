@@ -1,8 +1,12 @@
 <h3>Random Names</h3>
 <ul>
     <li><a href="/random-names?limit=10">First 10 records</a></li>
+    <li><a href="/random-names?limit=25&sortBy=name">First 25 records, sorted by Name</a></li>
+    <li><a href="/random-names?limit=10&sortBy=name&sortDirection=desc">First 10 records, sorted by Name in Descending order</a></li>
+    <li><a href="/random-names?limit=10&sortDirection=reverse">First 10 records in Reverse (last 10 records)</a></li>
     <li><a href="/random-names?limit=10&offset=10">Next 10 records</a></li>
     <li><a href="/random-names?limit=50">First 50 records</a></li>
+    <li><a href="/random-names?limit=50&metadata=0">First 50 records with no metadata</a></li>
     <li><a href="/random-names?limit=50&max=35">First 50 records with a 35 record maximum</a></li>
 </ul>
 
