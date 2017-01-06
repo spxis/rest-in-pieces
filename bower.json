@@ -5,9 +5,9 @@
     "name": "John Morris",
     "email": "john@spxis.com"
   },
-  "description": "This is the Atigeo BeanStack Full Stack JavaScript Project.",
-  "homepage": "http://www.atigeo.com",
-  "copyright": "© 2014-2015 Atigeo LLC. All Rights Reserved.",
+  "description": "This is the REST In Pieces Random Data Generator Project.",
+  "homepage": "http://www.spxis.com",
+  "copyright": "© 2014-2017 SPX Interactive Software. All Rights Reserved.",
   "dependencies": {
     "xui-bootstrap": "http://v-git.life.atigeo.com/xpatterns/xui-bootstrap.git#1.2.0",
     "chance": "~0.7.1",
@@ -39,8 +39,7 @@
   },
   "main": [
     "./dist/js/xui-bootstrap.js",
-    "./dist/css/xui-bootstrap.css",
-    "./dist/fonts/*"
+    "./dist/css/xui-bootstrap.css"
   ],
   "ignore": [
     "**/.*",
@@ -57,11 +56,27 @@
   ],
   "license": "MIT",
   "keywords": [
-    "atigeo",
-    "xui",
-    "xpatterns",
+    "rest",
+    "random",
+    "realistic",
+    "fake",
+    "dummy",
+    "data",
+    "mock",
+    "custom",
+    "generator",
+    "generation",
+    "rest",
+    "test",
+    "testing",
     "platform",
     "node",
+    "json",
+    "xml",
+    "csv",
+    "yaml",
+    "api",
+    "service",
     "mongo",
     "express",
     "grunt",
