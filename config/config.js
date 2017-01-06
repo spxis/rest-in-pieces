@@ -2,7 +2,7 @@ module.exports = {
     development: {
         env: 'development',
         serverUri: 'http://localhost', /* Website location for information only */
-        serverPort: 6789,
+        serverPort: 8089,
         enableDatabase: false, /* When true, starts the Mongoose database connection */
         dbLocation: 'localhost',
         dbName: 'db-dev',
@@ -20,7 +20,7 @@ module.exports = {
     staging: {
         env: 'staging',
         serverUri: 'http://localhost', /* Website location for information only */
-        serverPort: 6788,
+        serverPort: 8085,
         enableDatabase: false, /* When true, starts the Mongoose database connection */
         dbLocation: 'localhost',
         dbName: 'db-staging',
@@ -38,7 +38,7 @@ module.exports = {
     production: {
         env: 'production',
         serverUri: 'https://localhost', /* Website location for information only */
-        serverPort: 80,
+        serverPort: 8080,
         enableDatabase: false, /* When true, starts the Mongoose database connection */
         dbLocation: 'localhost',
         dbName: 'db-prod',

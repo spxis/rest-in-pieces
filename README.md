@@ -87,9 +87,9 @@ If you see the "uncaughtException: listen EADDRINUSE" then you need to configure
 
 ### Pre-configured environments:
 
-- Development: running on port 8080
-- Staging: running on port 8080
-- Production: running on port 80
+- Development: running on port 8089
+- Staging: running on port 8085
+- Production: running on port 8080
 
 ### Release History
 See the [CHANGELOG](CHANGELOG).
