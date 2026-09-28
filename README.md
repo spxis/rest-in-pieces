@@ -1,95 +1,86 @@
-# REST in Pieces: Fully Capable REST Service for Testing Client-Side Components
+# REST in Pieces
 
-### Introduction
+A small REST service that serves realistic, repeatable fake data, so you can build and test client applications (tables, paging, sorting, infinite scroll, empty and end-of-data states) before a real backend exists.
 
-This is the REST in Pieces Full Stack REST service, based on the Atigeo BeanStack Full Stack JavaScript framework. 
-This REST service is used to provide your full-stack client-side applications with a quick and powerful REST service
-that can feed you random but consistent data.
+The data is generated from a fixed seed. The same request always returns the same records, on any machine and after any restart.
 
-### What does the BEAN stand for? 
+## Quick start
 
-BEAN (Bootstrap, Express, AngularJS, Node.js)
+Requires Node.js 22.18+ (24 LTS recommended) and pnpm.
 
-### Usage
-
-#### Names Service
-
-Basic Use
-
-```
-http://localhost:8080/names - Returns a random set of names with the following data:
+```sh
+pnpm install
+pnpm dev          # http://localhost:8080
 ```
 
-Setting the Offset (default 0) and Limit (default 10)
+| Script           | What it does                        |
+| ---------------- | ----------------------------------- |
+| `pnpm dev`       | Start the API with file watching    |
+| `pnpm start`     | Start the API                       |
+| `pnpm test`      | Run the test suite                  |
+| `pnpm typecheck` | Type-check every workspace          |
+| `pnpm lint`      | Lint and check formatting (Biome)   |
+| `pnpm format`    | Apply lint fixes and formatting     |
+
+Set `PORT` to change the port.
+
+## API
+
+### `GET /names`
+
+Also available at `/random-names`. Returns fake people:
+
+```json
+{
+  "metadata": {
+    "count": 2,
+    "total": 1000,
+    "timestamp": "1790570600275",
+    "lastUpdated": "2026-09-28T04:43:20.275Z",
+    "output": { "results": "results" },
+    "version": "2.0.0",
+    "parameters": { "size": 2, "offset": 0, "max": 1000, "sortBy": null, "sortType": "string", "sortDirection": "asc" }
+  },
+  "results": [
+    { "index": 0, "name": "…", "age": 34, "address": "…", "city": "…", "province": "…", "postal": "…", "country": "CA", "gender": "female" }
+  ]
+}
+```
+
+| Parameter       | Aliases                      | Default   | Description |
+| --------------- | ---------------------------- | --------- | ----------- |
+| `limit`         | `size`, `length`             | `10`      | Records per page (max 1000). |
+| `offset`        |                              | `0`       | Records to skip. |
+| `max`           | `maxRecords`                 | `1000`    | Caps the size of the dataset, useful for testing end-of-data handling. |
+| `sortBy`        | `sortby`, `sortField`        | none      | Field to sort by. Append `:numeric` to compare as numbers, e.g. `age:numeric`. |
+| `sortDirection` | `sortOrder`, `sortdirection` | `asc`     | `desc`, `descending`, `reverse`, `rev`, `backwards` or `-1` sort descending. |
+| `metadata`      |                              | on        | `0` or `false` returns the bare array. |
+| `resultsName`   |                              | `results` | Renames the results key, e.g. `rows`. |
+
+Examples:
 
 ```
-http://localhost:8080/names?offset=5&limit=5
+/names?offset=5&limit=5
+/names?max=25&offset=20&limit=10
+/names?sortBy=name&sortDirection=desc
+/names?metadata=false
+/names?resultsName=rows
 ```
 
-Capping out the maximum number of records the service can provide, useful for providing end-of-data scenarios.
+### `GET /countries`
+
+Returns every country with ISO codes, currencies, languages and calling codes. Accepts `limit` and `offset`.
+
+### `GET /health`
+
+Returns `{ "status": "ok" }`.
+
+## Project layout
 
 ```
-http://localhost:8080/names?max=25&offset=20limit=10
+apps/api     Hono API (TypeScript, runs directly on Node)
 ```
 
-Turning off the Metadata object to get only pure data
+## License
 
-```
-http://localhost:8080/names?metadata=1
-http://localhost:8080/names?metadata=false
-```
-
-Changing the name of the output results array
-
-```
-http://localhost:8080/names?resultsName=rows
-```
-
-### Front-End Package Management and Automation 
-
-We have adopted two powerful tools for package management and automation (there are several key ones out there):
-
-- **Grunt** - powerful server-side JavaScript task runner, simplifying tasks that require automation and repetition. An essential tool that should be used by every development team. What does this mean and how does it save you time? Your JavaScript code is linted, libraries are compressed, obfuscated and concatenated. The CSS in SASS files are compiled into working CSS files. These CSS files are also compressed and concatenated. Grunt saves you a lot of time and can help with your deployment processes.
-- **Bower** - powerful front-end JavaScript package manager. Works perfectly with Grunt when maintaining client-side applications. There is no need to manually grab updates for JavaScript libraries when they are updated. Bower handles this for you. With the help of Grunt, these files are automatically moved into your web application where they can
-be used immediately for web development.
-
-The **gruntfile.js** and **bower.json** files used by Grunt and Bower are pre-configured for out-of-the-box development. 
-
-### Databases
-
-No databases are used for this REST service, and instead all data is stored in memory.
-
-### Developer Install Script:
-
-sudo npm install -g grunt-cli; sudo npm install -g bower; sudo npm install -g forever; npm install;
-
-### Installation instructions:
-
-When performing a clean install, npm looks at the package.json folder.
-
-> npm install
-
-Make sure there is no "node_modules" folder. The "install" command creates that folder and 
-downloads all necessary dependencies and devDependencies listed in package.json. It is best to do everything from 
-scratch for all new projects.
-
-### Starting the application:
-
-Please make sure the "forever" node package has been installed globally. 
-
-> npm start
-
-Traditionally, an ExpressJS application can be started with the "node app.js" command. We use "npm start" to run the 
-application. npm looks inside the package.json file for instructions on what configuration options to use for the 
-'start' command in the "scripts" section.
-
-If you see the "uncaughtException: listen EADDRINUSE" then you need to configure different ports in config/config.js.
-
-### Pre-configured environments:
-
-- Development: running on port 8089
-- Staging: running on port 8085
-- Production: running on port 8080
-
-### Release History
-See the [CHANGELOG](CHANGELOG).
+MIT © 2014–2026 SPX Interactive Software
