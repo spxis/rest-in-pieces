@@ -11,8 +11,11 @@
     "node": ">=22.18"
   },
   "scripts": {
-    "dev": "pnpm --filter @rest-in-pieces/api dev",
+    "dev": "pnpm -r --parallel dev",
+    "dev:api": "pnpm --filter @rest-in-pieces/api dev",
+    "dev:web": "pnpm --filter @rest-in-pieces/web dev",
     "start": "pnpm --filter @rest-in-pieces/api start",
+    "build": "pnpm --filter @rest-in-pieces/web build",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
     "lint": "biome check .",
