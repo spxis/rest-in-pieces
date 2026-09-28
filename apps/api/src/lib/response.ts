@@ -3,14 +3,17 @@ import type { MiddlewareHandler } from 'hono';
 import { stringify } from 'yaml';
 import { flagParam, intParam, pick } from './query.ts';
 
-type OutputFormat = 'csv' | 'yaml' | 'xml';
+type OutputFormat = 'json' | 'csv' | 'yaml' | 'xml';
 
 const FORMATS = new Set<OutputFormat>(['csv', 'yaml', 'xml']);
 const XML_BUILDER = new XMLBuilder({ format: true, suppressEmptyNode: true });
 
 function requestedFormat(queryFormat: string | undefined, accept: string | undefined): OutputFormat | null {
-  if (queryFormat)
-    return FORMATS.has(queryFormat.toLowerCase() as OutputFormat) ? (queryFormat.toLowerCase() as OutputFormat) : null;
+  if (queryFormat) {
+    const normalized = queryFormat.toLowerCase();
+    if (normalized === 'json') return 'json';
+    return FORMATS.has(normalized as OutputFormat) ? (normalized as OutputFormat) : null;
+  }
   const normalizedAccept = accept?.toLowerCase();
   if (normalizedAccept?.includes('text/csv')) return 'csv';
   if (
@@ -86,7 +89,12 @@ export const responseControls: MiddlewareHandler = async (c, next) => {
     }
   }
 
-  if (!format || !response.headers.get('content-type')?.includes('application/json')) {
+  if (
+    !format ||
+    format === 'json' ||
+    [204, 205, 304].includes(response.status) ||
+    !response.headers.get('content-type')?.includes('application/json')
+  ) {
     if (response !== c.res) c.res = response;
     return response;
   }

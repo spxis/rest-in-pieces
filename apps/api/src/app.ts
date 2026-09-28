@@ -1,3 +1,4 @@
+import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
@@ -17,7 +18,13 @@ app.use(secureHeaders());
 app.use(cors());
 app.use(responseControls);
 
-app.route('/', home);
+if (process.env.SERVE_WEB === 'true') {
+  const webRoot = process.env.WEB_ROOT ?? '../web/dist';
+  app.use('/assets/*', serveStatic({ root: webRoot }));
+  app.get('/', serveStatic({ root: webRoot, path: 'index.html' }));
+} else {
+  app.route('/', home);
+}
 app.route('/names', names);
 app.route('/random-names', names);
 app.route('/countries', countries);

@@ -16,7 +16,10 @@ const response200 = {
 
 const controlParameters = [
   queryParameter('seed', 'Seed for repeatable generated data.', { type: 'integer', minimum: 0 }),
-  queryParameter('format', 'Output format: csv, yaml, or xml.', { type: 'string', enum: ['csv', 'yaml', 'xml'] }),
+  queryParameter('format', 'Output format: json, csv, yaml, or xml.', {
+    type: 'string',
+    enum: ['json', 'csv', 'yaml', 'xml'],
+  }),
   queryParameter('delay', 'Artificial response delay in milliseconds.', {
     type: 'integer',
     minimum: 0,
