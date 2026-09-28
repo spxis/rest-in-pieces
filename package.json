@@ -17,12 +17,14 @@
     "start": "pnpm --filter @rest-in-pieces/api start",
     "build": "pnpm --filter @rest-in-pieces/web build",
     "test": "pnpm -r test",
+    "test:e2e": "playwright test",
     "typecheck": "pnpm -r typecheck",
     "lint": "biome check .",
     "format": "biome check --write ."
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",
+    "@playwright/test": "^1.63.0",
     "typescript": "^7.0.2"
   }
 }

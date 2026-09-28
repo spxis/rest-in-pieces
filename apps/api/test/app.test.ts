@@ -43,6 +43,10 @@ describe('app', () => {
   });
 
   it('serializes JSON responses as CSV, YAML, and XML', async () => {
+    const json = await app.request('/health?format=json');
+    expect(json.headers.get('content-type')).toContain('application/json');
+    expect(await json.json()).toEqual({ status: 'ok' });
+
     const csv = await app.request('/generate?fields=name:person.firstName&limit=2&format=csv');
     expect(csv.headers.get('content-type')).toContain('text/csv');
     expect(await csv.text()).toContain('name');
@@ -54,6 +58,12 @@ describe('app', () => {
     const xml = await app.request('/health?format=xml');
     expect(xml.headers.get('content-type')).toContain('application/xml');
     expect(await xml.text()).toContain('<status>ok</status>');
+  });
+
+  it('preserves bodyless status overrides when a response format is selected', async () => {
+    const response = await app.request('/health?status=204&format=csv');
+    expect(response.status).toBe(204);
+    expect(await response.text()).toBe('');
   });
 
   it('simulates response delays, status codes, and failures', async () => {

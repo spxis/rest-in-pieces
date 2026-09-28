@@ -269,6 +269,39 @@ h1 {
   background: var(--green);
   box-shadow: 0 2px 5px #17392424;
 }
+.scenario-presets {
+  display: grid;
+  gap: 9px;
+  padding: 15px 0 14px;
+  border-bottom: 1px solid #e6eae4;
+}
+.scenario-presets > .section-caption {
+  color: #6c786f;
+  font: 500 9px var(--mono);
+}
+.scenario-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.scenario-buttons button {
+  min-height: 32px;
+  padding: 0 9px;
+  border: 1px solid #dfe5dc;
+  border-radius: 4px;
+  color: #526558;
+  background: #fbfcf9;
+  cursor: pointer;
+  font-size: 10px;
+  text-align: left;
+  transition:
+    border-color 130ms ease,
+    background 130ms ease;
+}
+.scenario-buttons button:hover {
+  border-color: #a8b9a8;
+  background: #f0f5eb;
+}
 .form-section {
   padding: 19px 0 17px;
   border-bottom: 1px solid #e6eae4;
@@ -516,6 +549,7 @@ h1 {
 }
 .preview-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 14px;
   margin-top: 7px;
 }

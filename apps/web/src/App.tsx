@@ -7,6 +7,7 @@ import {
   Copy,
   ExternalLink,
   Globe2,
+  Link2,
   LoaderCircle,
   Plus,
   Send,
@@ -19,6 +20,23 @@ type Endpoint = 'names' | 'countries' | 'generate';
 type OutputFormat = 'json' | 'csv' | 'yaml' | 'xml';
 type ResultTab = 'body' | 'headers';
 type Field = { id: number; name: string; type: string };
+type PlaygroundConfig = {
+  endpoint: Endpoint;
+  apiBase: string;
+  limit: number;
+  offset: number;
+  max: number;
+  seed: number;
+  sortBy: string;
+  sortType: 'string' | 'numeric';
+  sortDirection: 'asc' | 'desc';
+  format: OutputFormat;
+  metadata: boolean;
+  delay: number;
+  status: number;
+  fail: boolean;
+  fields: Field[];
+};
 type RequestResult = {
   status: number;
   statusText: string;
@@ -49,25 +67,89 @@ function shellQuote(value: string): string {
   return `'${value.replaceAll("'", "'\\''")}'`;
 }
 
-export default function App() {
-  const [endpoint, setEndpoint] = useState<Endpoint>('names');
-  const [apiBase, setApiBase] = useState(DEFAULT_API);
-  const [limit, setLimit] = useState(10);
-  const [offset, setOffset] = useState(0);
-  const [max, setMax] = useState(1000);
-  const [seed, setSeed] = useState(1);
-  const [sortBy, setSortBy] = useState('');
-  const [sortType, setSortType] = useState<'string' | 'numeric'>('string');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [format, setFormat] = useState<OutputFormat>('json');
-  const [metadata, setMetadata] = useState(true);
-  const [delay, setDelay] = useState(0);
-  const [status, setStatus] = useState(500);
-  const [fail, setFail] = useState(false);
-  const [fields, setFields] = useState<Field[]>([
+function readSharedConfig(): PlaygroundConfig {
+  const params = new URLSearchParams(window.location.hash.slice(1));
+  const number = (key: string, fallback: number, min: number, max: number) => {
+    const raw = params.get(key);
+    if (raw === null || raw.trim() === '') return fallback;
+    const value = Number(raw);
+    return Number.isInteger(value) && value >= min && value <= max ? value : fallback;
+  };
+  const endpoint = params.get('endpoint');
+  const format = params.get('format');
+  const sortType = params.get('sortType');
+  const sortDirection = params.get('sortDirection');
+  let fields = [
     { id: 1, name: 'name', type: 'person.fullName' },
     { id: 2, name: 'email', type: 'internet.email' },
-  ]);
+  ];
+  try {
+    const decoded = JSON.parse(params.get('fields') || 'null') as unknown;
+    if (
+      Array.isArray(decoded) &&
+      decoded.length > 0 &&
+      decoded.length <= 50 &&
+      decoded.every((field: unknown) => {
+        if (typeof field !== 'object' || field === null) return false;
+        const candidate = field as Record<string, unknown>;
+        return (
+          Number.isInteger(candidate.id) && typeof candidate.name === 'string' && typeof candidate.type === 'string'
+        );
+      })
+    ) {
+      fields = decoded as Field[];
+    }
+  } catch {
+    fields = [
+      { id: 1, name: 'name', type: 'person.fullName' },
+      { id: 2, name: 'email', type: 'internet.email' },
+    ];
+  }
+  return {
+    endpoint: endpoint === 'countries' || endpoint === 'generate' ? endpoint : 'names',
+    apiBase: params.get('apiBase') || DEFAULT_API,
+    limit: number('limit', 10, 0, 1000),
+    offset: number('offset', 0, 0, 1000000),
+    max: number('max', 1000, 0, 1000),
+    seed: number('seed', 1, 0, 4294967295),
+    sortBy: params.get('sortBy') || '',
+    sortType: sortType === 'numeric' ? 'numeric' : 'string',
+    sortDirection: sortDirection === 'desc' ? 'desc' : 'asc',
+    format: format === 'csv' || format === 'yaml' || format === 'xml' ? format : 'json',
+    metadata: params.get('metadata') !== 'false',
+    delay: number('delay', 0, 0, 10000),
+    status: number('status', 500, 400, 599),
+    fail: params.get('fail') === 'true',
+    fields,
+  };
+}
+
+function apiEnvironment(base: string): string {
+  try {
+    const hostname = new URL(base).hostname;
+    return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]' ? 'LOCAL API' : 'REMOTE API';
+  } catch {
+    return 'API URL';
+  }
+}
+
+export default function App() {
+  const [initialConfig] = useState(readSharedConfig);
+  const [endpoint, setEndpoint] = useState<Endpoint>(initialConfig.endpoint);
+  const [apiBase, setApiBase] = useState(initialConfig.apiBase);
+  const [limit, setLimit] = useState(initialConfig.limit);
+  const [offset, setOffset] = useState(initialConfig.offset);
+  const [max, setMax] = useState(initialConfig.max);
+  const [seed, setSeed] = useState(initialConfig.seed);
+  const [sortBy, setSortBy] = useState(initialConfig.sortBy);
+  const [sortType, setSortType] = useState<'string' | 'numeric'>(initialConfig.sortType);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(initialConfig.sortDirection);
+  const [format, setFormat] = useState<OutputFormat>(initialConfig.format);
+  const [metadata, setMetadata] = useState(initialConfig.metadata);
+  const [delay, setDelay] = useState(initialConfig.delay);
+  const [status, setStatus] = useState(initialConfig.status);
+  const [fail, setFail] = useState(initialConfig.fail);
+  const [fields, setFields] = useState<Field[]>(initialConfig.fields);
   const [generatorTypes, setGeneratorTypes] = useState<string[]>(DEFAULT_GENERATORS);
   const [generatorState, setGeneratorState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const generatorRequest = useRef<Promise<void> | null>(null);
@@ -75,7 +157,7 @@ export default function App() {
   const [result, setResult] = useState<RequestResult | null>(null);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<ResultTab>('body');
-  const [copied, setCopied] = useState<'url' | 'curl' | 'body' | null>(null);
+  const [copied, setCopied] = useState<'url' | 'curl' | 'body' | 'setup' | null>(null);
 
   const openEndpoint = (next: Endpoint) => {
     setEndpoint(next);
@@ -120,6 +202,38 @@ export default function App() {
     return { url: `${base}${apiPath(endpoint)}?${params.toString()}`, parameterCount: params.size };
   };
 
+  const applyScenario = (scenario: 'next-page' | 'end-of-results' | 'slow-response' | 'service-unavailable') => {
+    setEndpoint('names');
+    setOffset(scenario === 'next-page' ? limit : scenario === 'end-of-results' ? 20 : 0);
+    setMax(scenario === 'end-of-results' ? 20 : 1000);
+    setDelay(scenario === 'slow-response' ? 1200 : 0);
+    setFail(scenario === 'service-unavailable');
+    setStatus(scenario === 'service-unavailable' ? 503 : 500);
+  };
+
+  const setupUrl = () => {
+    const params = new URLSearchParams({
+      endpoint,
+      apiBase,
+      limit: String(limit),
+      offset: String(offset),
+      max: String(max),
+      seed: String(seed),
+      sortBy,
+      sortType,
+      sortDirection,
+      format,
+      metadata: String(metadata),
+      delay: String(delay),
+      status: String(status),
+      fail: String(fail),
+      fields: JSON.stringify(fields),
+    });
+    const url = new URL(window.location.href);
+    url.hash = params.toString();
+    return url.toString();
+  };
+
   const { url, parameterCount } = buildRequest();
   const curlCommand = `curl -i -H ${shellQuote(`Accept: ${mimeFor(format)}`)} ${shellQuote(url)}`;
 
@@ -157,7 +271,7 @@ export default function App() {
     }
   };
 
-  const copy = async (value: string, kind: 'url' | 'curl' | 'body') => {
+  const copy = async (value: string, kind: 'url' | 'curl' | 'body' | 'setup') => {
     await navigator.clipboard.writeText(value);
     setCopied(kind);
   };
@@ -184,7 +298,7 @@ export default function App() {
         </a>
         <div className="topbar-right">
           <span className="environment">
-            <i /> LOCAL API
+            <i /> {apiEnvironment(apiBase)}
           </span>
           <a className="docs-link" href={`${apiBase.replace(/\/+$/, '')}/docs`} target="_blank" rel="noreferrer">
             API docs <ExternalLink size={14} />
@@ -252,6 +366,26 @@ export default function App() {
                 <Braces size={15} /> Generate
               </button>
             </div>
+
+            <section className="scenario-presets" aria-labelledby="scenario-heading">
+              <span className="section-caption" id="scenario-heading">
+                REPEATABLE SCENARIOS
+              </span>
+              <div className="scenario-buttons">
+                <button type="button" onClick={() => applyScenario('next-page')}>
+                  Next page
+                </button>
+                <button type="button" onClick={() => applyScenario('end-of-results')}>
+                  End of results
+                </button>
+                <button type="button" onClick={() => applyScenario('slow-response')}>
+                  Slow response
+                </button>
+                <button type="button" onClick={() => applyScenario('service-unavailable')}>
+                  503 error
+                </button>
+              </div>
+            </section>
 
             {endpoint === 'generate' && (
               <div className="form-section fields-section">
@@ -478,6 +612,15 @@ export default function App() {
                 >
                   {copied === 'curl' ? <Check size={14} /> : <Copy size={14} />}
                   {copied === 'curl' ? 'Copied' : 'Copy curl'}
+                </button>
+                <button
+                  type="button"
+                  className="quiet-button"
+                  onClick={() => void copy(setupUrl(), 'setup')}
+                  title="Copy playground setup link"
+                >
+                  {copied === 'setup' ? <Check size={14} /> : <Link2 size={14} />}
+                  {copied === 'setup' ? 'Copied' : 'Share setup'}
                 </button>
               </div>
             </div>
