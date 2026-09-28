@@ -15,6 +15,7 @@ Every dataset is generated from a seed. The same URL returns the same records on
 
 - **Repeatable data.** `?seed=42` always returns the same records. Screenshots, snapshot tests and bug reports stay stable.
 - **Realistic collections.** People, users, products, companies and countries, plus any shape you describe with 237 generator types.
+- **Japanese data too.** `?locale=ja` switches every dataset to data written for a Japanese audience: kanji names with katakana readings, real prefectures and cities, 〒 postal codes, mobile numbers, yen prices and Japanese country names.
 - **Everything a list screen needs.** Paging, sorting, field filters with ranges, free-text search, `X-Total-Count` and `Link` headers, and ETags.
 - **The unhappy path on demand.** `?delay=1500`, `?status=503` or `?fail=0.2` rehearse slow, failing and flaky backends without touching your client.
 - **Any format.** JSON, CSV, YAML or XML, chosen by `?format=` or the `Accept` header.
@@ -58,6 +59,9 @@ curl 'http://localhost:8080/users/42?seed=7'
 # Books under $100 as CSV
 curl 'http://localhost:8080/products?department=Books&price[lt]=100&format=csv'
 
+# The same people, for a Japanese audience
+curl 'http://localhost:8080/names?locale=ja&province=東京都&limit=5'
+
 # Your own shape
 curl 'http://localhost:8080/generate?fields=name:person.fullName,email:internet.email,plan:commerce.productAdjective&seed=3'
 curl -X POST 'http://localhost:8080/generate?limit=5' \
@@ -99,6 +103,7 @@ These work on every collection, including `/generate`.
 | `q`             | none      | Case-insensitive search across every field. |
 | *field name*    | none      | Filters: `gender=female`, `province=Ontario,Quebec`, `age[gte]=30`. Operators: `eq`, `ne`, `gt`, `gte`, `lt`, `lte`. |
 | `seed`          | `1`       | Selects a repeatable dataset. |
+| `locale`        | `en-CA`   | `ja` for Japanese data. See [Japanese data](#japanese-data). |
 | `metadata`      | on        | `false` returns the bare array. `/countries` defaults to off for compatibility. |
 | `resultsName`   | `results` | Renames the results key, e.g. `rows`. |
 | `format`        | `json`    | `csv`, `yaml` or `xml`. The `Accept` header works too. |
@@ -119,7 +124,7 @@ Simulated responses carry `X-Simulated: true`, and 429 and 503 carry `Retry-Afte
     "lastUpdated": "2026-09-28T17:55:13.511Z",
     "output": { "results": "results" },
     "version": "2.1.0",
-    "parameters": { "size": 10, "offset": 0, "max": 1000, "seed": 1, "q": null, "sortBy": null, "sortType": "string", "sortDirection": "asc" },
+    "parameters": { "size": 10, "offset": 0, "max": 1000, "seed": 1, "locale": "en-CA", "q": null, "sortBy": null, "sortType": "string", "sortDirection": "asc" },
     "links": { "self": "/names?limit=10&offset=0", "first": "…", "last": "…", "prev": null, "next": "/names?limit=10&offset=10" }
   },
   "results": [{ "index": 0, "name": "Aaliyah Corkery", "age": 26, "…": "…" }]
@@ -127,6 +132,30 @@ Simulated responses carry `X-Simulated: true`, and 429 and 503 carry `Retry-Afte
 ```
 
 `total` counts the records after filters and `max`. The same numbers are in the `X-Total-Count` and `Link` headers, which are exposed to browsers through CORS.
+
+## Japanese data
+
+Add `locale=ja` to any dataset, item route or `/generate` call. Records keep the same shape and field names, so a client can switch locales without code changes. Japanese records add readings where Japanese forms ask for them.
+
+| Dataset      | What changes with `locale=ja` |
+| ------------ | ----------------------------- |
+| `/names`     | Family name first (`佐藤 花子`), plus `nameKana` (`サトウ ハナコ`) and `nameRomaji` (`Sato Hanako`). Prefectures and real cities, weighted by population, and `123-4567` postal codes. |
+| `/users`     | Kanji names with `firstNameKana` and `lastNameKana`, romaji usernames and emails, mobile numbers (`090-1234-5678`) and Japanese job titles. |
+| `/products`  | Japanese products and departments, priced in whole yen the way shops write them (`1980`, `2000`), with `currency: "JPY"`. |
+| `/companies` | `株式会社` names, industries, slogans, romaji domains and area codes such as `03` for Tokyo. |
+| `/countries` | Country names in Japanese (`カナダ`, `日本`) from the runtime's CLDR data. |
+| `/generate`  | Every generator uses Faker's Japanese locale. |
+
+Filters and search work on Japanese text: `/names?locale=ja&province=東京都`. Responses carry `Content-Language`, and `metadata.parameters.locale` records the choice. `gender` stays `male` or `female` in every locale so filters are portable.
+
+### 日本語データ
+
+任意のエンドポイントに `locale=ja` を付けると、日本向けのデータを返します。氏名は姓・名の順で、フリガナ（`nameKana`）とローマ字（`nameRomaji`）付き。住所は実在の都道府県と市区町村、郵便番号は `123-4567` 形式、電話番号は `090-1234-5678` 形式、商品の価格は円単位（`1980` や `2000` など）です。同じ `seed` なら、いつでも同じデータが返ります。
+
+```sh
+curl 'http://localhost:8080/users?locale=ja&limit=5'
+curl 'http://localhost:8080/products?locale=ja&sortBy=price:numeric&format=csv'
+```
 
 ## Architecture
 

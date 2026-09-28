@@ -55,4 +55,5 @@ export const RESERVED_PARAMS = new Set([
   'fail',
   'fields',
   'q',
+  'locale',
 ]);

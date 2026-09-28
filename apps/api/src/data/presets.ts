@@ -4,6 +4,9 @@ export interface User {
   id: number;
   firstName: string;
   lastName: string;
+  /** Japanese records only: name readings in katakana. */
+  firstNameKana?: string;
+  lastNameKana?: string;
   username: string;
   email: string;
   avatar: string;
@@ -23,7 +26,7 @@ export interface Product {
   department: string;
   description: string;
   price: number;
-  currency: 'CAD';
+  currency: 'CAD' | 'JPY';
   rating: number;
   stock: number;
   inStock: boolean;

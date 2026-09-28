@@ -1,4 +1,5 @@
-import { fakerEN_CA as faker } from '@faker-js/faker';
+import { type Faker, fakerEN_CA as faker } from '@faker-js/faker';
+import { fakerFor, type Locale } from '../lib/locale.ts';
 
 /** Faker modules offered to custom schemas. Helpers, seeding and locale internals are left out on purpose. */
 const MODULES = [
@@ -32,7 +33,8 @@ const MODULES = [
 /** Methods that work without arguments but produce values too large for list responses. */
 const EXCLUDED = new Set(['image.dataUri', 'image.personPortrait']);
 
-type Generator = () => unknown;
+/** Calls one Faker method on whichever locale's instance it is given. */
+type Generator = (instance: Faker) => unknown;
 
 function methodNames(target: object): string[] {
   const names = new Set<string>();
@@ -62,11 +64,14 @@ function buildRegistry(): Map<string, Generator> {
       const type = `${module}.${method}`;
       const fn = instance[method];
       if (EXCLUDED.has(type) || typeof fn !== 'function') continue;
-      const generate: Generator = () => (fn as () => unknown).call(instance);
+      const generate: Generator = (source) => {
+        const target = source[module] as unknown as Record<string, () => unknown>;
+        return target[method]?.call(target);
+      };
       // Only methods that work without arguments are offered.
       try {
         deprecated = false;
-        generate();
+        generate(faker);
         if (!deprecated) registry.set(type, generate);
       } catch {}
     }
@@ -133,11 +138,17 @@ export function parseFieldList(value: string): FieldSpec[] {
   return validateFields(fields);
 }
 
-export function generateRecords(fields: readonly FieldSpec[], count: number, seed: number): Record<string, unknown>[] {
-  faker.seed(seed);
+export function generateRecords(
+  fields: readonly FieldSpec[],
+  count: number,
+  seed: number,
+  locale: Locale = 'en-CA',
+): Record<string, unknown>[] {
+  const source = fakerFor(locale);
+  source.seed(seed);
   return Array.from({ length: count }, (_, index) => {
     const record: Record<string, unknown> = { index };
-    for (const { name, type } of fields) record[name] = registry.get(type)?.();
+    for (const { name, type } of fields) record[name] = registry.get(type)?.(source);
     return record;
   });
 }

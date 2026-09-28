@@ -3,6 +3,10 @@ import { fakerEN_CA as faker } from '@faker-js/faker';
 export interface Person {
   index: number;
   name: string;
+  /** Japanese records only: the name in katakana. */
+  nameKana?: string;
+  /** Japanese records only: the name in romaji, family name first. */
+  nameRomaji?: string;
   age: number;
   address: string;
   city: string;

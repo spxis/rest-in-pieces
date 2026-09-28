@@ -11,6 +11,7 @@ import pkg from '../package.json' with { type: 'json' };
 import { SchemaError } from './data/generators.ts';
 import { simulate } from './lib/controls.ts';
 import { UnsupportedFormatError } from './lib/format.ts';
+import { UnsupportedLocaleError } from './lib/locale.ts';
 import { resources } from './resources.ts';
 import { collectionRoutes } from './routes/collection.ts';
 import { generate } from './routes/generate.ts';
@@ -70,7 +71,9 @@ app.route('/', home);
 
 app.notFound((c) => c.json({ error: 'Not Found' }, 404));
 app.onError((err, c) => {
-  if (err instanceof SchemaError || err instanceof UnsupportedFormatError) return c.json({ error: err.message }, 400);
+  if (err instanceof SchemaError || err instanceof UnsupportedFormatError || err instanceof UnsupportedLocaleError) {
+    return c.json({ error: err.message }, 400);
+  }
   console.error(err);
   return c.json({ error: 'Internal Server Error' }, 500);
 });

@@ -96,6 +96,7 @@ export function setPaginationHeaders(c: Context, links: PageLinks, total: number
 export interface EnvelopeMeta {
   generatedAt: Date;
   seed: number | null;
+  locale: string;
 }
 
 /** Builds the response body: the legacy metadata envelope, or the bare page when `metadata=false`. */
@@ -115,6 +116,7 @@ export function buildBody<T>(page: Page<T>, links: PageLinks, meta: EnvelopeMeta
         offset: options.offset,
         max: options.max,
         seed: meta.seed,
+        locale: meta.locale,
         q: options.q ?? null,
         ...options.sort,
       },

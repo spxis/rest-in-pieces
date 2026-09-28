@@ -13,6 +13,8 @@ const examples = [
   ['/products?department=Books&sortBy=price:numeric', 'Books, cheapest first'],
   ['/companies?limit=5&format=csv', 'Companies as CSV'],
   ['/countries/CA', 'One country by ISO code'],
+  ['/names?locale=ja&limit=5', 'Japanese people with readings'],
+  ['/products?locale=ja&sortBy=price:numeric', 'Japanese products in yen'],
   ['/generate?fields=name:person.fullName,email:internet.email&limit=5&seed=42', 'Custom records'],
   ['/names?delay=1500', 'A slow response'],
   ['/names?status=503', 'A 503 error'],

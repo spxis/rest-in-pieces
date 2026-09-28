@@ -21,6 +21,9 @@ export const ListQuery = z
     metadata: param('`false` returns the bare array instead of the metadata envelope.'),
     resultsName: param('Renames the results key, e.g. `rows`.'),
     seed: param('Selects a repeatable dataset. The same seed always returns the same records.', '1'),
+    locale: param(
+      '`en-CA` (default) or `ja` for Japanese data: kanji names with katakana readings, prefectures, 〒 postal codes, yen prices and Japanese country names.',
+    ),
     format: param('`json` (default), `csv`, `yaml` or `xml`. The `Accept` header works too.'),
     delay: param('Wait this many milliseconds before responding, up to 10000.'),
     status: param('Respond with this status (200–599). 4xx and 5xx return a simulated error.'),
@@ -61,6 +64,11 @@ export const Person = z
   .object({
     index: z.number().int(),
     name: z.string(),
+    nameKana: z.string().optional().openapi({ description: 'Japanese records only: the name in katakana.' }),
+    nameRomaji: z
+      .string()
+      .optional()
+      .openapi({ description: 'Japanese records only: the name in romaji, family name first.' }),
     age: z.number().int(),
     address: z.string(),
     city: z.string(),
@@ -88,6 +96,8 @@ export const User = z
     id: z.number().int(),
     firstName: z.string(),
     lastName: z.string(),
+    firstNameKana: z.string().optional().openapi({ description: 'Japanese records only: katakana reading.' }),
+    lastNameKana: z.string().optional().openapi({ description: 'Japanese records only: katakana reading.' }),
     username: z.string(),
     email: z.string(),
     avatar: z.string().url(),
@@ -109,7 +119,7 @@ export const Product = z
     department: z.string(),
     description: z.string(),
     price: z.number(),
-    currency: z.literal('CAD'),
+    currency: z.enum(['CAD', 'JPY']),
     rating: z.number(),
     stock: z.number().int(),
     inStock: z.boolean(),

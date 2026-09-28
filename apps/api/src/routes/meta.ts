@@ -1,6 +1,7 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import pkg from '../../package.json' with { type: 'json' };
 import { generatorModules, generatorTypes } from '../data/generators.ts';
+import { LOCALES } from '../lib/locale.ts';
 import { resources } from '../resources.ts';
 
 const started = Date.now();
@@ -50,6 +51,9 @@ const resourcesRoute = createRoute({
                 idField: z.string(),
                 seeded: z.boolean(),
                 fields: z.array(z.string()),
+                locales: z
+                  .record(z.string(), z.object({ fields: z.array(z.string()) }))
+                  .openapi({ description: 'Fields per `locale`. Japanese records add readings such as `nameKana`.' }),
               }),
             )
             .openapi('Resources'),
@@ -77,13 +81,17 @@ const healthRoute = createRoute({
   },
 });
 
+const fieldsOf = (resource: (typeof resources)[number], locale: (typeof LOCALES)[number]) =>
+  Object.keys(resource.load(1, locale).records[0] ?? {});
+
 const catalog = resources.map((resource) => ({
   name: resource.name,
   path: `/${resource.name}`,
   description: resource.description,
   idField: resource.idField,
   seeded: resource.seeded,
-  fields: Object.keys(resource.load(1).records[0] ?? {}),
+  fields: fieldsOf(resource, 'en-CA'),
+  locales: Object.fromEntries(LOCALES.map((locale) => [locale, { fields: fieldsOf(resource, locale) }])),
 }));
 
 export const meta = new OpenAPIHono()

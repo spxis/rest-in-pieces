@@ -1,9 +1,11 @@
 import type { z } from '@hono/zod-openapi';
 import { cached } from './data/cache.ts';
-import { countries, findCountry } from './data/countries.ts';
+import { type CountryRecord, findCountry, localizedCountries } from './data/countries.ts';
+import { generateCompaniesJa, generatePeopleJa, generateProductsJa, generateUsersJa } from './data/ja/generate.ts';
 import { generatePeople } from './data/people.ts';
 import { generateCompanies, generateProducts, generateUsers } from './data/presets.ts';
 import { type CollectionDefaults, MAX_RECORDS } from './lib/collection.ts';
+import type { Locale } from './lib/locale.ts';
 import { Company, Country, Person, Product, User } from './schemas.ts';
 
 export const DEFAULT_SEED = 1;
@@ -21,17 +23,20 @@ export interface Resource {
   idDescription: string;
   seeded: boolean;
   defaults: CollectionDefaults;
-  load(seed: number): { records: object[]; generatedAt: Date };
+  load(seed: number, locale: Locale): { records: object[]; generatedAt: Date };
+  /** Looks a record up in the dataset `load` returned. */
   find(records: readonly object[], id: string): object | undefined;
 }
 
 const STATIC_DATE = new Date('2026-09-27T00:00:00Z');
 
-function seededResource(
-  name: string,
-  generate: (count: number, seed: number) => object[],
-): Pick<Resource, 'seeded' | 'load'> {
-  return { seeded: true, load: (seed) => cached(`${name}:${seed}`, () => generate(MAX_RECORDS, seed)) };
+type Generate = (count: number, seed: number) => object[];
+
+function seededResource(name: string, generators: Record<Locale, Generate>): Pick<Resource, 'seeded' | 'load'> {
+  return {
+    seeded: true,
+    load: (seed, locale) => cached(`${name}:${locale}:${seed}`, () => generators[locale](MAX_RECORDS, seed)),
+  };
 }
 
 const byNumericField =
@@ -52,7 +57,7 @@ export const resources: Resource[] = [
     idDescription: 'Zero-based `index` of the person.',
     defaults: { limit: 10, metadata: true },
     find: byNumericField('index'),
-    ...seededResource('names', generatePeople),
+    ...seededResource('names', { 'en-CA': generatePeople, ja: generatePeopleJa }),
   },
   {
     name: 'users',
@@ -63,7 +68,7 @@ export const resources: Resource[] = [
     idDescription: 'One-based `id` of the user.',
     defaults: { limit: 10, metadata: true },
     find: byNumericField('id'),
-    ...seededResource('users', generateUsers),
+    ...seededResource('users', { 'en-CA': generateUsers, ja: generateUsersJa }),
   },
   {
     name: 'products',
@@ -74,7 +79,7 @@ export const resources: Resource[] = [
     idDescription: 'One-based `id` of the product.',
     defaults: { limit: 10, metadata: true },
     find: byNumericField('id'),
-    ...seededResource('products', generateProducts),
+    ...seededResource('products', { 'en-CA': generateProducts, ja: generateProductsJa }),
   },
   {
     name: 'companies',
@@ -85,7 +90,7 @@ export const resources: Resource[] = [
     idDescription: 'One-based `id` of the company.',
     defaults: { limit: 10, metadata: true },
     find: byNumericField('id'),
-    ...seededResource('companies', generateCompanies),
+    ...seededResource('companies', { 'en-CA': generateCompanies, ja: generateCompaniesJa }),
   },
   {
     name: 'countries',
@@ -97,7 +102,7 @@ export const resources: Resource[] = [
     idDescription: 'ISO 3166 alpha-2 or alpha-3 code, e.g. `CA` or `CAN`.',
     seeded: false,
     defaults: { limit: MAX_RECORDS, metadata: false },
-    load: () => ({ records: countries as object[], generatedAt: STATIC_DATE }),
-    find: (_, id) => findCountry(id),
+    load: (_, locale) => ({ records: localizedCountries(locale) as object[], generatedAt: STATIC_DATE }),
+    find: (records, id) => findCountry(records as readonly CountryRecord[], id),
   },
 ];

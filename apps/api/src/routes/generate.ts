@@ -10,6 +10,7 @@ import {
 } from '../data/generators.ts';
 import { buildBody, MAX_RECORDS, pageLinks, queryCollection, setPaginationHeaders } from '../lib/collection.ts';
 import { requestedFormat, respond } from '../lib/format.ts';
+import { parseLocale } from '../lib/locale.ts';
 import { intParam, pick } from '../lib/query.ts';
 import { DEFAULT_SEED, MAX_SEED } from '../resources.ts';
 import { ErrorBody, FILTER_DOCS, GeneratedRecord, ListQuery, listOf, TEXT_FORMATS } from '../schemas.ts';
@@ -92,10 +93,12 @@ export const generate = new OpenAPIHono({
 function send(c: Context, fields: FieldSpec[], count: number, seed: number) {
   requestedFormat(c);
   const query = c.req.query();
-  const page = queryCollection(generateRecords(fields, count, seed), query, DEFAULTS);
+  const locale = parseLocale(pick(query, 'locale'));
+  c.header('Content-Language', locale);
+  const page = queryCollection(generateRecords(fields, count, seed, locale), query, DEFAULTS);
   const links = pageLinks(c, page);
   setPaginationHeaders(c, links, page.total);
-  return respond(c, buildBody(page, links, { generatedAt: new Date(), seed }), page.records);
+  return respond(c, buildBody(page, links, { generatedAt: new Date(), seed, locale }), page.records);
 }
 
 generate
