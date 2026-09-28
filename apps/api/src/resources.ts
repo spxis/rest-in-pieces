@@ -51,7 +51,7 @@ export const resources: Resource[] = [
     name: 'names',
     title: 'Person',
     description:
-      'Canadian people with name, age, address, city, province, postal code and gender. The original REST in Pieces dataset; also served at `/random-names`.',
+      'People with name, age, address, city, province, postal code and gender: Canadian by default, Japanese with `locale=ja`. The original REST in Pieces dataset; also served at `/random-names`.',
     schema: Person,
     idField: 'index',
     idDescription: 'Zero-based `index` of the person.',

@@ -14,6 +14,7 @@ describe('shared setups', () => {
       filters: [{ id: 1, field: 'age', operator: 'gte' as const, value: '30' }],
       status: 503,
       fields: [{ id: 3, name: 'price', type: 'commerce.price' }],
+      locale: 'ja' as const,
     };
     expect(configFromHash(configToHash(config, base), base)).toEqual(config);
   });
@@ -24,7 +25,7 @@ describe('shared setups', () => {
 
   it('ignores values that do not validate', () => {
     const config = configFromHash(
-      '#limit=5000&offset=-1&seed=abc&format=pdf&endpoint=../x&fields=[{"bad":true}]&filters=nope',
+      '#limit=5000&offset=-1&seed=abc&locale=fr&format=pdf&endpoint=../x&fields=[{"bad":true}]&filters=nope',
       base,
     );
     expect(config).toEqual(base);

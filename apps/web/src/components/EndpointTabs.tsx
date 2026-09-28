@@ -1,5 +1,6 @@
 import { Activity, Boxes, Braces, Building2, Globe2, type LucideIcon, Users } from 'lucide-react';
 import type { ResourceInfo } from '../hooks/useCatalog.ts';
+import { useSpeaker } from '../i18n/LocaleProvider.tsx';
 
 const ICONS: Record<string, LucideIcon> = {
   names: Activity,
@@ -21,9 +22,10 @@ export function EndpointTabs({
   value: string;
   onChange: (endpoint: string) => void;
 }) {
+  const { say } = useSpeaker();
   const names = [...resources.map((resource) => resource.name), 'generate'];
   return (
-    <div className="endpoint-tabs" role="tablist" aria-label="API endpoint">
+    <div className="endpoint-tabs" role="tablist" aria-label={say('endpoints.label')}>
       {names.map((name) => {
         const Icon = ICONS[name] ?? Activity;
         return (

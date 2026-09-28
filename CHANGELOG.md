@@ -6,6 +6,7 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ### Added
 
+- The playground speaks Japanese: an English / 日本語 toggle (also `?lang=ja` and the browser's language), and a data locale control that sends `locale=ja`.
 - Japanese data: `locale=ja` on every dataset and `/generate`. Kanji names with katakana and romaji readings, prefectures and cities, mobile numbers, yen prices, `株式会社` companies and Japanese country names. Responses carry `Content-Language`.
 - `/users`, `/products` and `/companies` datasets.
 - Item routes for every dataset: `/names/42`, `/users/1`, `/countries/CA`.

@@ -11,7 +11,9 @@ import { Topbar } from './components/Topbar.tsx';
 import { useCatalog } from './hooks/useCatalog.ts';
 import { useCopy } from './hooks/useCopy.ts';
 import { useRequest } from './hooks/useRequest.ts';
-import { configFromHash, configToHash, type PlaygroundConfig } from './lib/config.ts';
+import { useSpeaker } from './i18n/LocaleProvider.tsx';
+import type { PhraseKey } from './i18n/phrases.ts';
+import { configFromHash, configToHash, defaultConfig, type PlaygroundConfig } from './lib/config.ts';
 import { buildRequestUrl } from './lib/request.ts';
 
 const MAC = /Mac|iPhone|iPad/.test(navigator.userAgent);
@@ -27,15 +29,33 @@ function Description({ text }: { text: string }) {
 
 const merge = (state: PlaygroundConfig, patch: Partial<PlaygroundConfig>): PlaygroundConfig => ({ ...state, ...patch });
 
+const DATASET_PHRASES: Record<string, PhraseKey> = {
+  names: 'dataset.names',
+  users: 'dataset.users',
+  products: 'dataset.products',
+  companies: 'dataset.companies',
+  countries: 'dataset.countries',
+};
+
 export default function App() {
-  const [config, update] = useReducer(merge, undefined, () => configFromHash(window.location.hash));
+  const { locale: uiLocale, say } = useSpeaker();
+  // A reader of the Japanese playground starts on Japanese data. A shared setup is reproduced exactly instead.
+  const [config, update] = useReducer(merge, undefined, () => {
+    const shared = window.location.hash.length > 1;
+    return configFromHash(window.location.hash, {
+      ...defaultConfig(),
+      locale: uiLocale === 'ja' && !shared ? 'ja' : 'en-CA',
+    });
+  });
   const catalog = useCatalog(config.apiBase);
   const { result, error, sending, send } = useRequest();
   const { copied, copy } = useCopy();
 
   const resource = catalog.resources.find((r) => r.name === config.endpoint);
   const isGenerate = config.endpoint === 'generate';
-  const fields = isGenerate ? ['index', ...config.fields.map((field) => field.name)] : (resource?.fields ?? []);
+  const fields = isGenerate
+    ? ['index', ...config.fields.map((field) => field.name)]
+    : (resource?.locales?.[config.locale]?.fields ?? resource?.fields ?? []);
   const seeded = isGenerate || (resource?.seeded ?? true);
   const url = useMemo(() => buildRequestUrl(config, seeded), [config, seeded]);
   const problem = isGenerate ? fieldProblem(config.fields) : null;
@@ -81,14 +101,14 @@ export default function App() {
         <section className="page-heading">
           <div>
             <p className="eyebrow">
-              <span>DEVELOPER TOOL</span>
+              <span>{say('app.eyebrow')}</span>
               <span className="eyebrow-line" />
             </p>
-            <h1>API Playground</h1>
-            <p className="intro">Shape a request. See exactly what comes back.</p>
+            <h1>{say('app.title')}</h1>
+            <p className="intro">{say('app.intro')}</p>
           </div>
           <div className="api-address">
-            <label htmlFor="api-base">API BASE URL</label>
+            <label htmlFor="api-base">{say('app.apiBase')}</label>
             <input
               id="api-base"
               value={config.apiBase}
@@ -100,17 +120,25 @@ export default function App() {
         </section>
 
         <div className="playground-grid">
-          <section className="request-panel" aria-label="Request builder">
+          <section className="request-panel" aria-label={say('app.builder')}>
             <div className="section-bar">
               <div className="section-title">
                 <span className="step-number">01</span>
-                <h2>Build request</h2>
+                <h2>{say('app.build')}</h2>
               </div>
               <span className="method-tag">GET</span>
             </div>
 
             <EndpointTabs resources={catalog.resources} value={config.endpoint} onChange={openEndpoint} />
-            {resource && <Description text={resource.description} />}
+            {resource && (
+              <Description
+                text={
+                  uiLocale === 'en' || !DATASET_PHRASES[resource.name]
+                    ? resource.description
+                    : say(DATASET_PHRASES[resource.name] as PhraseKey)
+                }
+              />
+            )}
             <ScenarioPresets config={config} onApply={update} />
 
             {isGenerate && (
@@ -134,7 +162,7 @@ export default function App() {
               disabled={sending || problem !== null}
             >
               {sending ? <LoaderCircle className="spin" size={17} /> : <Send size={16} />}
-              {sending ? 'Sending request' : 'Send request'}
+              {say(sending ? 'app.sending' : 'app.send')}
               {!sending && <kbd>{MAC ? '⌘ ↵' : 'Ctrl ↵'}</kbd>}
             </button>
           </section>
@@ -160,10 +188,10 @@ export default function App() {
         </div>
         <footer className="page-footer">
           <span>
-            <b>REST in Pieces</b> <span className="footer-dot">·</span> deterministic fake data
+            <b lang="en">REST in Pieces</b> <span className="footer-dot">·</span> {say('app.footerTagline')}
           </span>
           <span>
-            API PLAYGROUND <Workflow size={14} />
+            {say('app.footerLabel')} <Workflow size={14} />
           </span>
         </footer>
       </main>

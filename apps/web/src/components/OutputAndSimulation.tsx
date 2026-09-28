@@ -1,16 +1,19 @@
+import { useSpeaker } from '../i18n/LocaleProvider.tsx';
+import type { PhraseKey } from '../i18n/phrases.ts';
 import { FORMATS, type PlaygroundConfig } from '../lib/config.ts';
 
 type Update = (patch: Partial<PlaygroundConfig>) => void;
 
 export function FormatPicker({ value, onChange }: { value: PlaygroundConfig['format']; onChange: Update }) {
+  const { say } = useSpeaker();
   return (
     <div className="form-section output-section">
       <div className="section-label-row">
-        <span className="section-caption">RESPONSE</span>
-        <span>Content negotiation</span>
+        <span className="section-caption">{say('format.heading')}</span>
+        <span>{say('format.negotiation')}</span>
       </div>
       <fieldset className="format-fieldset">
-        <legend className="sr-only">Response format</legend>
+        <legend className="sr-only">{say('format.legend')}</legend>
         <div className="format-options">
           {FORMATS.map((option) => (
             <button
@@ -29,8 +32,9 @@ export function FormatPicker({ value, onChange }: { value: PlaygroundConfig['for
   );
 }
 
+// HTTP reason phrases are left in English in every language, the way developers read them in logs.
 const STATUSES = [
-  [0, 'None'],
+  [0, null],
   [400, '400 Bad Request'],
   [401, '401 Unauthorized'],
   [404, '404 Not Found'],
@@ -40,24 +44,26 @@ const STATUSES = [
   [503, '503 Service Unavailable'],
 ] as const;
 
-const FAIL_RATES = [
-  [0, 'Never'],
-  [0.1, '10% of requests'],
-  [0.3, '30% of requests'],
-  [0.5, '50% of requests'],
-  [1, 'Every request'],
-] as const;
+const FAIL_RATES = [0, 0.1, 0.3, 0.5, 1] as const;
+
+const failLabel = (rate: number): [PhraseKey, { percent: number }] =>
+  rate === 0
+    ? ['simulate.never', { percent: 0 }]
+    : rate === 1
+      ? ['simulate.always', { percent: 100 }]
+      : ['simulate.share', { percent: rate * 100 }];
 
 export function SimulationPanel({ config, onChange }: { config: PlaygroundConfig; onChange: Update }) {
+  const { say } = useSpeaker();
   const active = config.delay > 0 || config.status > 0 || config.failRate > 0;
   return (
     <details className="simulation-details" open={active || undefined}>
       <summary>
-        SIMULATE A RESPONSE <span>{active ? 'Active' : 'Optional'}</span>
+        {say('simulate.heading')} <span>{say(active ? 'simulate.active' : 'simulate.optional')}</span>
       </summary>
       <div className="simulation-grid">
         <label className="control">
-          <span>Delay (ms)</span>
+          <span>{say('simulate.delay')}</span>
           <input
             type="number"
             min="0"
@@ -68,25 +74,25 @@ export function SimulationPanel({ config, onChange }: { config: PlaygroundConfig
           />
         </label>
         <label className="control">
-          <span>Error status</span>
+          <span>{say('simulate.status')}</span>
           <select value={config.status} onChange={(event) => onChange({ status: Number(event.target.value) })}>
             {STATUSES.map(([code, label]) => (
               <option key={code} value={code}>
-                {label}
+                {label ?? say('simulate.none')}
               </option>
             ))}
           </select>
         </label>
         <label className="control">
-          <span>Random failures</span>
+          <span>{say('simulate.failures')}</span>
           <select
             value={config.failRate}
             disabled={config.status > 0}
             onChange={(event) => onChange({ failRate: Number(event.target.value) })}
           >
-            {FAIL_RATES.map(([rate, label]) => (
+            {FAIL_RATES.map((rate) => (
               <option key={rate} value={rate}>
-                {label}
+                {say(...failLabel(rate))}
               </option>
             ))}
           </select>

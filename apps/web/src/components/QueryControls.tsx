@@ -1,5 +1,6 @@
 import { ArrowUpDown, Filter as FilterIcon, Plus, Search, Trash2 } from 'lucide-react';
-import { type Filter, type FilterOperator, OPERATORS, type PlaygroundConfig } from '../lib/config.ts';
+import { useSpeaker } from '../i18n/LocaleProvider.tsx';
+import { DATA_LOCALES, type Filter, type FilterOperator, OPERATORS, type PlaygroundConfig } from '../lib/config.ts';
 
 type Update = (patch: Partial<PlaygroundConfig>) => void;
 
@@ -45,29 +46,30 @@ export function PageAndSort({
   seeded: boolean;
   onChange: Update;
 }) {
+  const { say } = useSpeaker();
   return (
     <div className="form-section">
       <div className="section-label-row">
-        <span className="section-caption">PAGE &amp; SORT</span>
+        <span className="section-caption">{say('page.heading')}</span>
         <ArrowUpDown size={15} />
       </div>
       <div className="input-grid three-cols">
         <NumberControl
-          label="Limit"
+          label={say('page.limit')}
           value={config.limit}
           min={0}
           max={1000}
           onChange={(limit) => onChange({ limit })}
         />
         <NumberControl
-          label="Offset"
+          label={say('page.offset')}
           value={config.offset}
           min={0}
           max={1000}
           onChange={(offset) => onChange({ offset })}
         />
         <NumberControl
-          label="Dataset max"
+          label={say('page.max')}
           value={config.max}
           min={0}
           max={1000}
@@ -76,9 +78,9 @@ export function PageAndSort({
       </div>
       <div className="input-grid sort-grid">
         <label className="control">
-          <span>Sort field</span>
+          <span>{say('sort.field')}</span>
           <select value={config.sortBy} onChange={(event) => onChange({ sortBy: event.target.value })}>
-            <option value="">Default order</option>
+            <option value="">{say('sort.default')}</option>
             {fields.map((name) => (
               <option key={name} value={name}>
                 {name}
@@ -87,30 +89,30 @@ export function PageAndSort({
           </select>
         </label>
         <label className="control">
-          <span>Compare as</span>
+          <span>{say('sort.compareAs')}</span>
           <select
             value={config.sortType}
             onChange={(event) => onChange({ sortType: event.target.value as PlaygroundConfig['sortType'] })}
           >
-            <option value="string">Text</option>
-            <option value="numeric">Number</option>
+            <option value="string">{say('sort.text')}</option>
+            <option value="numeric">{say('sort.number')}</option>
           </select>
         </label>
         <label className="control">
-          <span>Direction</span>
+          <span>{say('sort.direction')}</span>
           <select
             value={config.sortDirection}
             onChange={(event) => onChange({ sortDirection: event.target.value as PlaygroundConfig['sortDirection'] })}
           >
-            <option value="asc">Ascending</option>
-            <option value="desc">Descending</option>
+            <option value="asc">{say('sort.asc')}</option>
+            <option value="desc">{say('sort.desc')}</option>
           </select>
         </label>
       </div>
       <div className="seed-row">
         {seeded && (
           <label className="control seed-control">
-            <span>Seed</span>
+            <span>{say('seed.label')}</span>
             <input
               type="number"
               min="0"
@@ -118,16 +120,29 @@ export function PageAndSort({
               value={config.seed}
               onChange={(event) => onChange({ seed: Math.max(0, Math.trunc(Number(event.target.value)) || 0) })}
             />
-            <span className="control-hint">Same seed, same dataset</span>
+            <span className="control-hint">{say('seed.hint')}</span>
           </label>
         )}
+        <label className="control locale-control">
+          <span>{say('data.locale')}</span>
+          <select
+            value={config.locale}
+            onChange={(event) => onChange({ locale: event.target.value as PlaygroundConfig['locale'] })}
+          >
+            {DATA_LOCALES.map((option) => (
+              <option key={option.value} value={option.value}>
+                {say(option.label)}
+              </option>
+            ))}
+          </select>
+        </label>
         <label className="check-control">
           <input
             type="checkbox"
             checked={config.metadata}
             onChange={(event) => onChange({ metadata: event.target.checked })}
           />
-          <span>Include response metadata</span>
+          <span>{say('metadata.include')}</span>
         </label>
       </div>
     </div>
@@ -143,6 +158,7 @@ export function SearchAndFilters({
   fields: string[];
   onChange: Update;
 }) {
+  const { say } = useSpeaker();
   const update = (id: number, patch: Partial<Filter>) =>
     onChange({ filters: config.filters.map((filter) => (filter.id === id ? { ...filter, ...patch } : filter)) });
   const add = () => {
@@ -153,15 +169,15 @@ export function SearchAndFilters({
   return (
     <div className="form-section">
       <div className="section-label-row">
-        <span className="section-caption">SEARCH &amp; FILTER</span>
+        <span className="section-caption">{say('search.heading')}</span>
         <FilterIcon size={15} />
       </div>
       <label className="control search-control">
-        <span className="sr-only">Search</span>
+        <span className="sr-only">{say('search.label')}</span>
         <Search size={14} aria-hidden="true" />
         <input
           type="search"
-          placeholder="Search every field…"
+          placeholder={say('search.placeholder')}
           value={config.q}
           onChange={(event) => onChange({ q: event.target.value })}
         />
@@ -170,7 +186,7 @@ export function SearchAndFilters({
         {config.filters.map((filter) => (
           <div className="field-row filter-row" key={filter.id}>
             <select
-              aria-label="Filter field"
+              aria-label={say('filter.field')}
               value={filter.field}
               onChange={(event) => update(filter.id, { field: event.target.value })}
             >
@@ -181,7 +197,7 @@ export function SearchAndFilters({
               ))}
             </select>
             <select
-              aria-label="Operator"
+              aria-label={say('filter.operator')}
               value={filter.operator}
               onChange={(event) => update(filter.id, { operator: event.target.value as FilterOperator })}
             >
@@ -192,16 +208,16 @@ export function SearchAndFilters({
               ))}
             </select>
             <input
-              aria-label="Filter value"
-              placeholder={filter.operator === 'eq' ? 'a,b matches either' : 'value'}
+              aria-label={say('filter.value')}
+              placeholder={say(filter.operator === 'eq' ? 'filter.eitherHint' : 'filter.valueHint')}
               value={filter.value}
               onChange={(event) => update(filter.id, { value: event.target.value })}
             />
             <button
               type="button"
               className="icon-button"
-              aria-label="Remove filter"
-              title="Remove filter"
+              aria-label={say('filter.remove')}
+              title={say('filter.remove')}
               onClick={() => onChange({ filters: config.filters.filter((item) => item.id !== filter.id) })}
             >
               <Trash2 size={15} />
@@ -210,7 +226,7 @@ export function SearchAndFilters({
         ))}
       </div>
       <button type="button" className="small-command add-filter" onClick={add} disabled={config.filters.length >= 20}>
-        <Plus size={14} /> Add filter
+        <Plus size={14} /> {say('filter.add')}
       </button>
     </div>
   );

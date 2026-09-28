@@ -1,3 +1,5 @@
+import { useSpeaker } from '../i18n/LocaleProvider.tsx';
+
 const MAX_ROWS = 200;
 
 function cell(value: unknown): string {
@@ -8,8 +10,9 @@ function cell(value: unknown): string {
 
 /** Renders records as a table; columns are the union of every record's keys, in first-seen order. */
 export function DataTable({ rows }: { rows: Array<Record<string, unknown>> }) {
+  const { say } = useSpeaker();
   if (rows.length === 0) {
-    return <p className="table-empty">No records match this request.</p>;
+    return <p className="table-empty">{say('table.empty')}</p>;
   }
   const columns = [...new Set(rows.flatMap((row) => Object.keys(row)))];
   const shown = rows.slice(0, MAX_ROWS);
@@ -43,9 +46,7 @@ export function DataTable({ rows }: { rows: Array<Record<string, unknown>> }) {
         </tbody>
       </table>
       {rows.length > MAX_ROWS && (
-        <p className="table-note">
-          Showing the first {MAX_ROWS} of {rows.length} rows.
-        </p>
+        <p className="table-note">{say('table.truncated', { shown: MAX_ROWS, total: rows.length })}</p>
       )}
     </div>
   );

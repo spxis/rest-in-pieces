@@ -2,6 +2,7 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App.tsx';
+import { LocaleProvider } from './i18n/LocaleProvider.tsx';
 
 const resources = [
   { name: 'names', description: 'People', idField: 'index', seeded: true, fields: ['index', 'name', 'age'] },
@@ -76,5 +77,37 @@ describe('App', () => {
     render(<App />);
     await user.click(screen.getByRole('button', { name: /Send request/ }));
     expect(await screen.findByText(/could not be reached/)).toBeTruthy();
+  });
+
+  it('switches the playground to Japanese and remembers the choice', async () => {
+    const user = userEvent.setup();
+    window.localStorage.clear();
+    render(
+      <LocaleProvider initial="en">
+        <App />
+      </LocaleProvider>,
+    );
+    await user.click(screen.getByRole('button', { name: '日本語' }));
+    expect(screen.getByRole('button', { name: /リクエストを送信/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '日本語' }).getAttribute('aria-pressed')).toBe('true');
+    expect(document.documentElement.lang).toBe('ja');
+    expect(window.localStorage.getItem('rest-in-pieces:lang')).toBe('ja');
+  });
+
+  it('asks for Japanese data from the data locale control', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Data locale' }), 'ja');
+    expect(screen.getByTestId('request-snippet').textContent).toContain('locale=ja');
+  });
+
+  it('starts a Japanese reader on Japanese data', () => {
+    render(
+      <LocaleProvider initial="ja">
+        <App />
+      </LocaleProvider>,
+    );
+    expect(screen.getByTestId('request-snippet').textContent).toContain('locale=ja');
+    expect(screen.getByText('API プレイグラウンド', { selector: 'h1' })).toBeTruthy();
   });
 });

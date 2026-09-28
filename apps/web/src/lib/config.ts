@@ -1,7 +1,11 @@
+import type { PhraseKey } from '../i18n/phrases.ts';
+
 export type OutputFormat = 'json' | 'csv' | 'yaml' | 'xml';
 export type SortType = 'string' | 'numeric';
 export type SortDirection = 'asc' | 'desc';
 export type FilterOperator = 'eq' | 'ne' | 'gt' | 'gte' | 'lt' | 'lte';
+
+export type DataLocale = 'en-CA' | 'ja';
 
 export interface Field {
   id: number;
@@ -38,6 +42,8 @@ export interface PlaygroundConfig {
   /** Share of requests that fail: 0 (never) to 1 (always). */
   failRate: number;
   fields: Field[];
+  /** The API's `locale`: which audience the generated data is written for. */
+  locale: DataLocale;
 }
 
 export const FORMATS: readonly OutputFormat[] = ['json', 'csv', 'yaml', 'xml'];
@@ -49,6 +55,10 @@ export const OPERATORS: ReadonlyArray<{ value: FilterOperator; label: string }> 
   { value: 'lt', label: '<' },
   { value: 'lte', label: '≤' },
 ];
+export const DATA_LOCALES = [
+  { value: 'en-CA', label: 'data.localeEn' },
+  { value: 'ja', label: 'data.localeJa' },
+] as const satisfies ReadonlyArray<{ value: DataLocale; label: PhraseKey }>;
 export const MAX_FIELDS = 50;
 export const MAX_SEED = 4294967295;
 
@@ -83,6 +93,7 @@ export function defaultConfig(apiBase = defaultApiBase()): PlaygroundConfig {
     status: 0,
     failRate: 0,
     fields: DEFAULT_FIELDS,
+    locale: 'en-CA',
   };
 }
 
@@ -145,6 +156,9 @@ export function configFromHash(hash: string, fallback = defaultConfig()): Playgr
     status: params.has('status') && !params.has('fail') ? int('status', 0, 0, 599) : legacyStatus,
     failRate: Number.isFinite(failRate) && failRate >= 0 && failRate <= 1 ? failRate : 0,
     fields: fields && fields.length > 0 ? fields : fallback.fields,
+    locale: DATA_LOCALES.some((option) => option.value === params.get('locale'))
+      ? (params.get('locale') as DataLocale)
+      : fallback.locale,
   };
 }
 

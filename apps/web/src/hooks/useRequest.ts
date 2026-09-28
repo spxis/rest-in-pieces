@@ -2,6 +2,10 @@ import { useCallback, useRef, useState } from 'react';
 import type { OutputFormat } from '../lib/config.ts';
 import { mimeFor } from '../lib/request.ts';
 
+/** Errors the playground describes itself, in the reader's language. Any other error is the API's own message. */
+export const UNREACHABLE = 'response.unreachable';
+export const REQUEST_FAILED = 'response.requestFailed';
+
 export interface RequestResult {
   url: string;
   status: number;
@@ -65,10 +69,10 @@ export function useRequest() {
       setResult(null);
       setError(
         requestError instanceof TypeError
-          ? 'The API could not be reached. Check the base URL and that the server is running.'
+          ? UNREACHABLE
           : requestError instanceof Error
             ? requestError.message
-            : 'Request failed',
+            : REQUEST_FAILED,
       );
     } finally {
       if (inFlight.current === controller) {

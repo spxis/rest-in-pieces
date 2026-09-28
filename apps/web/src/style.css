@@ -90,6 +90,11 @@ table {
   --coral: #e67b5b;
   --mono: "IBM Plex Mono", monospace;
 }
+/* Space Grotesk has no Japanese; name the system Japanese faces so kana and kanji match across the page. */
+:root:lang(ja) {
+  font-family:
+    "Space Grotesk", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+}
 
 * {
   box-sizing: border-box;
@@ -174,6 +179,35 @@ a {
   border-radius: 50%;
   background: #76a974;
   box-shadow: 0 0 0 3px #76a97420;
+}
+.language-picker {
+  display: inline-flex;
+  margin: 0;
+  padding: 2px;
+  border: 1px solid #cfd8cd;
+  border-radius: 999px;
+  background: #f7f9f5;
+}
+.language-picker button {
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #58655d;
+  font:
+    500 11px "Space Grotesk",
+    "Hiragino Sans",
+    "Noto Sans JP",
+    sans-serif;
+  cursor: pointer;
+}
+.language-picker button.active {
+  background: #182720;
+  color: #eef1eb;
+}
+.language-picker button:focus-visible {
+  outline: 2px solid #76a974;
+  outline-offset: 1px;
 }
 .docs-link {
   color: #41594a;
@@ -945,6 +979,10 @@ h1 {
     font-size: 8px;
   }
   .docs-link {
+    font-size: 10px;
+  }
+  .language-picker button {
+    padding: 3px 7px;
     font-size: 10px;
   }
   .workspace {

@@ -20,7 +20,7 @@ Every dataset is generated from a seed. The same URL returns the same records on
 - **The unhappy path on demand.** `?delay=1500`, `?status=503` or `?fail=0.2` rehearse slow, failing and flaky backends without touching your client.
 - **Any format.** JSON, CSV, YAML or XML, chosen by `?format=` or the `Accept` header.
 - **Self-documenting.** An OpenAPI 3.1 spec generated from the same schemas that validate requests, with interactive docs at `/docs`.
-- **A playground.** Build a request, inspect the table, body and headers, page through results, and share the exact setup as a link.
+- **A playground in English and 日本語.** Build a request, inspect the table, body and headers, page through results, and share the exact setup as a link. The language follows the browser, `?lang=ja` or the toggle in the top bar.
 
 ## Quick start
 
@@ -76,7 +76,7 @@ curl -i 'http://localhost:8080/users?fail=0.3'
 
 | Endpoint                   | Description |
 | -------------------------- | ----------- |
-| `GET /names`               | Canadian people: name, age, address, city, province, postal code, gender. The original dataset, also at `/random-names`. |
+| `GET /names`               | People: name, age, address, city, province, postal code, gender. Canadian by default, Japanese with `locale=ja`. The original dataset, also at `/random-names`. |
 | `GET /users`               | Application users with profile, avatar, contact details and account status. |
 | `GET /products`            | Catalogue products with SKU, department, price, rating and stock. |
 | `GET /companies`           | Companies with industry, website, size and founding year. |

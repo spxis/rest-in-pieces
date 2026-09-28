@@ -68,3 +68,17 @@ test('shares a setup that restores the same request', async ({ page, context }) 
   await page.goto(link);
   await expect(snippet(page)).toHaveText(expected ?? '');
 });
+
+test('switches to Japanese and fetches Japanese data', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: '日本語' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('API プレイグラウンド');
+  await page.getByRole('combobox', { name: 'データのロケール' }).selectOption('ja');
+  await expect(page.getByTestId('request-snippet')).toContainText('locale=ja');
+  await page.getByRole('button', { name: /リクエストを送信/ }).click();
+  await expect(page.getByTestId('response-status')).toContainText('200');
+  await expect(page.getByRole('columnheader', { name: 'nameKana' })).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByRole('button', { name: '日本語' })).toHaveAttribute('aria-pressed', 'true');
+});

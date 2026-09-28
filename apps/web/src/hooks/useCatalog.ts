@@ -7,6 +7,8 @@ export interface ResourceInfo {
   idField: string;
   seeded: boolean;
   fields: string[];
+  /** Fields per data locale; Japanese records add readings such as `nameKana`. */
+  locales?: Record<string, { fields: string[] }>;
 }
 
 export interface Catalog {

@@ -34,6 +34,7 @@ export function buildRequestUrl(config: PlaygroundConfig, seeded = true): string
   if (config.endpoint === 'generate') {
     params.set('fields', config.fields.map((field) => `${field.name.trim()}:${field.type}`).join(','));
   }
+  if (config.locale !== 'en-CA') params.set('locale', config.locale);
   if (config.format !== 'json') params.set('format', config.format);
   if (config.delay > 0) params.set('delay', String(config.delay));
   if (config.status >= 400) params.set('status', String(config.status));
