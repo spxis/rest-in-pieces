@@ -33,6 +33,31 @@ The request builder is available at [http://localhost:6801](http://localhost:680
 
 The API runs separately at [http://localhost:6800](http://localhost:6800), with interactive documentation at [http://localhost:6800/docs](http://localhost:6800/docs).
 
+## Deploy
+
+### Vercel
+
+Create two Vercel projects connected to this repository:
+
+| Project | Root Directory | Framework |
+| ------- | -------------- | --------- |
+| API | `apps/api` | Hono |
+| Playground | `apps/web` | Vite |
+
+Set `VITE_API_BASE_URL` in the Playground project's environment variables to the API project's origin, then redeploy the Playground. The API allows cross-origin requests for the Playground.
+
+### Docker
+
+Build and run the combined API and Playground image:
+
+```sh
+REST_IN_PIECES_DIR=/absolute/path/to/rest-in-pieces
+docker build --tag rest-in-pieces --file "$REST_IN_PIECES_DIR/Dockerfile" "$REST_IN_PIECES_DIR"
+docker run --rm --publish 6800:6800 rest-in-pieces
+```
+
+The Playground and API are then available from port 6800. Set `PORT` when running the container to listen on a different container port, and publish that port from Docker accordingly.
+
 ## API
 
 ### `GET /names`
