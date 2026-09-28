@@ -14,6 +14,7 @@ export interface Person {
 
 export const MAX_RECORDS = 1000;
 export const DEFAULT_SEED = 1;
+const MAX_CACHED_SEEDS = 20;
 
 /** Generates the same people for the same seed, on every machine and every restart. */
 export function generatePeople(count: number, seed = DEFAULT_SEED): Person[] {
@@ -34,9 +35,21 @@ export function generatePeople(count: number, seed = DEFAULT_SEED): Person[] {
   });
 }
 
-let cache: { people: Person[]; generatedAt: Date } | undefined;
+const cache = new Map<number, { people: Person[]; generatedAt: Date }>();
 
-export function getPeople() {
-  cache ??= { people: generatePeople(MAX_RECORDS), generatedAt: new Date() };
-  return cache;
+export function getPeople(seed = DEFAULT_SEED) {
+  const cached = cache.get(seed);
+  if (cached) {
+    cache.delete(seed);
+    cache.set(seed, cached);
+    return cached;
+  }
+
+  const generated = { people: generatePeople(MAX_RECORDS, seed), generatedAt: new Date() };
+  cache.set(seed, generated);
+  if (cache.size > MAX_CACHED_SEEDS) {
+    const oldestSeed = cache.keys().next().value;
+    if (oldestSeed !== undefined) cache.delete(oldestSeed);
+  }
+  return generated;
 }
