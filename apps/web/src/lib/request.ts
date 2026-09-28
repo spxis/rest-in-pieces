@@ -1,0 +1,82 @@
+import type { OutputFormat, PlaygroundConfig } from './config.ts';
+
+export const trimBase = (base: string) => base.trim().replace(/\/+$/, '');
+
+export function mimeFor(format: OutputFormat): string {
+  return {
+    json: 'application/json',
+    csv: 'text/csv',
+    yaml: 'application/yaml',
+    xml: 'application/xml',
+  }[format];
+}
+
+/** Builds the request URL for a setup. Parameters at their API defaults are left out to keep URLs readable. */
+export function buildRequestUrl(config: PlaygroundConfig, seeded = true): string {
+  const params = new URLSearchParams();
+  params.set('limit', String(config.limit));
+  if (config.offset > 0) params.set('offset', String(config.offset));
+  if (seeded && config.seed !== 1) params.set('seed', String(config.seed));
+  if (config.max < 1000) params.set('max', String(config.max));
+  if (config.sortBy) {
+    params.set('sortBy', `${config.sortBy}${config.sortType === 'numeric' ? ':numeric' : ''}`);
+    if (config.sortDirection === 'desc') params.set('sortDirection', 'desc');
+  }
+  if (config.q.trim()) params.set('q', config.q.trim());
+  for (const filter of config.filters) {
+    if (!filter.field || filter.value.trim() === '') continue;
+    params.append(filter.operator === 'eq' ? filter.field : `${filter.field}[${filter.operator}]`, filter.value.trim());
+  }
+  // Countries return a bare array unless the envelope is requested; everything else is the reverse.
+  if (config.endpoint === 'countries' ? config.metadata : !config.metadata) {
+    params.set('metadata', String(config.metadata));
+  }
+  if (config.endpoint === 'generate') {
+    params.set('fields', config.fields.map((field) => `${field.name.trim()}:${field.type}`).join(','));
+  }
+  if (config.format !== 'json') params.set('format', config.format);
+  if (config.delay > 0) params.set('delay', String(config.delay));
+  if (config.status >= 400) params.set('status', String(config.status));
+  else if (config.failRate > 0) params.set('fail', config.failRate >= 1 ? 'true' : String(config.failRate));
+  return `${trimBase(config.apiBase)}/${config.endpoint}?${params.toString()}`;
+}
+
+const shellQuote = (value: string) => `'${value.replaceAll("'", "'\\''")}'`;
+
+export function curlCommand(url: string, format: OutputFormat): string {
+  return `curl -i -H ${shellQuote(`Accept: ${mimeFor(format)}`)} ${shellQuote(url)}`;
+}
+
+export function fetchSnippet(url: string, format: OutputFormat): string {
+  return [
+    `const response = await fetch(${JSON.stringify(url)}, {`,
+    `  headers: { Accept: ${JSON.stringify(mimeFor(format))} },`,
+    '});',
+    `const data = await response.${format === 'json' ? 'json' : 'text'}();`,
+  ].join('\n');
+}
+
+export function isLocalApi(base: string): boolean | null {
+  try {
+    const { hostname } = new URL(base);
+    return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]';
+  } catch {
+    return null;
+  }
+}
+
+/** Finds the array of records in a response body, whether enveloped or bare. */
+export function extractRows(body: unknown): Array<Record<string, unknown>> | null {
+  const rows = Array.isArray(body)
+    ? body
+    : body && typeof body === 'object' && 'metadata' in body
+      ? (body as Record<string, unknown>)[
+          ((body as { metadata?: { output?: { results?: string } } }).metadata?.output?.results ?? 'results') as string
+        ]
+      : body && typeof body === 'object'
+        ? [body]
+        : null;
+  return Array.isArray(rows) && rows.every((row) => row && typeof row === 'object' && !Array.isArray(row))
+    ? (rows as Array<Record<string, unknown>>)
+    : null;
+}

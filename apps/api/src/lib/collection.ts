@@ -91,7 +91,6 @@ export function setPaginationHeaders(c: Context, links: PageLinks, total: number
     .filter((rel) => links[rel])
     .map((rel) => `<${links[rel]}>; rel="${rel}"`);
   c.header('Link', relations.join(', '));
-  c.header('Access-Control-Expose-Headers', 'X-Total-Count, Link, ETag');
 }
 
 export interface EnvelopeMeta {

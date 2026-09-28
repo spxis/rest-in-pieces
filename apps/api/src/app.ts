@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { Scalar } from '@scalar/hono-api-reference';
+import { bodyLimit } from 'hono/body-limit';
 import { cors } from 'hono/cors';
 import { etag } from 'hono/etag';
 import { logger } from 'hono/logger';
@@ -26,6 +27,11 @@ app.use(cors({ origin: '*', exposeHeaders: ['X-Total-Count', 'Link', 'ETag', 'X-
 const dataPaths = [...resources.map((r) => `/${r.name}`), '/random-names', '/generate'];
 // `/names/*` also matches `/names` itself, so one registration covers lists and items.
 for (const path of dataPaths) app.use(`${path}/*`, simulate(), etag());
+
+app.use(
+  '/generate/*',
+  bodyLimit({ maxSize: 64 * 1024, onError: (c) => c.json({ error: 'Request body is larger than 64 KB.' }, 413) }),
+);
 
 for (const resource of resources) app.route(`/${resource.name}`, collectionRoutes(resource));
 const names = resources.find((r) => r.name === 'names');

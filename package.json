@@ -1,6 +1,6 @@
 {
   "name": "rest-in-pieces",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
   "description": "A REST service that serves realistic, repeatable fake data for building and testing client applications.",
   "license": "MIT",
@@ -17,10 +17,12 @@
     "start": "pnpm --filter @rest-in-pieces/api start",
     "build": "pnpm --filter @rest-in-pieces/web build",
     "test": "pnpm -r test",
+    "test:coverage": "pnpm --filter @rest-in-pieces/api test:coverage",
     "test:e2e": "playwright test",
     "typecheck": "pnpm -r typecheck",
     "lint": "biome check .",
-    "format": "biome check --write ."
+    "format": "biome check --write .",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",

@@ -106,6 +106,11 @@ describe('POST /generate', () => {
     expect(post.body.results).toEqual(get.body.results);
   });
 
+  it('rejects oversized bodies with 413', async () => {
+    const { status } = await postJson('/generate', { fields: { a: 'person.firstName' }, padding: 'x'.repeat(70_000) });
+    expect(status).toBe(413);
+  });
+
   it('rejects invalid bodies with 400', async () => {
     for (const body of [
       {},

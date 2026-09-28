@@ -1,7 +1,7 @@
 import { serve } from '@hono/node-server';
 import { app } from './app.ts';
 
-const port = Number(process.env.PORT ?? 6800);
+const port = Number(process.env.PORT ?? 8080);
 
 const server = serve({ fetch: app.fetch, port }, (info) => {
   console.log(`REST in Pieces listening on http://localhost:${info.port}`);

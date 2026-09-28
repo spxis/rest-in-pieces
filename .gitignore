@@ -12,3 +12,6 @@ test-results/
 .idea/
 .vscode/*
 !.vscode/extensions.json
+apps/api/public/
+playwright-report/
+test-results/

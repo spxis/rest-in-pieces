@@ -1,8 +1,13 @@
 .git
+.github
 .vercel
 **/node_modules
 **/dist
-coverage
+**/coverage
+apps/api/public
+playwright-report
+test-results
+docs
 .env
 .env.*
 !.env.example
