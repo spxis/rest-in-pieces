@@ -26,6 +26,17 @@ describe('/names', () => {
     expect(b.body.results).toEqual(a.body.results);
   });
 
+  it('returns repeatable datasets for the requested seed', async () => {
+    const [first, repeated, different] = await Promise.all([
+      get('/names?limit=5&seed=42'),
+      get('/names?limit=5&seed=42'),
+      get('/names?limit=5&seed=43'),
+    ]);
+    expect(first.body.results).toEqual(repeated.body.results);
+    expect(first.body.results).not.toEqual(different.body.results);
+    expect(first.body.metadata.parameters.seed).toBe(42);
+  });
+
   it('pages with offset and limit, including their aliases', async () => {
     const { body } = await get('/names?offset=5&limit=5');
     expect(body.results.map((p) => p.index)).toEqual([5, 6, 7, 8, 9]);

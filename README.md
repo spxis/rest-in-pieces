@@ -56,6 +56,11 @@ Also available at `/random-names`. Returns fake people:
 | `sortDirection` | `sortOrder`, `sortdirection` | `asc`     | `desc`, `descending`, `reverse`, `rev`, `backwards` or `-1` sort descending. |
 | `metadata`      |                              | on        | `0` or `false` returns the bare array. |
 | `resultsName`   |                              | `results` | Renames the results key, e.g. `rows`. |
+| `seed`          |                              | `1`       | Selects a repeatable dataset. |
+| `format`        |                              | `json`    | `csv`, `yaml`, or `xml`; also negotiated from `Accept`. |
+| `delay`         |                              | `0`       | Adds a response delay in milliseconds (maximum `10000`). |
+| `status`        |                              | unchanged | Overrides the response status code. |
+| `fail`          |                              | off       | Returns a simulated error response when true. |
 
 Examples:
 
@@ -65,11 +70,33 @@ Examples:
 /names?sortBy=name&sortDirection=desc
 /names?metadata=false
 /names?resultsName=rows
+/names?seed=42&format=csv
+/names?delay=500&status=503
+/names?fail=true
 ```
 
 ### `GET /countries`
 
-Returns every country with ISO codes, currencies, languages and calling codes. Accepts `limit` and `offset`.
+Returns every country with ISO codes, currencies, languages and calling codes. Accepts `limit`, `offset`, `seed`, and the response simulation and format options above.
+
+### `GET /generate`
+
+Generates a custom dataset from comma-separated `field:generatorType` pairs. Supports `limit`, `offset`, `max`, `sortBy`, `sortDirection`, `seed`, and the response format and simulation options.
+
+```
+/generate?fields=name:person.fullName,email:internet.email&limit=10&seed=42
+/generate?fields=city:location.city,company:company.name&sortBy=city
+```
+
+Unknown generator types and malformed field lists return `400`.
+
+### `GET /generators`
+
+Lists every supported generator type for use with `/generate`.
+
+### API documentation
+
+The OpenAPI 3.1 document is available at [`/openapi.json`](http://localhost:8080/openapi.json), with interactive Swagger UI at [`/docs`](http://localhost:8080/docs).
 
 ### `GET /health`
 

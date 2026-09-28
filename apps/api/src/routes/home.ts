@@ -11,6 +11,9 @@ const examples = [
   ['/names?limit=10&offset=10', 'Next 10 people'],
   ['/names?limit=50&metadata=0', 'First 50 people, without metadata'],
   ['/names?limit=50&max=35', 'First 50 people from a dataset capped at 35'],
+  ['/names?limit=10&seed=42', 'Repeatable dataset with a custom seed'],
+  ['/names?limit=10&format=csv', 'People as CSV'],
+  ['/generate?fields=name:person.fullName,email:internet.email&limit=5&seed=42', 'Custom generated records'],
   ['/names?limit=5&resultsName=rows', 'Results under a custom key'],
   ['/countries?limit=10', 'First 10 countries'],
 ] as const;
@@ -31,6 +34,7 @@ export const home = new Hono().get('/', (c) =>
       <body>
         <h1>REST in Pieces <small>v${pkg.version}</small></h1>
         <p>Realistic, repeatable fake data for building and testing client applications.</p>
+        <p><a href="/docs">Interactive API docs</a> · <a href="/openapi.json">OpenAPI spec</a> · <a href="/generators">Generator types</a></p>
         <ul>
           ${examples.map(([href, label]) => html`<li><a href="${href}">${label}</a> <code>${href}</code></li>`)}
         </ul>
