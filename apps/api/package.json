@@ -7,12 +7,14 @@
     "dev": "node --watch src/server.ts",
     "start": "node src/server.ts",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "typecheck": "tsc -p ."
   },
   "dependencies": {
     "@faker-js/faker": "^10.6.0",
     "@hono/node-server": "^2.1.1",
-    "@hono/swagger-ui": "^0.6.1",
+    "@hono/zod-openapi": "^1.6.3",
+    "@scalar/hono-api-reference": "^0.12.6",
     "country-data": "^0.0.31",
     "fast-xml-parser": "^5.11.1",
     "hono": "^4.13.9",
@@ -21,6 +23,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.6.3",
+    "@vitest/coverage-v8": "^5.0.2",
     "vitest": "^5.0.2"
   }
 }
