@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { DEPARTMENTS } from '../src/data/ja/catalog.ts';
 import { FAMILY_NAMES, FEMALE_NAMES, MALE_NAMES } from '../src/data/ja/names.ts';
 import { PREFECTURES } from '../src/data/ja/places.ts';
 import { parseLocale } from '../src/lib/locale.ts';
@@ -111,12 +112,25 @@ describe('Japanese users, products and companies', () => {
     }
   });
 
+  it('only pairs products with variants that suit them', async () => {
+    const { body } = await request<Envelope<Row>>('/products?locale=ja&limit=1000');
+    const allowed = new Set(
+      DEPARTMENTS.flatMap((department) =>
+        department.items.flatMap((item) => item.variants.map((variant) => `${department.name}|${item.name}${variant}`)),
+      ),
+    );
+    for (const product of body.results) expect(allowed).toContain(`${product.department}|${product.name}`);
+  });
+
   it('names companies the Japanese way, with romaji domains', async () => {
-    const { body } = await request<Envelope<Row>>('/companies?locale=ja&limit=30');
+    const { body } = await request<Envelope<Row>>('/companies?locale=ja&limit=300');
     for (const company of body.results) {
       expect(company.name).toMatch(/^株式会社.+|.+株式会社$/);
       expect(company.website).toMatch(/^https:\/\/[a-z]+-[a-z]+\.example\.jp$/);
-      expect(company.phone).toMatch(/^0\d{1,2}-\d{3,4}-\d{4}$/);
+      expect(company.phone).toMatch(/^0\d{1,3}-\d{2,4}-\d{4}$/);
+      expect(String(company.phone).replaceAll('-', '')).toHaveLength(10);
+      // 020, 050, 060, 070, 080 and 090 are never office numbers.
+      expect(company.phone).not.toMatch(/^0[256789]0-/);
     }
   });
 });

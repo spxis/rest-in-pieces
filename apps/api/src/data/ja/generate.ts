@@ -1,23 +1,48 @@
 import { fakerJA as faker } from '@faker-js/faker';
 import type { Person } from '../people.ts';
 import type { Company, Product, User } from '../presets.ts';
-import { CATCH_PHRASES, COMPANY_KINDS, DEPARTMENTS, JOB_TITLES, PRODUCT_NOTES } from './catalog.ts';
+import { CATCH_PHRASES, COMPANY_KINDS, DEPARTMENTS, JOB_TITLES } from './catalog.ts';
 import { FAMILY_NAMES, FEMALE_NAMES, type JapaneseName, MALE_NAMES } from './names.ts';
 import { PREFECTURES } from './places.ts';
 
 const ANCHOR = new Date('2026-01-01T00:00:00Z');
 
-/** Words companies are often named after besides a family name, with romaji for their domains. */
+/**
+ * Words companies are often named after besides a family name, with romaji for their domains.
+ * Stems such as 日本, 富士 or 東洋 are left out because they combine into the names of real listed companies.
+ */
 const COMPANY_STEMS: readonly JapaneseName[] = [
-  { kanji: '日本', kana: 'ニホン', romaji: 'Nihon' },
-  { kanji: '東洋', kana: 'トウヨウ', romaji: 'Toyo' },
-  { kanji: '大和', kana: 'ヤマト', romaji: 'Yamato' },
-  { kanji: '富士', kana: 'フジ', romaji: 'Fuji' },
+  { kanji: '旭', kana: 'アサヒ', romaji: 'Asahi' },
+  { kanji: '三和', kana: 'サンワ', romaji: 'Sanwa' },
+  { kanji: '北斗', kana: 'ホクト', romaji: 'Hokuto' },
+  { kanji: '明和', kana: 'メイワ', romaji: 'Meiwa' },
+  { kanji: '常盤', kana: 'トキワ', romaji: 'Tokiwa' },
   { kanji: '桜', kana: 'サクラ', romaji: 'Sakura' },
   { kanji: '中央', kana: 'チュウオウ', romaji: 'Chuo' },
-  { kanji: '東京', kana: 'トウキョウ', romaji: 'Tokyo' },
-  { kanji: '大阪', kana: 'オオサカ', romaji: 'Osaka' },
 ];
+
+/** Area codes of the larger cities. Elsewhere a plausible code is made up. */
+const AREA_CODES: Record<string, string> = {
+  札幌市: '011',
+  仙台市: '022',
+  さいたま市: '048',
+  千葉市: '043',
+  新宿区: '03',
+  渋谷区: '03',
+  世田谷区: '03',
+  品川区: '03',
+  横浜市: '045',
+  川崎市: '044',
+  名古屋市: '052',
+  京都市: '075',
+  大阪市: '06',
+  神戸市: '078',
+  広島市: '082',
+  福岡市: '092',
+};
+
+/** 020, 050, 060, 070, 080 and 090 are mobile, IP-phone or unassigned prefixes, never a town. */
+const NOT_AREA = new Set([20, 50, 60, 70, 80, 90]);
 
 type Gender = 'male' | 'female';
 
@@ -27,11 +52,12 @@ const gender = (): Gender => faker.helpers.arrayElement(['male', 'female'] as co
 /** Mobile numbers, the way most people give one: 090-1234-5678. */
 const mobile = () => faker.helpers.replaceSymbols(`0${faker.helpers.arrayElement([7, 8, 9])}0-####-####`);
 
-/** Office numbers use the prefecture's area code where it is a well-known one. */
-function landline(prefecture: string) {
-  if (prefecture === '東京都') return faker.helpers.replaceSymbols('03-####-####');
-  if (prefecture === '大阪府') return faker.helpers.replaceSymbols('06-####-####');
-  return faker.helpers.replaceSymbols(`0${faker.number.int({ min: 11, max: 99 })}-###-####`);
+/** Office numbers: 10 digits in all, with the city's real area code where it is a well-known one. */
+function landline(city: string) {
+  const known = AREA_CODES[city];
+  if (known) return faker.helpers.replaceSymbols(`${known}-${'#'.repeat(6 - known.length)}-####`);
+  const codes = Array.from({ length: 89 }, (_, i) => i + 11).filter((code) => !NOT_AREA.has(code));
+  return faker.helpers.replaceSymbols(`0${faker.helpers.arrayElement(codes)}-###-####`);
 }
 
 function person(gender: Gender) {
@@ -118,15 +144,16 @@ export function generateProductsJa(count: number, seed: number): Product[] {
   faker.seed(seed);
   return Array.from({ length: count }, (_, i) => {
     const department = faker.helpers.arrayElement(DEPARTMENTS);
-    const name = `${faker.helpers.arrayElement(department.products)}${faker.helpers.arrayElement(department.variants)}`;
+    const item = faker.helpers.arrayElement(department.items);
+    const name = `${item.name}${faker.helpers.arrayElement(item.variants)}`;
     const stock = faker.number.int({ min: 0, max: 250 });
     return {
       id: i + 1,
       sku: faker.string.alphanumeric({ length: 8, casing: 'upper' }),
       name,
       department: department.name,
-      description: faker.helpers.arrayElements(PRODUCT_NOTES, 2).join(''),
-      price: yen(...department.price),
+      description: faker.helpers.arrayElements(department.notes, 2).join(''),
+      price: yen(...item.price),
       currency: 'JPY',
       rating: faker.number.float({ min: 1, max: 5, fractionDigits: 1 }),
       stock,
@@ -148,7 +175,7 @@ export function generateCompaniesJa(count: number, seed: number): Company[] {
       catchPhrase: faker.helpers.arrayElement(CATCH_PHRASES),
       website: `https://${domain}`,
       email: `info@${domain}`,
-      phone: landline(prefecture),
+      phone: landline(city),
       employees: faker.number.int({ min: 2, max: 25_000 }),
       founded: faker.number.int({ min: 1900, max: 2025 }),
       city,

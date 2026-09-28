@@ -139,10 +139,10 @@ Add `locale=ja` to any dataset, item route or `/generate` call. Records keep the
 
 | Dataset      | What changes with `locale=ja` |
 | ------------ | ----------------------------- |
-| `/names`     | Family name first (`佐藤 花子`), plus `nameKana` (`サトウ ハナコ`) and `nameRomaji` (`Sato Hanako`). Prefectures and real cities, weighted by population, and `123-4567` postal codes. |
+| `/names`     | Family name first (`佐藤 美穂`), plus `nameKana` (`サトウ ミホ`) and `nameRomaji` (`Sato Miho`). Prefectures and real cities, weighted by population, and `123-4567` postal codes. |
 | `/users`     | Kanji names with `firstNameKana` and `lastNameKana`, romaji usernames and emails, mobile numbers (`090-1234-5678`) and Japanese job titles. |
 | `/products`  | Japanese products and departments, priced in whole yen the way shops write them (`1980`, `2000`), with `currency: "JPY"`. |
-| `/companies` | `株式会社` names, industries, slogans, romaji domains and area codes such as `03` for Tokyo. |
+| `/companies` | `株式会社` names, industries, slogans, romaji domains and real area codes such as `03` for Tokyo and `06` for Osaka. |
 | `/countries` | Country names in Japanese (`カナダ`, `日本`) from the runtime's CLDR data. |
 | `/generate`  | Every generator uses Faker's Japanese locale. |
 
@@ -150,7 +150,7 @@ Filters and search work on Japanese text: `/names?locale=ja&province=東京都`.
 
 ### 日本語データ
 
-任意のエンドポイントに `locale=ja` を付けると、日本向けのデータを返します。氏名は姓・名の順で、フリガナ（`nameKana`）とローマ字（`nameRomaji`）付き。住所は実在の都道府県と市区町村、郵便番号は `123-4567` 形式、電話番号は `090-1234-5678` 形式、商品の価格は円単位（`1980` や `2000` など）です。同じ `seed` なら、いつでも同じデータが返ります。
+任意のエンドポイントに `locale=ja` を付けると、日本向けのデータを返します。氏名は姓・名の順で、フリガナ（`nameKana`）とローマ字（`nameRomaji`）付きです。住所は実在の都道府県・市区町村を使用し、郵便番号は `123-4567` 形式、電話番号は `090-1234-5678` 形式、商品の価格は円単位（`1980` や `2000` など）です。同じ `seed` なら、いつでも同じデータが返ります。
 
 ```sh
 curl 'http://localhost:8080/users?locale=ja&limit=5'

@@ -49,6 +49,7 @@ export const FAMILY_NAMES: readonly JapaneseName[] = [
   { kanji: '坂本', kana: 'サカモト', romaji: 'Sakamoto' },
 ];
 
+/** Given names span recent favourites and those common among people born from the 1960s to the 1990s. */
 export const MALE_NAMES: readonly JapaneseName[] = [
   { kanji: '大翔', kana: 'ヒロト', romaji: 'Hiroto' },
   { kanji: '蓮', kana: 'レン', romaji: 'Ren' },
@@ -75,6 +76,9 @@ export const MALE_NAMES: readonly JapaneseName[] = [
   { kanji: '隆', kana: 'タカシ', romaji: 'Takashi' },
   { kanji: '学', kana: 'マナブ', romaji: 'Manabu' },
   { kanji: '修', kana: 'オサム', romaji: 'Osamu' },
+  { kanji: '拓海', kana: 'タクミ', romaji: 'Takumi' },
+  { kanji: '翔平', kana: 'ショウヘイ', romaji: 'Shohei' },
+  { kanji: '大樹', kana: 'ダイキ', romaji: 'Daiki' },
 ];
 
 export const FEMALE_NAMES: readonly JapaneseName[] = [
@@ -87,14 +91,17 @@ export const FEMALE_NAMES: readonly JapaneseName[] = [
   { kanji: '陽菜', kana: 'ヒナ', romaji: 'Hina' },
   { kanji: '結衣', kana: 'ユイ', romaji: 'Yui' },
   { kanji: '美咲', kana: 'ミサキ', romaji: 'Misaki' },
-  { kanji: '美月', kana: 'ミヅキ', romaji: 'Mizuki' },
+  { kanji: '美月', kana: 'ミズキ', romaji: 'Mizuki' },
   { kanji: '千尋', kana: 'チヒロ', romaji: 'Chihiro' },
   { kanji: '奈々', kana: 'ナナ', romaji: 'Nana' },
   { kanji: '彩', kana: 'アヤ', romaji: 'Aya' },
   { kanji: '愛', kana: 'アイ', romaji: 'Ai' },
   { kanji: '舞', kana: 'マイ', romaji: 'Mai' },
   { kanji: '杏', kana: 'アン', romaji: 'An' },
-  { kanji: '花子', kana: 'ハナコ', romaji: 'Hanako' },
+  { kanji: '美穂', kana: 'ミホ', romaji: 'Miho' },
+  { kanji: '麻衣', kana: 'マイ', romaji: 'Mai' },
+  { kanji: '由香', kana: 'ユカ', romaji: 'Yuka' },
+  { kanji: '恵', kana: 'メグミ', romaji: 'Megumi' },
   { kanji: '恵子', kana: 'ケイコ', romaji: 'Keiko' },
   { kanji: '由美', kana: 'ユミ', romaji: 'Yumi' },
   { kanji: '直美', kana: 'ナオミ', romaji: 'Naomi' },

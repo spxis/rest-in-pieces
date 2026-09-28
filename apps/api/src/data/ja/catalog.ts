@@ -1,105 +1,127 @@
-export interface Department {
+export interface CatalogItem {
   name: string;
   /** Price range in yen. */
   price: readonly [number, number];
-  products: readonly string[];
+  /** Suffixes that make sense for this item. An empty string means the plain name. */
   variants: readonly string[];
 }
+
+export interface Department {
+  name: string;
+  items: readonly CatalogItem[];
+  /** Product-page lines that suit everything in the department. */
+  notes: readonly string[];
+}
+
+const GIFT = ['', ' 詰め合わせ', ' お徳用', ' 季節限定', ' ギフト用'];
+const COLOURS = ['', ' ホワイト', ' ブラック', ' 2026年モデル'];
+const REFILLS = ['', ' 詰め替え用', ' 大容量', ' 無香料'];
+const PENS = ['', ' 黒', ' 限定色', ' 3本セット'];
+const TABLEWARE = ['', ' 夫婦セット', ' ギフト箱入り'];
 
 /** Products a Japanese online shop would plausibly list, grouped by department. */
 export const DEPARTMENTS: readonly Department[] = [
   {
     name: '食品',
-    price: [300, 5000],
-    products: [
-      '静岡県産 深蒸し煎茶',
-      '宇治抹茶',
-      '新潟県産 コシヒカリ',
-      '信州味噌',
-      '本醸造醤油',
-      '南部せんべい',
-      '讃岐うどん',
-      '十割そば',
-      '紀州南高梅 梅干し',
-      '有明海産 焼き海苔',
-      '小倉羊羹',
-      '北海道 ミルククッキー',
+    items: [
+      { name: '静岡県産 深蒸し煎茶', price: [800, 3000], variants: GIFT },
+      { name: '宇治抹茶', price: [1000, 5000], variants: GIFT },
+      { name: '新潟県産 コシヒカリ 5kg', price: [2500, 5000], variants: ['', ' 新米', ' ギフト用'] },
+      { name: '信州味噌', price: [400, 1500], variants: ['', ' 減塩', ' お徳用'] },
+      { name: '本醸造醤油', price: [300, 1200], variants: ['', ' 減塩', ' お徳用'] },
+      { name: '南部せんべい', price: [400, 2000], variants: GIFT },
+      { name: '讃岐うどん', price: [500, 3000], variants: GIFT },
+      { name: '十割そば', price: [600, 3000], variants: GIFT },
+      { name: '紀州南高梅 梅干し', price: [1000, 5000], variants: ['', ' はちみつ漬け', ' ギフト用'] },
+      { name: '有明海産 焼き海苔', price: [800, 4000], variants: GIFT },
+      { name: '小倉羊羹', price: [500, 3000], variants: GIFT },
+      { name: '北海道 ミルククッキー', price: [500, 2500], variants: GIFT },
     ],
-    variants: ['', ' 詰め合わせ', ' お徳用', ' 季節限定', ' ギフト用'],
+    notes: [
+      '毎日の食卓に欠かせない定番の味です。',
+      'ギフトにもおすすめです。',
+      '産地直送でお届けします。',
+      '数量限定のお買い得品です。',
+    ],
   },
   {
     name: '家電',
-    price: [2000, 60000],
-    products: [
-      'IH炊飯器',
-      '電気ケトル',
-      'コードレス掃除機',
-      '空気清浄機',
-      'ヘアドライヤー',
-      'オーブンレンジ',
-      'サーキュレーター',
-      'スチーム加湿器',
-      'ワイヤレスイヤホン',
-      'Bluetoothスピーカー',
+    items: [
+      { name: 'IH炊飯器', price: [8000, 60000], variants: COLOURS },
+      { name: '電気ケトル', price: [2000, 10000], variants: COLOURS },
+      { name: 'コードレス掃除機', price: [10000, 60000], variants: COLOURS },
+      { name: '空気清浄機', price: [10000, 50000], variants: COLOURS },
+      { name: 'ヘアドライヤー', price: [3000, 30000], variants: COLOURS },
+      { name: 'オーブンレンジ', price: [15000, 60000], variants: COLOURS },
+      { name: 'サーキュレーター', price: [3000, 15000], variants: COLOURS },
+      { name: 'スチーム加湿器', price: [5000, 20000], variants: COLOURS },
+      { name: 'ワイヤレスイヤホン', price: [3000, 30000], variants: COLOURS },
+      { name: 'Bluetoothスピーカー', price: [3000, 25000], variants: COLOURS },
     ],
-    variants: ['', ' ホワイト', ' ブラック', ' コンパクトモデル', ' 2026年モデル'],
+    notes: [
+      '使いやすさにこだわった人気の一品。',
+      'メーカー保証1年付き。',
+      'レビュー高評価の売れ筋商品。',
+      '省エネ設計で電気代を抑えます。',
+    ],
   },
   {
     name: '日用品',
-    price: [100, 3000],
-    products: [
-      '泡ハンドソープ',
-      '液体洗濯洗剤',
-      '今治タオル',
-      '歯ブラシ',
-      'アミノ酸シャンプー',
-      'ボックスティッシュ',
-      'キッチンスポンジ',
-      '薬用入浴剤',
+    items: [
+      { name: '泡ハンドソープ', price: [200, 800], variants: REFILLS },
+      { name: '液体洗濯洗剤', price: [300, 1500], variants: REFILLS },
+      { name: '食器用洗剤', price: [150, 600], variants: REFILLS },
+      { name: '柔軟剤', price: [300, 1200], variants: REFILLS },
+      { name: 'アミノ酸シャンプー', price: [800, 3000], variants: REFILLS },
+      { name: '薬用入浴剤', price: [400, 2000], variants: ['', ' 無香料', ' 詰め合わせ'] },
+      { name: '今治タオル', price: [1000, 5000], variants: ['', ' フェイスタオル', ' バスタオル', ' ギフト箱入り'] },
+      { name: 'ボックスティッシュ', price: [300, 1000], variants: ['', ' 5箱パック'] },
     ],
-    variants: ['', ' 詰め替え用', ' 大容量', ' 3個パック', ' 無香料'],
+    notes: [
+      '毎日の暮らしに欠かせない定番商品です。',
+      'まとめ買いがお得です。',
+      'レビュー高評価の売れ筋商品。',
+      '国内の工場で生産しています。',
+    ],
   },
   {
     name: '文房具',
-    price: [100, 30000],
-    products: [
-      'ゲルインクボールペン',
-      '方眼ノート',
-      '万年筆',
-      '2027年 手帳',
-      '付箋',
-      '消しゴム',
-      '筆ペン',
-      'マスキングテープ',
+    items: [
+      { name: 'ゲルインクボールペン', price: [100, 1000], variants: PENS },
+      { name: 'シャープペンシル', price: [200, 2000], variants: PENS },
+      { name: '蛍光ペン', price: [100, 800], variants: PENS },
+      { name: '筆ペン', price: [300, 1500], variants: ['', ' 黒', ' 薄墨'] },
+      { name: '万年筆', price: [3000, 30000], variants: ['', ' 黒', ' 限定色', ' ギフト箱入り'] },
+      { name: '方眼ノート', price: [150, 1000], variants: ['', ' A5', ' B5', ' 5冊パック'] },
+      { name: '2026年版 手帳', price: [800, 4000], variants: ['', ' A5', ' B6'] },
+      { name: 'マスキングテープ', price: [150, 800], variants: ['', ' 和柄', ' 5巻セット'] },
     ],
-    variants: ['', ' 黒', ' 青', ' 限定色', ' 5個セット'],
+    notes: [
+      '書きやすさにこだわりました。',
+      '学生から社会人まで人気です。',
+      'ギフトにもおすすめです。',
+      'レビュー高評価の売れ筋商品。',
+    ],
   },
   {
     name: 'キッチン用品',
-    price: [500, 30000],
-    products: [
-      '南部鉄器 急須',
-      'ヒノキ まな板',
-      '三徳包丁',
-      '有田焼 茶碗',
-      '若狭塗 箸',
-      '伊賀焼 土鍋',
-      '波佐見焼 湯呑み',
-      '曲げわっぱ 弁当箱',
+    items: [
+      { name: '南部鉄器 急須', price: [5000, 20000], variants: ['', ' ギフト箱入り'] },
+      { name: 'ヒノキ まな板', price: [2000, 8000], variants: ['', ' 大', ' 小'] },
+      { name: '三徳包丁', price: [3000, 20000], variants: ['', ' 刃渡り16.5cm', ' ギフト箱入り'] },
+      { name: '有田焼 茶碗', price: [1500, 8000], variants: TABLEWARE },
+      { name: '若狭塗 箸', price: [1000, 6000], variants: TABLEWARE },
+      { name: '伊賀焼 土鍋', price: [4000, 20000], variants: ['', ' 6号', ' 8号'] },
+      { name: '波佐見焼 湯呑み', price: [1200, 6000], variants: TABLEWARE },
+      { name: '曲げわっぱ 弁当箱', price: [3000, 12000], variants: ['', ' 一段', ' 二段'] },
     ],
-    variants: ['', ' 大', ' 小', ' 2個セット', ' ギフト箱入り'],
+    notes: [
+      '職人がひとつひとつ丁寧に仕上げました。',
+      'ギフトにもおすすめです。',
+      '長く使える確かな品質です。',
+      '日本の伝統工芸品です。',
+    ],
   },
-];
-
-export const PRODUCT_NOTES: readonly string[] = [
-  '毎日の暮らしに欠かせない定番商品です。',
-  '職人がひとつひとつ丁寧に仕上げました。',
-  'ギフトにもおすすめです。',
-  '使いやすさにこだわった人気の一品。',
-  '送料無料でお届けします。',
-  '数量限定のお買い得品です。',
-  'レビュー高評価の売れ筋商品。',
-  '国内の工場で生産しています。',
 ];
 
 /** Company name endings, each with the romaji used for its web domain and the industry it implies. */
@@ -117,6 +139,7 @@ export const COMPANY_KINDS: readonly { suffix: string; romaji: string; industry:
   { suffix: '食品', romaji: 'shokuhin', industry: '食料品' },
   { suffix: '薬品', romaji: 'yakuhin', industry: '医薬品' },
   { suffix: '印刷', romaji: 'insatsu', industry: '印刷業' },
+  // Real firms spell this one "system" in their domains, so it stays in English.
   { suffix: 'システム', romaji: 'system', industry: '情報・通信業' },
 ];
 
@@ -144,12 +167,12 @@ export const JOB_TITLES: readonly string[] = [
   '人事担当',
   'マーケティング担当',
   '店長',
-  '看護師',
-  '教員',
-  '薬剤師',
   '研究員',
   'プロジェクトマネージャー',
   'カスタマーサポート',
   '一般事務',
+  '総務担当',
+  '品質管理',
+  '広報担当',
   'コンサルタント',
 ];
