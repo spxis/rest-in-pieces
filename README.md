@@ -10,19 +10,28 @@ Requires Node.js 22.18+ (24 LTS recommended) and pnpm.
 
 ```sh
 pnpm install
-pnpm dev          # http://localhost:8080
+pnpm dev          # API: http://localhost:6800, playground: http://localhost:6801
 ```
 
 | Script           | What it does                        |
 | ---------------- | ----------------------------------- |
-| `pnpm dev`       | Start the API with file watching    |
+| `pnpm dev`       | Start the API and playground        |
+| `pnpm dev:api`   | Start the API on port 6800          |
+| `pnpm dev:web`   | Start the playground on port 6801   |
 | `pnpm start`     | Start the API                       |
+| `pnpm build`     | Build the playground for production |
 | `pnpm test`      | Run the test suite                  |
 | `pnpm typecheck` | Type-check every workspace          |
 | `pnpm lint`      | Lint and check formatting (Biome)   |
 | `pnpm format`    | Apply lint fixes and formatting     |
 
-Set `PORT` to change the port.
+Set `PORT` to change the API port. Set `VITE_API_BASE_URL` to point the playground at a different API origin.
+
+## Playground
+
+The request builder is available at [http://localhost:6801](http://localhost:6801) after `pnpm dev`. It supports the names, countries, and custom generation endpoints, response formats, and simulation controls. Requests are sent only when you choose **Send request**.
+
+The API runs separately at [http://localhost:6800](http://localhost:6800), with interactive documentation at [http://localhost:6800/docs](http://localhost:6800/docs).
 
 ## API
 
@@ -96,7 +105,7 @@ Lists every supported generator type for use with `/generate`.
 
 ### API documentation
 
-The OpenAPI 3.1 document is available at [`/openapi.json`](http://localhost:8080/openapi.json), with interactive Swagger UI at [`/docs`](http://localhost:8080/docs).
+The OpenAPI 3.1 document is available at [`/openapi.json`](http://localhost:6800/openapi.json), with interactive Swagger UI at [`/docs`](http://localhost:6800/docs).
 
 ### `GET /health`
 
@@ -106,6 +115,7 @@ Returns `{ "status": "ok" }`.
 
 ```
 apps/api     Hono API (TypeScript, runs directly on Node)
+apps/web     React and Vite API playground
 ```
 
 ## License
