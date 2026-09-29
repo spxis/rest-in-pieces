@@ -2,6 +2,7 @@ import { Check, Copy, Link2 } from 'lucide-react';
 import { useState } from 'react';
 import { useSpeaker } from '../i18n/LocaleProvider.tsx';
 import type { OutputFormat } from '../lib/config.ts';
+import { isInBrowserUrl } from '../lib/inBrowserApi.ts';
 import { curlCommand, fetchSnippet } from '../lib/request.ts';
 
 type Snippet = 'url' | 'curl' | 'fetch';
@@ -21,7 +22,7 @@ export function RequestPreview({
   onCopy: (value: string, key: string) => void;
   onShare: () => void;
 }) {
-  const { say } = useSpeaker();
+  const { say, compose } = useSpeaker();
   const [view, setView] = useState<Snippet>('url');
   const text = view === 'url' ? url : view === 'curl' ? curlCommand(url, format) : fetchSnippet(url, format);
   const params = new URL(url, 'http://x').searchParams.size;
@@ -58,6 +59,17 @@ export function RequestPreview({
         <span>{say('preview.params', { count: params })}</span>
       </div>
       <code data-testid="request-snippet">{text}</code>
+      {isInBrowserUrl(url) && (
+        <p className="preview-note">
+          {compose('preview.inBrowser', {
+            link: (
+              <a href="https://github.com/spxis/rest-in-pieces#quick-start" target="_blank" rel="noreferrer">
+                {say('preview.runItYourself')}
+              </a>
+            ),
+          })}
+        </p>
+      )}
       <div className="preview-actions">
         {button('snippet', say(COPY_LABELS[view]), text)}
         {button('setup', say('preview.share'), null, <Link2 size={14} />)}

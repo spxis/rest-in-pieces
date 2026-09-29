@@ -6,6 +6,7 @@ export const PHRASES = {
   'topbar.home': 'REST in Pieces home',
   'topbar.local': 'LOCAL API',
   'topbar.remote': 'REMOTE API',
+  'topbar.inBrowser': 'IN-BROWSER API',
   'topbar.invalid': 'INVALID URL',
   'topbar.offline': 'Not reachable',
   'topbar.docs': 'API docs',
@@ -111,6 +112,9 @@ export const PHRASES = {
   'preview.copyCurl': 'Copy curl',
   'preview.copyFetch': 'Copy fetch',
   'preview.share': 'Share setup',
+  'preview.inBrowser':
+    'This API runs inside your browser tab, so the URL only answers here. To call it with curl or from your own code, {link}.',
+  'preview.runItYourself': 'run the server yourself',
   'common.copied': 'Copied',
 
   'table.empty': 'No records match this request.',

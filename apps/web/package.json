@@ -8,11 +8,13 @@
     "build": "tsc -p tsconfig.json && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "build:pages": "tsc -p tsconfig.json && vite build --mode pages && node scripts/pages-static.ts"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.2.6",
     "@fontsource/space-grotesk": "^5.2.6",
+    "@rest-in-pieces/api": "workspace:*",
     "lucide-react": "^1.48.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"

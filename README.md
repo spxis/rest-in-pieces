@@ -1,6 +1,7 @@
 # REST in Pieces
 
 [![CI](https://github.com/spxis/rest-in-pieces/actions/workflows/ci.yml/badge.svg)](https://github.com/spxis/rest-in-pieces/actions/workflows/ci.yml)
+[![Pages](https://github.com/spxis/rest-in-pieces/actions/workflows/pages.yml/badge.svg)](https://spxis.github.io/rest-in-pieces/)
 ![Node 24](https://img.shields.io/badge/node-24_LTS-3c873a)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7-3178c6)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
@@ -8,6 +9,8 @@
 **A repeatable test backend for frontend development.** Build tables, pagination, sorting, filters, loading states, empty states and error handling against realistic data, before a real backend exists.
 
 Every dataset is generated from a seed. The same URL returns the same records on every machine and after every restart, so a bug can be reproduced from its URL instead of disappearing with a new random dataset.
+
+**[Try it in your browser](https://spxis.github.io/rest-in-pieces/).** The live demo runs the whole API inside the page, so there is no server behind it and nothing to install.
 
 ![The REST in Pieces playground](docs/images/playground.png)
 
@@ -177,6 +180,7 @@ flowchart LR
 - **Schemas first.** Routes are declared with Zod through `@hono/zod-openapi`; the OpenAPI document is generated from them and cannot drift from the code.
 - **Deterministic by construction.** Datasets depend only on their seed, and the most recently used ones are cached in memory.
 - **No build step for the API.** Node runs the TypeScript directly with type stripping.
+- **Runs anywhere fetch does.** `createApp()` in `apps/api/src/core.ts` uses only web standards. `app.ts` adds the Node parts (logging and static files), and the GitHub Pages build loads the same app into the browser tab.
 
 ```
 apps/api     Hono API: routes, collection pipeline, datasets, OpenAPI
@@ -202,6 +206,8 @@ Set `PORT` to move the API, and `VITE_API_BASE_URL` to point the playground else
 **Vercel.** Create one project with **Root Directory** `apps/api`. `apps/api/vercel.json` builds the playground into `public/`, so the playground, API and docs share one origin with no extra configuration.
 
 **Docker.** The image above serves everything from port 8080, runs as a non-root user and includes a health check.
+
+**GitHub Pages.** `.github/workflows/pages.yml` publishes the in-browser playground on every push to `master`. `pnpm --filter @rest-in-pieces/web build:pages` builds it locally into `apps/web/dist-pages`: the playground, the API bundled as a chunk it loads on the first request, and static copies of `api/openapi.json` and `api/docs/`. Set `PAGES_BASE` to serve it from somewhere other than `/rest-in-pieces/`.
 
 ## License
 

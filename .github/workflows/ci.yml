@@ -29,6 +29,7 @@ jobs:
       - run: pnpm test:coverage
       - run: pnpm --filter @rest-in-pieces/web test
       - run: pnpm build
+      - run: pnpm --filter @rest-in-pieces/web build:pages
       - uses: actions/upload-artifact@v4
         if: always()
         with:

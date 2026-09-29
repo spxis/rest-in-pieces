@@ -652,6 +652,16 @@ h1 {
   color: #42604c;
   font: 10px / 1.6 var(--mono);
 }
+.preview-note {
+  margin: 7px 0 0;
+  color: #7c887f;
+  font-size: 10px;
+  line-height: 1.5;
+}
+.preview-note a {
+  color: inherit;
+  text-decoration: underline;
+}
 .preview-actions {
   display: flex;
   flex-wrap: wrap;

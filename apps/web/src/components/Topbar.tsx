@@ -1,15 +1,24 @@
 import { ExternalLink, Workflow } from 'lucide-react';
 import { useSpeaker } from '../i18n/LocaleProvider.tsx';
+import { isInBrowserApi } from '../lib/inBrowserApi.ts';
 import { isLocalApi, trimBase } from '../lib/request.ts';
 import { LanguagePicker } from './LanguagePicker.tsx';
 
 export function Topbar({ apiBase, online }: { apiBase: string; online: boolean | null }) {
   const { say } = useSpeaker();
   const local = isLocalApi(apiBase);
-  const label = say(local === null ? 'topbar.invalid' : local ? 'topbar.local' : 'topbar.remote');
+  const label = say(
+    isInBrowserApi(apiBase)
+      ? 'topbar.inBrowser'
+      : local === null
+        ? 'topbar.invalid'
+        : local
+          ? 'topbar.local'
+          : 'topbar.remote',
+  );
   return (
     <header className="topbar">
-      <a className="brand" href="/" aria-label={say('topbar.home')}>
+      <a className="brand" href={import.meta.env.BASE_URL} aria-label={say('topbar.home')}>
         <span className="brand-mark">
           <Workflow size={19} strokeWidth={2.2} />
         </span>

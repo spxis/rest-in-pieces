@@ -3,6 +3,10 @@
   "version": "2.1.0",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./core": "./src/core.ts"
+  },
   "scripts": {
     "dev": "node --watch src/server.ts",
     "start": "node src/server.ts",
