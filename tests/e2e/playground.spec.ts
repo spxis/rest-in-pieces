@@ -1,33 +1,84 @@
 import { expect, test } from '@playwright/test';
 
-test('a repeatable scenario can be shared, restored, and inspected', async ({ page, context }) => {
-  const requestUrls: URL[] = [];
-  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-  await page.route('http://localhost:6800/**', async (route) => {
-    requestUrls.push(new URL(route.request().url()));
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ results: [{ index: 10, name: 'Sample Person' }] }),
-    });
-  });
+const snippet = (page: import('@playwright/test').Page) => page.getByTestId('request-snippet');
 
+test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await expect(page.getByText('LOCAL API')).toBeVisible();
-  await page.locator('#api-base').fill('https://api.example.test');
-  await expect(page.getByText('REMOTE API')).toBeVisible();
-  await page.locator('#api-base').fill('http://localhost:6800');
+});
 
-  await page.getByRole('button', { name: 'Next page' }).click();
-  await expect(page.locator('.request-preview > code')).toContainText('offset=10');
+test('fetches the seeded dataset and shows it as a table', async ({ page }) => {
+  await page.getByRole('button', { name: /Send request/ }).click();
+  await expect(page.getByTestId('response-status')).toHaveText(/200/);
+  // Seed 1 always starts with the same person, on every machine.
+  await expect(page.getByRole('cell', { name: 'Aaliyah Corkery' })).toBeVisible();
+  await expect(page.getByText('Page 1 of 100')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Next results page' }).click();
+  await expect(page.getByText('Page 2 of 100')).toBeVisible();
+  await expect(snippet(page)).toContainText('offset=10');
+});
+
+test('filters, searches and sorts', async ({ page }) => {
+  await page.getByPlaceholder('Search every field…').fill('ontario');
+  await page.getByRole('button', { name: 'Add filter' }).click();
+  await page.getByLabel('Filter field').selectOption('gender');
+  await page.getByLabel('Filter value').fill('female');
+  await page.getByRole('combobox', { name: 'Sort field' }).selectOption('age');
+  await page.keyboard.press('ControlOrMeta+Enter');
+
+  await expect(snippet(page)).toContainText('q=ontario');
+  await expect(snippet(page)).toContainText('gender=female');
+  const genders = page.locator('.data-table tbody tr td:nth-child(9)');
+  await expect(genders.first()).toHaveText('female');
+  for (const text of await genders.allTextContents()) expect(text).toBe('female');
+});
+
+test('rehearses failure scenarios', async ({ page }) => {
+  await page.getByRole('button', { name: /503 error/ }).click();
+  await page.getByRole('button', { name: /Send request/ }).click();
+  await expect(page.getByTestId('response-status')).toHaveText(/503/);
+  await expect(page.locator('.response-body')).toContainText('"simulated": true');
+});
+
+test('generates custom records', async ({ page }) => {
+  await page.getByRole('tab', { name: /Generate/ }).click();
+  await page.getByRole('button', { name: 'Add field' }).click();
+  await page.getByLabel('Field name').last().fill('price');
+  await page.getByLabel('Generator type').last().selectOption('commerce.price');
+  await page.getByRole('button', { name: /Send request/ }).click();
+  await expect(page.getByRole('columnheader', { name: 'price' })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'email' })).toBeVisible();
+});
+
+test('returns CSV and shows the raw body', async ({ page }) => {
+  await page.getByRole('button', { name: 'CSV' }).click();
+  await page.getByRole('button', { name: /Send request/ }).click();
+  await expect(page.locator('.response-body')).toContainText('index,name,age,address');
+});
+
+test('shares a setup that restores the same request', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.getByRole('tab', { name: /Users/ }).click();
+  await page.getByRole('button', { name: /Next page/ }).click();
+  const expected = await snippet(page).textContent();
   await page.getByRole('button', { name: 'Share setup' }).click();
-  const setupUrl = await page.evaluate(() => navigator.clipboard.readText());
+  const link = await page.evaluate(() => navigator.clipboard.readText());
 
-  await page.goto(setupUrl);
-  await expect(page.locator('#api-base')).toHaveValue('http://localhost:6800');
-  await expect(page.locator('.request-preview > code')).toContainText('offset=10');
-  await page.getByRole('button', { name: 'Send request' }).click();
-  await expect(page.locator('.response-body')).toContainText('Sample Person');
-  expect(requestUrls).toHaveLength(1);
-  expect(requestUrls[0]?.searchParams.get('offset')).toBe('10');
+  await page.goto(link);
+  await expect(snippet(page)).toHaveText(expected ?? '');
+});
+
+test('switches to Japanese and fetches Japanese data', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: '日本語' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('API プレイグラウンド');
+  await page.getByRole('combobox', { name: 'データのロケール' }).selectOption('ja');
+  await expect(page.getByTestId('request-snippet')).toContainText('locale=ja');
+  await page.getByRole('button', { name: /リクエストを送信/ }).click();
+  await expect(page.getByTestId('response-status')).toContainText('200');
+  await expect(page.getByRole('columnheader', { name: 'nameKana' })).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByRole('button', { name: '日本語' })).toHaveAttribute('aria-pressed', 'true');
 });

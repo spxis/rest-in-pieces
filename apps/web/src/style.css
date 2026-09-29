@@ -1,4 +1,75 @@
-@import "tailwindcss";
+/* A small reset: the handful of normalisations this stylesheet relies on. */
+*,
+::before,
+::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0 solid;
+}
+html {
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+h1,
+h2,
+h3,
+p {
+  font-size: inherit;
+  font-weight: inherit;
+  overflow-wrap: break-word;
+}
+button,
+input,
+select {
+  color: inherit;
+  background-color: transparent;
+  border-radius: 0;
+  letter-spacing: inherit;
+}
+button,
+select {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+svg {
+  display: block;
+  flex-shrink: 0;
+}
+ol,
+ul {
+  list-style: none;
+}
+table {
+  border-collapse: collapse;
+}
+:focus-visible {
+  outline: 2px solid #4f8f63;
+  outline-offset: 2px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border-width: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    /* biome-ignore lint/complexity/noImportantStyles: reduced motion must win over component styles */
+    animation-duration: 0.01ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: reduced motion must win over component styles */
+    transition-duration: 0.01ms !important;
+  }
+}
 
 :root {
   font-family: "Space Grotesk", sans-serif;
@@ -18,6 +89,11 @@
   --lime: #c9f36a;
   --coral: #e67b5b;
   --mono: "IBM Plex Mono", monospace;
+}
+/* Space Grotesk has no Japanese; name the system Japanese faces so kana and kanji match across the page. */
+:root:lang(ja) {
+  font-family:
+    "Space Grotesk", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
 }
 
 * {
@@ -103,6 +179,35 @@ a {
   border-radius: 50%;
   background: #76a974;
   box-shadow: 0 0 0 3px #76a97420;
+}
+.language-picker {
+  display: inline-flex;
+  margin: 0;
+  padding: 2px;
+  border: 1px solid #cfd8cd;
+  border-radius: 999px;
+  background: #f7f9f5;
+}
+.language-picker button {
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #58655d;
+  font:
+    500 11px "Space Grotesk",
+    "Hiragino Sans",
+    "Noto Sans JP",
+    sans-serif;
+  cursor: pointer;
+}
+.language-picker button.active {
+  background: #182720;
+  color: #eef1eb;
+}
+.language-picker button:focus-visible {
+  outline: 2px solid #76a974;
+  outline-offset: 1px;
 }
 .docs-link {
   color: #41594a;
@@ -876,6 +981,10 @@ h1 {
   .docs-link {
     font-size: 10px;
   }
+  .language-picker button {
+    padding: 3px 7px;
+    font-size: 10px;
+  }
   .workspace {
     padding: 29px 12px 16px;
   }
@@ -939,4 +1048,170 @@ h1 {
   font:
     9px "Space Grotesk",
     sans-serif;
+}
+
+/* Dataset description, filters, snippets, table view and pager. */
+.endpoint-description {
+  margin-top: 10px;
+  color: #748078;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.environment.offline i {
+  background: var(--coral);
+  box-shadow: 0 0 0 3px #e67b5b26;
+}
+.scenario-buttons {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.scenario-buttons button {
+  display: grid;
+  gap: 1px;
+  padding: 6px 9px;
+  line-height: 1.3;
+}
+.scenario-hint {
+  color: #a0aaa2;
+  font: 8px var(--mono);
+}
+.seed-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+}
+.seed-row .seed-control {
+  margin-top: 0;
+}
+.search-control {
+  position: relative;
+  margin-bottom: 8px;
+}
+.search-control > svg {
+  position: absolute;
+  top: 50%;
+  left: 11px;
+  color: #98a39a;
+  transform: translateY(-50%);
+}
+.control.search-control input {
+  padding-left: 32px;
+}
+.field-row.filter-row {
+  grid-template-columns: 1fr 52px 1.1fr 28px;
+}
+.add-filter {
+  margin-top: 8px;
+}
+.snippet-tabs {
+  display: flex;
+  gap: 12px;
+}
+.snippet-tabs button {
+  padding: 0;
+  color: #a0aaa2;
+  font: inherit;
+  letter-spacing: 0.04em;
+}
+.snippet-tabs button.active {
+  color: #42604c;
+  font-weight: 600;
+}
+.request-preview > code {
+  max-height: 110px;
+  white-space: pre-wrap;
+}
+kbd {
+  padding: 1px 4px;
+  border: 1px solid #cfd8cc;
+  border-radius: 3px;
+  background: #fbfcf9;
+  font: 9px var(--mono);
+}
+.send-button kbd {
+  margin-left: auto;
+  border-color: #17392433;
+  background: transparent;
+}
+.data-table-wrap {
+  min-height: 370px;
+  max-height: 570px;
+  overflow: auto;
+  margin: 12px 0;
+  border: 1px solid #e6eae4;
+  border-radius: 4px;
+}
+.data-table {
+  width: 100%;
+  font: 10px / 1.5 var(--mono);
+  color: #3d5043;
+}
+.data-table th {
+  position: sticky;
+  top: 0;
+  padding: 7px 10px;
+  border-bottom: 1px solid #dfe5dc;
+  background: #f4f6f1;
+  color: #748078;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+}
+.data-table td {
+  max-width: 220px;
+  overflow: hidden;
+  padding: 6px 10px;
+  border-bottom: 1px solid #eef1ec;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.data-table tbody tr:hover {
+  background: #f4f7f0;
+}
+.table-empty,
+.table-note {
+  padding: 16px 10px;
+  color: #8b968e;
+  font-size: 11px;
+}
+.table-empty {
+  min-height: 370px;
+  display: grid;
+  place-items: center;
+}
+.pager {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #748078;
+  font: 9px var(--mono);
+}
+.pager button {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid #dfe5dc;
+  border-radius: 4px;
+}
+.pager button:disabled {
+  opacity: 0.35;
+}
+@media (max-width: 560px) {
+  .scenario-buttons {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .field-row.filter-row {
+    grid-template-columns: 1fr 46px 1fr 27px;
+  }
+  .data-table-wrap,
+  .table-empty {
+    min-height: 260px;
+  }
+}
+.endpoint-description code {
+  font: 10px var(--mono);
+  color: #42604c;
 }

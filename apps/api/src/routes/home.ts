@@ -4,18 +4,21 @@ import pkg from '../../package.json' with { type: 'json' };
 
 const examples = [
   ['/names?limit=10', 'First 10 people'],
-  ['/names?limit=25&sortBy=name', 'First 25 people, sorted by name'],
-  ['/names?limit=10&sortBy=name&sortDirection=desc', 'First 10 people, sorted by name descending'],
-  ['/names?limit=10&sortBy=age:numeric', 'Youngest 10 people'],
-  ['/names?limit=10&sortDirection=reverse', 'Last 10 people'],
-  ['/names?limit=10&offset=10', 'Next 10 people'],
-  ['/names?limit=50&metadata=0', 'First 50 people, without metadata'],
-  ['/names?limit=50&max=35', 'First 50 people from a dataset capped at 35'],
-  ['/names?limit=10&seed=42', 'Repeatable dataset with a custom seed'],
-  ['/names?limit=10&format=csv', 'People as CSV'],
-  ['/generate?fields=name:person.fullName,email:internet.email&limit=5&seed=42', 'Custom generated records'],
-  ['/names?limit=5&resultsName=rows', 'Results under a custom key'],
-  ['/countries?limit=10', 'First 10 countries'],
+  ['/names?limit=10&sortBy=age:numeric&sortDirection=desc', 'Oldest 10 people'],
+  ['/names?gender=female&age[gte]=30&age[lt]=40', 'Women in their thirties'],
+  ['/names?q=ontario&limit=5', 'Text search'],
+  ['/names?limit=50&max=35&offset=30', 'The last page of a 35-record dataset'],
+  ['/names/42', 'One person by index'],
+  ['/users?seed=7&limit=5', 'Users from seed 7'],
+  ['/products?department=Books&sortBy=price:numeric', 'Books, cheapest first'],
+  ['/companies?limit=5&format=csv', 'Companies as CSV'],
+  ['/countries/CA', 'One country by ISO code'],
+  ['/names?locale=ja&limit=5', 'Japanese people with readings'],
+  ['/products?locale=ja&sortBy=price:numeric', 'Japanese products in yen'],
+  ['/generate?fields=name:person.fullName,email:internet.email&limit=5&seed=42', 'Custom records'],
+  ['/names?delay=1500', 'A slow response'],
+  ['/names?status=503', 'A 503 error'],
+  ['/names?fail=0.3', 'Fails 30% of the time'],
 ] as const;
 
 export const home = new Hono().get('/', (c) =>
@@ -34,7 +37,7 @@ export const home = new Hono().get('/', (c) =>
       <body>
         <h1>REST in Pieces <small>v${pkg.version}</small></h1>
         <p>Realistic, repeatable fake data for building and testing client applications.</p>
-        <p><a href="/docs">Interactive API docs</a> · <a href="/openapi.json">OpenAPI spec</a> · <a href="/generators">Generator types</a></p>
+        <p><a href="/docs">Interactive API docs</a> · <a href="/openapi.json">OpenAPI spec</a> · <a href="/resources">Datasets</a> · <a href="/generators">Generator types</a></p>
         <ul>
           ${examples.map(([href, label]) => html`<li><a href="${href}">${label}</a> <code>${href}</code></li>`)}
         </ul>

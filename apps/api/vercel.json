@@ -1,4 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "hono"
+  "framework": "hono",
+  "buildCommand": "pnpm --filter @rest-in-pieces/web build && rm -rf public && cp -r ../web/dist public"
 }
