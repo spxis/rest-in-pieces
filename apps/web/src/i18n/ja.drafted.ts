@@ -9,6 +9,7 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
   'topbar.home': { text: 'REST in Pieces ホーム', back: 'REST in Pieces home' },
   'topbar.local': { text: 'ローカル API', back: 'Local API' },
   'topbar.remote': { text: 'リモート API', back: 'Remote API' },
+  'topbar.inBrowser': { text: 'ブラウザー内 API', back: 'In-browser API' },
   'topbar.invalid': { text: '無効な URL', back: 'Invalid URL' },
   'topbar.offline': { text: '接続不可', back: 'Unreachable' },
   'topbar.docs': { text: 'API ドキュメント', back: 'API documentation' },
@@ -136,6 +137,11 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
   'preview.copyCurl': { text: 'curl をコピー', back: 'Copy curl' },
   'preview.copyFetch': { text: 'fetch をコピー', back: 'Copy fetch' },
   'preview.share': { text: '設定を共有', back: 'Share the setup' },
+  'preview.inBrowser': {
+    text: 'この API はブラウザーのタブ内で動いているため、この URL はここでしか応答しません。curl や自分のコードから呼び出すには、{link}。',
+    back: 'This API is running inside the browser tab, so this URL only answers here. To call it from curl or your own code, {link}.',
+  },
+  'preview.runItYourself': { text: 'サーバーを自分で起動してください', back: 'please start the server yourself' },
   'common.copied': { text: 'コピーしました', back: 'Copied' },
 
   'table.empty': { text: 'このリクエストに一致するレコードはありません。', back: 'No records match this request.' },

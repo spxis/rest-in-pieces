@@ -9,6 +9,9 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import { LocaleProvider } from './i18n/LocaleProvider.tsx';
 
+// Written out rather than read from IN_BROWSER so every other build drops the API bundle entirely.
+if (import.meta.env.MODE === 'pages') (await import('./lib/inBrowserApi.ts')).installInBrowserApi();
+
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Root element was not found');
 

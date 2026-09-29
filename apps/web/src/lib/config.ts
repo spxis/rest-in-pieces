@@ -1,4 +1,5 @@
 import type { PhraseKey } from '../i18n/phrases.ts';
+import { IN_BROWSER, inBrowserBase } from './inBrowserApi.ts';
 
 export type OutputFormat = 'json' | 'csv' | 'yaml' | 'xml';
 export type SortType = 'string' | 'numeric';
@@ -67,8 +68,12 @@ export const DEFAULT_FIELDS: Field[] = [
   { id: 2, name: 'email', type: 'internet.email' },
 ];
 
-/** Same origin in production (the API serves the playground); the local API during development. */
+/**
+ * Same origin in production (the API serves the playground), the local API during development,
+ * and the API running inside the page on GitHub Pages.
+ */
 export function defaultApiBase(): string {
+  if (IN_BROWSER) return inBrowserBase();
   const configured = import.meta.env.VITE_API_BASE_URL as string | undefined;
   if (configured) return configured;
   return import.meta.env.DEV ? 'http://localhost:8080' : window.location.origin;

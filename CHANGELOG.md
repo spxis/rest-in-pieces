@@ -2,6 +2,13 @@
 
 Notable user-facing changes are recorded here. The project follows [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- A live demo on GitHub Pages. The whole API runs inside the browser tab, with static copies of the OpenAPI document and the reference docs beside it.
+- `createApp()` builds the API from web standards alone, so it runs on Node, on any fetch-style host and in a browser.
+
 ## 2.1.0 - 2026-09-28
 
 ### Added
