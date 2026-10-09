@@ -41,8 +41,11 @@ export function WriteRequest({
   idField,
   onChange,
   onResetBody,
+  kept = false,
 }: {
   config: PlaygroundConfig;
+  /** Whether the API keeps writes, which changes what the note under the heading says. */
+  kept?: boolean;
   /** The field the record id matches, e.g. `index` for people. */
   idField: string;
   onChange: Update;
@@ -56,7 +59,7 @@ export function WriteRequest({
         <span className="section-caption">{say('write.heading')}</span>
         <PencilLine size={15} />
       </div>
-      <p className="inline-note">{say('write.stateless')}</p>
+      <p className="inline-note">{say(kept ? 'write.kept' : 'write.stateless')}</p>
       {takesId(config.method) && (
         <label className="control record-control">
           <span>{say('write.recordId', { field: idField })}</span>

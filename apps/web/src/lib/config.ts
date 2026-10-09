@@ -23,6 +23,10 @@ export const takesBody = (method: HttpMethod) => method === 'POST' || method ===
 export const MAX_BODY_LENGTH = 64 * 1024;
 const RECORD_ID = /^[\w-]{1,40}$/;
 
+/** What `?auth=` asks of the request: nothing, any signed-in account, or a role. */
+export type AuthRequirement = '' | 'required' | 'editor' | 'admin';
+export const AUTH_REQUIREMENTS: readonly AuthRequirement[] = ['', 'required', 'editor', 'admin'];
+
 /** How the request names its page: `offset`, `page` and `pageSize`, or an opaque `cursor`. */
 export type PagingStyle = 'offset' | 'page' | 'cursor';
 
@@ -77,6 +81,8 @@ export interface PlaygroundConfig {
   body: string;
   /** Asks a write for `409 Conflict`. */
   conflict: boolean;
+  /** Makes the request a protected route with `?auth=`, so it needs a token from the sign-in panel. */
+  auth: AuthRequirement;
 }
 
 export const FORMATS: readonly OutputFormat[] = ['json', 'csv', 'yaml', 'xml'];
@@ -158,6 +164,7 @@ export function defaultConfig(apiBase = defaultApiBase()): PlaygroundConfig {
     recordId: '1',
     body: '',
     conflict: false,
+    auth: '',
   };
 }
 
@@ -233,6 +240,7 @@ export function configFromHash(hash: string, fallback = defaultConfig()): Playgr
     recordId: recordId !== null && RECORD_ID.test(recordId) ? recordId : fallback.recordId,
     body: body !== null && body.length <= MAX_BODY_LENGTH ? body : fallback.body,
     conflict: params.get('conflict') === 'true',
+    auth: AUTH_REQUIREMENTS.find((value) => value !== '' && value === params.get('auth')) ?? fallback.auth,
   };
 }
 

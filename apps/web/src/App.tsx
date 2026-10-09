@@ -7,11 +7,15 @@ import { PageAndSort, SearchAndFilters } from './components/QueryControls.tsx';
 import { RequestPreview } from './components/RequestPreview.tsx';
 import { ResponsePanel } from './components/ResponsePanel.tsx';
 import { SCENARIO_SHARE, ScenarioPresets } from './components/ScenarioPresets.tsx';
+import { SessionPanel } from './components/SessionPanel.tsx';
+import { SignInPanel } from './components/SignInPanel.tsx';
 import { Topbar } from './components/Topbar.tsx';
 import { MethodPicker, WriteRequest } from './components/WriteControls.tsx';
+import { useAuth } from './hooks/useAuth.ts';
 import { useCatalog } from './hooks/useCatalog.ts';
 import { useCopy } from './hooks/useCopy.ts';
 import { useRequest } from './hooks/useRequest.ts';
+import { useSession } from './hooks/useSession.ts';
 import { useSpeaker } from './i18n/LocaleProvider.tsx';
 import type { PhraseKey } from './i18n/phrases.ts';
 import {
@@ -59,6 +63,8 @@ export default function App() {
   const catalog = useCatalog(config.apiBase);
   const { result, error, sending, send } = useRequest();
   const { copied, copy } = useCopy();
+  const auth = useAuth(config.apiBase);
+  const session = useSession(config.apiBase);
 
   const resource = catalog.resources.find((r) => r.name === config.endpoint);
   const isGenerate = config.endpoint === 'generate';
@@ -73,13 +79,20 @@ export default function App() {
   const url = useMemo(() => buildRequestUrl({ ...config, method }, seeded), [config, method, seeded]);
   const problem = isGenerate ? fieldProblem(config.fields) : null;
 
+  const { token } = auth;
+  const { reload: reloadSession } = session;
+  /** Sends the setup, with the signed-in token when there is one. A write is followed by a look at the session. */
   const sendConfig = useCallback(
-    (next: PlaygroundConfig) => {
+    (next: PlaygroundConfig, withToken: string | null = token) => {
       if (isGenerate && fieldProblem(next.fields)) return;
       const request = { ...next, method };
-      void send(buildRequestUrl(request, seeded), next.format, { method, body: next.body });
+      void send(buildRequestUrl(request, seeded), next.format, { method, body: next.body, token: withToken }).then(
+        () => {
+          if (method !== 'GET') void reloadSession();
+        },
+      );
     },
-    [isGenerate, method, seeded, send],
+    [isGenerate, method, seeded, send, token, reloadSession],
   );
 
   /** A body the reader has not touched follows the dataset and method; one they edited stays. */
@@ -188,6 +201,7 @@ export default function App() {
                 idField={resource?.idField ?? 'id'}
                 onChange={update}
                 onResetBody={() => update({ body: sampleBody(config.endpoint, method) })}
+                kept={session.summary?.enabled === true}
               />
             ) : (
               <>
@@ -203,10 +217,15 @@ export default function App() {
               </>
             )}
             <SimulationPanel config={config} onChange={update} />
+            <SignInPanel auth={auth} config={config} onChange={update} />
+            <SessionPanel session={session} />
             <RequestPreview
               url={url}
+              apiBase={config.apiBase}
               format={config.format}
               request={{ method, body: config.body }}
+              account={auth.username}
+              session={session.summary?.enabled === true}
               copied={copied}
               onCopy={copy}
               onShare={() => share('setup')}
@@ -232,6 +251,11 @@ export default function App() {
             copied={copied}
             onCopy={copy}
             onRetry={() => sendConfig(config)}
+            onSignIn={() =>
+              void auth
+                .signIn('viewer', '15m', { seed: config.seed, locale: config.locale })
+                .then((fresh) => fresh && sendConfig(config, fresh))
+            }
             pager={
               writing
                 ? null

@@ -1,11 +1,23 @@
-import { Activity, Check, ChevronLeft, ChevronRight, CircleAlert, Copy, ExternalLink, Send } from 'lucide-react';
+import {
+  Activity,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  CircleAlert,
+  Copy,
+  Download,
+  ExternalLink,
+  Send,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { REQUEST_FAILED, type RequestResult, UNREACHABLE } from '../hooks/useRequest.ts';
 import { useSpeaker } from '../i18n/LocaleProvider.tsx';
+import { DOWNLOAD_FORMATS, downloadOf, saveDownload } from '../lib/download.ts';
 import { extractRows, trimBase } from '../lib/request.ts';
 import { DataTable } from './DataTable.tsx';
+import { UiPreview } from './UiPreview.tsx';
 
-type Tab = 'table' | 'body' | 'headers';
+type Tab = 'preview' | 'table' | 'body' | 'headers';
 
 export interface Pager {
   offset: number;
@@ -22,6 +34,7 @@ export function ResponsePanel({
   pager,
   onCopy,
   onRetry,
+  onSignIn,
 }: {
   apiBase: string;
   result: RequestResult | null;
@@ -31,14 +44,17 @@ export function ResponsePanel({
   pager: Pager | null;
   onCopy: (value: string, key: string) => void;
   onRetry: () => void;
+  /** Signs in as a viewer from the preview's 401 state and sends the request again. */
+  onSignIn: () => void;
 }) {
   const { say, compose } = useSpeaker();
   const errorText = error === UNREACHABLE || error === REQUEST_FAILED ? say(error) : error;
   const rows = result?.status && result.status < 400 ? extractRows(result.json) : null;
   const [tab, setTab] = useState<Tab>('table');
   const active: Tab = tab === 'table' && !rows ? 'body' : tab;
+  // An error opens on its body, unless the reader is watching the preview, which draws errors too.
   useEffect(() => {
-    if (result && result.status >= 400) setTab('body');
+    if (result && result.status >= 400) setTab((current) => (current === 'preview' ? current : 'body'));
   }, [result]);
 
   const total = result?.totalCount ?? null;
@@ -74,6 +90,15 @@ export function ResponsePanel({
             <span>{result.contentType}</span>
           </div>
           <div className="response-tabs" role="tablist" aria-label={say('response.views')}>
+            <button
+              type="button"
+              className={active === 'preview' ? 'active' : ''}
+              onClick={() => setTab('preview')}
+              role="tab"
+              aria-selected={active === 'preview'}
+            >
+              {say('response.preview')}
+            </button>
             {rows && (
               <button
                 type="button"
@@ -104,7 +129,16 @@ export function ResponsePanel({
               {say('response.headers')} <small>{result.headers.length}</small>
             </button>
           </div>
-          {active === 'table' && rows ? (
+          {active === 'preview' ? (
+            <UiPreview
+              result={result}
+              rows={rows}
+              sending={sending}
+              error={error}
+              onRetry={onRetry}
+              onSignIn={onSignIn}
+            />
+          ) : active === 'table' && rows ? (
             <DataTable rows={rows} />
           ) : active === 'body' ? (
             <pre className="response-body">
@@ -144,10 +178,31 @@ export function ResponsePanel({
             ) : (
               <span>{say('response.bodyCaption')}</span>
             )}
-            <button type="button" onClick={() => onCopy(result.raw, 'body')} title={say('response.copyBodyTitle')}>
-              {copied === 'body' ? <Check size={14} /> : <Copy size={14} />}{' '}
-              {copied === 'body' ? say('common.copied') : say('response.copyBody')}
-            </button>
+            <div className="foot-actions">
+              <fieldset className="download-group">
+                <legend>
+                  <Download size={13} /> {say('response.download')}
+                </legend>
+                {DOWNLOAD_FORMATS.map((format) => {
+                  const file = downloadOf({ ...result, rows }, format);
+                  return (
+                    <button
+                      type="button"
+                      key={format}
+                      disabled={!file}
+                      title={file ? say('response.downloadAs', { file: file.filename }) : say('response.downloadNone')}
+                      onClick={() => file && saveDownload(file)}
+                    >
+                      {format.toUpperCase()}
+                    </button>
+                  );
+                })}
+              </fieldset>
+              <button type="button" onClick={() => onCopy(result.raw, 'body')} title={say('response.copyBodyTitle')}>
+                {copied === 'body' ? <Check size={14} /> : <Copy size={14} />}{' '}
+                {copied === 'body' ? say('common.copied') : say('response.copyBody')}
+              </button>
+            </div>
           </div>
         </>
       ) : (

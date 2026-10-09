@@ -141,12 +141,17 @@ describe('App', () => {
     await user.click(screen.getByRole('checkbox', { name: 'Answer 409 Conflict' }));
     expect(snippet.textContent).toBe('POST http://localhost:6800/names?conflict=true&status=503');
 
-    await user.click(screen.getByRole('tab', { name: 'CURL' }));
+    await user.click(screen.getByRole('tab', { name: 'curl' }));
     expect(snippet.textContent).toContain("-X POST -H 'Accept: application/json' -H 'Content-Type: application/json'");
     expect(snippet.textContent).toContain('"name":"Ada Lovelace"');
 
     await user.click(screen.getByRole('button', { name: /Send request/ }));
-    const [url, init] = api.mock.calls.at(-1) as unknown as [string, RequestInit];
+    // A write is followed by a look at the session, so find the write itself.
+    await waitFor(() => expect(api.mock.calls.some(([called]) => String(called).includes('/names?'))).toBe(true));
+    const [url, init] = api.mock.calls.findLast(([called]) => String(called).includes('/names?')) as unknown as [
+      string,
+      RequestInit,
+    ];
     expect(url).toBe('http://localhost:6800/names?conflict=true&status=503');
     expect(init.method).toBe('POST');
     expect(JSON.parse(String(init.body))).toMatchObject({ name: 'Ada Lovelace' });

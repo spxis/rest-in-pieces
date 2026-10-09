@@ -31,7 +31,11 @@ export function useRequest() {
   const inFlight = useRef<AbortController | null>(null);
 
   const send = useCallback(
-    async (url: string, format: OutputFormat, { method, body: payload }: SendOptions = { method: 'GET' }) => {
+    async (
+      url: string,
+      format: OutputFormat,
+      { method, body: payload, token }: SendOptions & { token?: string | null } = { method: 'GET' },
+    ) => {
       inFlight.current?.abort();
       const controller = new AbortController();
       inFlight.current = controller;
@@ -46,6 +50,7 @@ export function useRequest() {
           headers: {
             Accept: mimeFor(method === 'GET' ? format : 'json'),
             ...(withBody ? { 'Content-Type': 'application/json' } : {}),
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           ...(withBody ? { body: payload ?? '' } : {}),
           signal: controller.signal,

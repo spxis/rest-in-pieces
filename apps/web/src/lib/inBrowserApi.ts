@@ -20,6 +20,23 @@ export function isInBrowserUrl(url: string): boolean {
   return IN_BROWSER && url.startsWith(`${inBrowserBase()}/`);
 }
 
-export function installInBrowserApi(): void {
-  install({ base: inBrowserBase() });
+let uninstall: (() => void) | null = null;
+let keeping = false;
+
+/**
+ * Puts the API inside this tab. Writes are kept only when `session` asks: the demo starts stateless, as
+ * every hosted copy does, and the session panel can turn keeping on for this tab alone.
+ */
+export function installInBrowserApi(session = false): void {
+  uninstall?.();
+  keeping = session;
+  uninstall = install({ base: inBrowserBase(), app: { session } });
+}
+
+/** Whether the API inside this tab keeps writes. */
+export const inBrowserSession = () => keeping;
+
+/** Starts a fresh API inside this tab, keeping writes or not. Whatever the old one kept is gone. */
+export function setInBrowserSession(on: boolean): void {
+  if (IN_BROWSER) installInBrowserApi(on);
 }

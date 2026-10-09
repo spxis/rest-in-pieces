@@ -4,38 +4,43 @@ import { useSpeaker } from '../i18n/LocaleProvider.tsx';
 import type { OutputFormat } from '../lib/config.ts';
 import { isInBrowserUrl } from '../lib/inBrowserApi.ts';
 import { REPO_URL } from '../lib/links.ts';
-import { curlCommand, fetchSnippet, type SendOptions } from '../lib/request.ts';
-
-type Snippet = 'url' | 'curl' | 'fetch';
-
-const COPY_LABELS = { url: 'preview.copyUrl', curl: 'preview.copyCurl', fetch: 'preview.copyFetch' } as const;
+import type { SendOptions } from '../lib/request.ts';
+import { SNIPPET_KINDS, SNIPPET_LABELS, type SnippetKind, snippetFor } from '../lib/snippets.ts';
 
 export function RequestPreview({
   url,
+  apiBase,
   format,
   request,
+  account,
+  session,
   copied,
   onCopy,
   onShare,
 }: {
   url: string;
+  apiBase: string;
   format: OutputFormat;
   /** The method and body; a GET sends only the URL. */
   request: SendOptions;
+  /** The username the playground signed in with, when requests carry a token. */
+  account: string | null;
+  /** Whether the API keeps writes, so the integration snippets keep them too. */
+  session: boolean;
   copied: string | null;
   onCopy: (value: string, key: string) => void;
   onShare: () => void;
 }) {
   const { say, compose } = useSpeaker();
-  const [view, setView] = useState<Snippet>('url');
-  const text =
-    view === 'url'
-      ? request.method === 'GET'
-        ? url
-        : `${request.method} ${url}`
-      : view === 'curl'
-        ? curlCommand(url, format, request)
-        : fetchSnippet(url, format, request);
+  const [view, setView] = useState<SnippetKind>('url');
+  const text = snippetFor(view, {
+    ...request,
+    url,
+    apiBase,
+    format,
+    session,
+    ...(account ? { account } : {}),
+  });
   const params = new URL(url, 'http://x').searchParams.size;
 
   const button = (key: string, label: string, value: string | null, icon = <Copy size={14} />) => (
@@ -54,7 +59,7 @@ export function RequestPreview({
     <div className="request-preview">
       <div className="preview-heading">
         <div className="snippet-tabs" role="tablist" aria-label={say('preview.snippets')}>
-          {(['url', 'curl', 'fetch'] as const).map((option) => (
+          {SNIPPET_KINDS.map((option) => (
             <button
               type="button"
               key={option}
@@ -63,13 +68,15 @@ export function RequestPreview({
               className={view === option ? 'active' : ''}
               onClick={() => setView(option)}
             >
-              {option === 'url' ? say('preview.url') : option.toUpperCase()}
+              {option === 'url' ? say('preview.url') : SNIPPET_LABELS[option]}
             </button>
           ))}
         </div>
         <span>{say('preview.params', { count: params })}</span>
       </div>
-      <code data-testid="request-snippet">{text}</code>
+      <code data-testid="request-snippet" className={view === 'url' ? '' : 'multiline'}>
+        {text}
+      </code>
       {isInBrowserUrl(url) && (
         <p className="preview-note">
           {compose('preview.inBrowser', {
@@ -82,7 +89,11 @@ export function RequestPreview({
         </p>
       )}
       <div className="preview-actions">
-        {button('snippet', say(COPY_LABELS[view]), text)}
+        {button(
+          'snippet',
+          view === 'url' ? say('preview.copyUrl') : say('preview.copySnippet', { name: SNIPPET_LABELS[view] }),
+          text,
+        )}
         {button('setup', say('preview.share'), null, <Link2 size={14} />)}
       </div>
     </div>
