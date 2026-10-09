@@ -46,6 +46,11 @@
       "types": "./dist/cursor.d.ts",
       "default": "./dist/cursor.js"
     },
+    "./msw": {
+      "rest-in-pieces:source": "./src/msw.ts",
+      "types": "./dist/msw.d.ts",
+      "default": "./dist/msw.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -69,17 +74,26 @@
     "@faker-js/faker": "^10.6.0",
     "@hono/node-server": "^2.1.1",
     "@hono/zod-openapi": "^1.6.3",
-    "@scalar/hono-api-reference": "^0.12.6",
     "@johnmorrisdotca/address-plus": "^1.1.0",
+    "@scalar/hono-api-reference": "^0.12.6",
     "country-data": "^0.0.31",
     "fast-xml-parser": "^5.11.1",
     "hono": "^4.13.9",
     "yaml": "^2.9.1",
     "zod": "^4.6.5"
   },
+  "peerDependencies": {
+    "msw": ">=2"
+  },
+  "peerDependenciesMeta": {
+    "msw": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@types/node": "^26.6.3",
     "@vitest/coverage-v8": "^5.0.2",
+    "msw": "^3.0.2",
     "vitest": "^5.0.2"
   },
   "engines": {

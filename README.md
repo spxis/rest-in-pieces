@@ -57,7 +57,87 @@ installInBrowserApi(); // answers fetch('/api/...') in this tab; every other req
 const { results } = await (await fetch('/api/users?limit=10&seed=7')).json();
 ```
 
-`installInBrowserApi({ base: '/mock' })` moves it, and the function it returns puts the original `fetch` back. The API loads on the first request, so the page pays nothing for it until then. Only `fetch` is answered; libraries built on `XMLHttpRequest` still go to the network.
+`installInBrowserApi({ base: '/mock' })` moves it, and the function it returns puts the original `fetch` back. The API loads on the first request, so the page pays nothing for it until then. Only `fetch` is answered; libraries built on `XMLHttpRequest` still go to the network. To answer those too, use the [Mock Service Worker handlers](#mock-service-worker).
+
+## Use with
+
+### Mock Service Worker
+
+`@johnmorrisdotca/rest-in-pieces/msw` gives [MSW](https://mswjs.io/) one handler that answers everything under a base path from the whole API. MSW's service worker catches `fetch`, `XMLHttpRequest` and axios alike, and a handler placed before it still wins, so a test can override one endpoint and leave the rest to the API. Pass MSW's own `http`: the entry imports nothing from `msw`, so it works with MSW 2 (`from 'msw'`) and MSW 3 (`from 'msw'` or `from 'msw/http'`). `msw` is an optional peer dependency.
+
+**In the browser**, once the worker script is in place (`npx msw init public`):
+
+```ts
+import { http } from 'msw';
+import { setupWorker } from 'msw/browser';
+import { restInPiecesHandlers } from '@johnmorrisdotca/rest-in-pieces/msw';
+
+await setupWorker(...restInPiecesHandlers({ http })).start({ onUnhandledRequest: 'bypass' }); // MSW 3: onUnhandledFrame
+```
+
+**In Vitest or Jest.** MSW in Node matches absolute URLs only, so give the base as one and point the code under test at it:
+
+```ts
+import { http } from 'msw';
+import { setupServer } from 'msw/node';
+import { restInPiecesHandlers } from '@johnmorrisdotca/rest-in-pieces/msw';
+
+export const server = setupServer(...restInPiecesHandlers({ base: 'http://localhost/api', http }));
+// beforeAll(() => server.listen()); afterEach(() => server.resetHandlers()); afterAll(() => server.close());
+```
+
+`server.use(http.get('http://localhost/api/users', () => HttpResponse.json({ results: [] })))` overrides one endpoint for one test; every other request under the base still reaches the API.
+
+**With MSW 3's Vite plugin**, which serves the worker and leaves it out of production builds (`plugins: [msw()]` from `msw/vite` in `vite.config.ts`):
+
+```ts
+if (import.meta.env.DEV) {
+  const { network } = await import('virtual:msw');
+  const { http } = await import('msw/http');
+  const { restInPiecesHandlers } = await import('@johnmorrisdotca/rest-in-pieces/msw');
+  network.configure({ handlers: restInPiecesHandlers({ http }) });
+  await network.enable();
+}
+```
+
+`restInPiecesHandlers({ base, app, http })` takes the same `base` (default `/api`) and `app` options as `installInBrowserApi`, and loads the API on the first request it matches.
+
+### Storybook
+
+With [msw-storybook-addon](https://github.com/mswjs/msw-storybook-addon), start the worker with the handlers once in `.storybook/preview.ts`. Handlers given to `setupWorker` survive the addon's reset between stories:
+
+```ts
+import { http } from 'msw';
+import { setupWorker } from 'msw/browser';
+import { mswLoader } from 'msw-storybook-addon/csf3'; // CSF Next: addons: [addonMsw(start)]
+import { restInPiecesHandlers } from '@johnmorrisdotca/rest-in-pieces/msw';
+
+const start = async () => {
+  const worker = setupWorker(...restInPiecesHandlers({ http }));
+  await worker.start({ onUnhandledRequest: 'bypass' });
+  return worker;
+};
+export default { loaders: [mswLoader(start)] };
+```
+
+The loading, error and overflow stories then need no mocking code, only another URL:
+
+```ts
+export const Loading = { args: { src: '/api/users?delay=3000' } };
+export const Failed = { args: { src: '/api/users?status=500' } };
+export const Messy = { args: { src: '/api/users?messy=true&seed=3' } };
+```
+
+### Playwright
+
+[`@msw/playwright`](https://github.com/mswjs/playwright) (MSW 3) routes the page's requests through MSW handlers in the test process, so the adapter plugs straight in. Give it the base at your app's origin:
+
+```ts
+import { defineNetworkFixture } from '@msw/playwright';
+
+const handlers = restInPiecesHandlers({ base: 'http://localhost:5173/api', http });
+// in test.extend: const network = defineNetworkFixture({ context, handlers }); await network.enable(); await use(network); await network.disable();
+```
 
 ## Why use it
 
