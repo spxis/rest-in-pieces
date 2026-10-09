@@ -10,6 +10,8 @@ export const PHRASES = {
   'topbar.invalid': 'INVALID URL',
   'topbar.offline': 'Not reachable',
   'topbar.docs': 'API docs',
+  'topbar.version': 'Version {version}',
+  'topbar.versionCommit': 'Version {version}, built from commit {commit}',
   'language.label': 'Language',
 
   'app.eyebrow': 'DEVELOPER TOOL',

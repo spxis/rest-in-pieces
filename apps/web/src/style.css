@@ -130,6 +130,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   padding: 0 5.2vw;
   border-bottom: 1px solid #dbe0d9;
   background: #f8faf5e8;
@@ -153,6 +154,17 @@ a {
   color: var(--lime);
   background: var(--green-dark);
   border-radius: 8px;
+}
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand-version {
+  flex-shrink: 0;
+  color: var(--muted);
+  font: 500 10px var(--mono);
+  white-space: nowrap;
 }
 .topbar-right {
   display: flex;
@@ -984,6 +996,15 @@ h1 {
   }
   .brand {
     font-size: 14px;
+  }
+  .topbar-left {
+    gap: 8px;
+  }
+  .brand-version {
+    font-size: 8px;
+  }
+  .brand-commit {
+    display: none;
   }
   .topbar-right {
     gap: 13px;

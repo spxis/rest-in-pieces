@@ -13,6 +13,11 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
   'topbar.invalid': { text: '無効な URL', back: 'Invalid URL' },
   'topbar.offline': { text: '接続不可', back: 'Unreachable' },
   'topbar.docs': { text: 'API ドキュメント', back: 'API documentation' },
+  'topbar.version': { text: 'バージョン {version}', back: 'Version {version}' },
+  'topbar.versionCommit': {
+    text: 'バージョン {version}（コミット {commit} からビルド）',
+    back: 'Version {version} (built from commit {commit})',
+  },
   'language.label': { text: '言語', back: 'Language' },
 
   'app.eyebrow': { text: '開発者ツール', back: 'Developer tool' },

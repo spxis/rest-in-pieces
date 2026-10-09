@@ -29,6 +29,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - uses: actions/configure-pages@v5
         id: pages
+      # The top bar shows the version and the short commit SHA. vite.config.ts reads the SHA from GITHUB_SHA, which the
+      # runner sets on every step to the commit being built, and falls back to `git rev-parse --short HEAD`.
       - run: pnpm --filter @rest-in-pieces/web build:pages
         env:
           PAGES_BASE: ${{ steps.pages.outputs.base_path }}/

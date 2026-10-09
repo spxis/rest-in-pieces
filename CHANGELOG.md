@@ -4,6 +4,10 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Added
+
+- The playground shows its version in the top bar beside the name, and the live demo on GitHub Pages adds the commit it was built from, such as `2.3.0 · abc1234`.
+
 ## 2.5.0 - 2026-10-08
 
 ### Added
