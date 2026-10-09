@@ -5,7 +5,7 @@
 [![npm](https://img.shields.io/npm/v/@johnmorrisdotca/rest-in-pieces)](https://www.npmjs.com/package/@johnmorrisdotca/rest-in-pieces)
 ![Node 24](https://img.shields.io/badge/node-24_LTS-3c873a)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7-3178c6)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/spxis/rest-in-pieces/blob/main/LICENSE)
 
 Seeded, realistic, localized data plus latency, error and messy-data drills, as a REST API, a function call or a patch on `fetch`.
 
@@ -553,9 +553,9 @@ tests/e2e    Playwright tests that drive the playground against the real API
 | `pnpm test:coverage` | API tests with coverage thresholds |
 | `pnpm test:e2e`      | Playwright end-to-end tests |
 | `pnpm format`        | Apply formatting and safe lint fixes (Biome) |
-| `pnpm release <version>` | Set the version, date the changelog, commit and tag; see [Releasing](CONTRIBUTING.md#releasing) |
+| `pnpm release <version>` | Set the version, date the changelog, commit and tag; see [Releasing](https://github.com/spxis/rest-in-pieces/blob/main/CONTRIBUTING.md#releasing) |
 
-Set `PORT` to move the API, and `VITE_API_BASE_URL` to point the playground elsewhere. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
+Set `PORT` to move the API, and `VITE_API_BASE_URL` to point the playground elsewhere. See [CONTRIBUTING.md](https://github.com/spxis/rest-in-pieces/blob/main/CONTRIBUTING.md) for the full workflow.
 
 ## Deploying
 
@@ -563,8 +563,8 @@ Set `PORT` to move the API, and `VITE_API_BASE_URL` to point the playground else
 
 **Docker.** Every release publishes `ghcr.io/spxis/rest-in-pieces` for amd64 and arm64, tagged with its version (such as `:2.2.0`) and `latest`. The image serves everything from port 6800, runs as a non-root user and includes a health check.
 
-**GitHub Pages.** `.github/workflows/pages.yml` publishes the in-browser playground on every push to `main`. `pnpm --filter @rest-in-pieces/web build:pages` builds it locally into `apps/web/dist-pages`: the playground, the API bundled as a chunk it loads on the first request, static copies of `api/openapi.json` and `api/docs/`, and the [fixtures](#fixtures). Set `PAGES_BASE` to serve it from somewhere other than `/rest-in-pieces/`. [CONTRIBUTING.md](CONTRIBUTING.md#previewing-the-github-pages-build) shows how to preview it locally.
+**GitHub Pages.** `.github/workflows/pages.yml` publishes the in-browser playground on every push to `main`. `pnpm --filter @rest-in-pieces/web build:pages` builds it locally into `apps/web/dist-pages`: the playground, the API bundled as a chunk it loads on the first request, static copies of `api/openapi.json` and `api/docs/`, and the [fixtures](#fixtures). Set `PAGES_BASE` to serve it from somewhere other than `/rest-in-pieces/`. [CONTRIBUTING.md](https://github.com/spxis/rest-in-pieces/blob/main/CONTRIBUTING.md#previewing-the-github-pages-build) shows how to preview it locally.
 
 ## License
 
-MIT © 2014–2026 John Morris. Security issues: see [SECURITY.md](SECURITY.md).
+MIT © 2014–2026 John Morris. Security issues: see [SECURITY.md](https://github.com/spxis/rest-in-pieces/blob/main/SECURITY.md).
