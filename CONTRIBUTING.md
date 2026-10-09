@@ -78,4 +78,13 @@ Pushing the tag starts `.github/workflows/release.yml`, which:
 4. publishes the npm package with provenance;
 5. creates the GitHub release, with that version's changelog section as its notes.
 
-Publishing to npm needs an `NPM_TOKEN` repository secret, which only the owner can add. Without it the workflow skips the npm step with a notice and the rest of the release goes ahead.
+Publishing to npm uses trusted publishing, so there is no token or secret to keep. On npmjs.com, the package's Settings > Trusted Publisher > GitHub Actions names the repository and workflow that may publish it: organization or user `spxis`, repository `rest-in-pieces`, workflow filename `release.yml`, environment name empty. The `npm` job then publishes with `npm publish --provenance --access public`, and npm exchanges the job's OIDC token for a publish credential itself. The package must exist before that setting can be made, so the first version of a new package name is published by hand from the author's machine:
+
+```sh
+pnpm install --frozen-lockfile
+cd apps/api
+npm login          # once, in a browser
+npm publish --access public
+```
+
+`npm publish` runs the package's `prepack` script, which builds the playground and `dist/` first. After that first publish, add the trusted publisher, and every later release publishes from the tag.
