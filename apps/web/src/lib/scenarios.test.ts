@@ -42,3 +42,19 @@ describe.each(PAGING_STYLES.map((style) => style.value))('scenarios with %s pagi
     expect(body.metadata.nextCursor).toBeNull();
   });
 });
+
+describe('the messy data scenario', () => {
+  it('asks for messy rows, and Reset clears it', async () => {
+    const start = defaultConfig(BASE);
+    const messy = { ...start, ...scenario('messy').apply(start) };
+    expect(buildRequestUrl(messy)).toContain('messy=true');
+    const response = await app.request(
+      `${buildRequestUrl({ ...messy, limit: 100 }).slice(BASE.length)}&metadata=false`,
+    );
+    const rows = (await response.json()) as Array<Record<string, unknown>>;
+    const clean = (await (await app.request('/names?limit=100&metadata=false')).json()) as typeof rows;
+    expect(rows).not.toEqual(clean);
+    expect(rows.map((row) => row.index)).toEqual(clean.map((row) => row.index));
+    expect({ ...messy, ...scenario('reset').apply(messy) }.messy).toBe(0);
+  });
+});

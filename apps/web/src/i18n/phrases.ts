@@ -53,6 +53,8 @@ export const PHRASES = {
   'scenario.flaky.hint': 'fails 30%',
   'scenario.global.label': 'Global users',
   'scenario.global.hint': 'every locale mixed',
+  'scenario.messy.label': 'Messy data',
+  'scenario.messy.hint': 'nulls, emoji, RTL, edges',
   'scenario.reset.label': 'Reset',
   'scenario.reset.hint': 'happy path',
 
@@ -117,6 +119,8 @@ export const PHRASES = {
   'simulate.never': 'Never',
   'simulate.share': '{percent}% of requests',
   'simulate.always': 'Every request',
+  'simulate.messy': 'Messy data',
+  'simulate.messyShare': '{percent}% of values',
 
   'preview.snippets': 'Request snippet',
   'preview.url': 'REQUEST URL',

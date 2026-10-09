@@ -1,5 +1,5 @@
 import type { PhraseKey } from '../i18n/phrases.ts';
-import type { PlaygroundConfig } from './config.ts';
+import { DEFAULT_MESSY_SHARE, type PlaygroundConfig } from './config.ts';
 
 export interface Scenario {
   id: string;
@@ -75,9 +75,15 @@ export const SCENARIOS: Scenario[] = [
     apply: () => ({ ...reset, offset: 0, locale: 'global' }),
   },
   {
+    id: 'messy',
+    label: 'scenario.messy.label',
+    hint: 'scenario.messy.hint',
+    apply: () => ({ ...reset, offset: 0, messy: DEFAULT_MESSY_SHARE }),
+  },
+  {
     id: 'reset',
     label: 'scenario.reset.label',
     hint: 'scenario.reset.hint',
-    apply: () => ({ ...reset, offset: 0, max: 1000, q: '', filters: [] }),
+    apply: () => ({ ...reset, offset: 0, max: 1000, q: '', filters: [], messy: 0 }),
   },
 ];

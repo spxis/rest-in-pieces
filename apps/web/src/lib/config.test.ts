@@ -18,6 +18,7 @@ describe('shared setups', () => {
       trickle: 250,
       fields: [{ id: 3, name: 'price', type: 'commerce.price' }],
       locale: 'global',
+      messy: 0.5,
     };
     expect(configFromHash(configToHash(config, base), base)).toEqual(config);
   });
@@ -29,7 +30,7 @@ describe('shared setups', () => {
   it('ignores values that do not validate', () => {
     const config = configFromHash(
       '#limit=5000&offset=-1&paging=keyset&seed=abc&locale=fr_ca!&format=pdf&endpoint=../x&fields=[{"bad":true}]&filters=nope' +
-        '&delay=800-200&trickle=20000',
+        '&delay=800-200&trickle=20000&messy=2',
       base,
     );
     expect(config).toEqual(base);

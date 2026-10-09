@@ -112,6 +112,25 @@ describe('buildRequestUrl', () => {
   });
 });
 
+describe('messy data', () => {
+  it('asks for the default share as true and any other as a number', () => {
+    expect(new URL(buildRequestUrl({ ...base, messy: 0.15 })).searchParams.get('messy')).toBe('true');
+    expect(new URL(buildRequestUrl({ ...base, messy: 0.5 })).searchParams.get('messy')).toBe('0.5');
+    expect(new URL(buildRequestUrl({ ...base, messy: 0 })).searchParams.has('messy')).toBe(false);
+  });
+
+  it('builds cursors that carry messy, as the API does', async () => {
+    const app = createApp();
+    const config = { ...base, paging: 'cursor' as const, messy: 0.5 };
+    const first = await app.request(buildRequestUrl(config).replace('http://localhost:6800', ''));
+    const { metadata } = (await first.json()) as { metadata: { nextCursor: string | null } };
+    const second = buildRequestUrl({ ...config, offset: config.limit });
+    expect(new URL(second).searchParams.get('cursor')).toBe(metadata.nextCursor);
+    const clean = buildRequestUrl({ ...config, offset: config.limit, messy: 0 });
+    expect(new URL(clean).searchParams.get('cursor')).not.toBe(metadata.nextCursor);
+  });
+});
+
 describe('simulation parameters', () => {
   it('sends a delay range as typed, tidied, and leaves out one that does not validate', () => {
     const delayOf = (delay: string) => new URL(buildRequestUrl({ ...base, delay })).searchParams.get('delay');

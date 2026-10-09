@@ -1,5 +1,5 @@
 import { encodeCursor, queryFingerprint } from 'rest-in-pieces/cursor';
-import { normalizeDelay, type OutputFormat, type PlaygroundConfig } from './config.ts';
+import { DEFAULT_MESSY_SHARE, normalizeDelay, type OutputFormat, type PlaygroundConfig } from './config.ts';
 
 export const trimBase = (base: string) => base.trim().replace(/\/+$/, '');
 
@@ -59,6 +59,7 @@ export function buildRequestUrl(config: PlaygroundConfig, seeded = true): string
     params.set('fields', config.fields.map((field) => `${field.name.trim()}:${field.type}`).join(','));
   }
   if (config.locale !== 'en-CA') params.set('locale', config.locale);
+  if (config.messy > 0) params.set('messy', config.messy === DEFAULT_MESSY_SHARE ? 'true' : String(config.messy));
   if (config.format !== 'json') params.set('format', config.format);
   const delay = normalizeDelay(config.delay);
   if (delay) params.set('delay', delay);

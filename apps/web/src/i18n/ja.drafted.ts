@@ -75,6 +75,8 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
   'scenario.flaky.hint': { text: '30% で失敗', back: 'Fails 30%' },
   'scenario.global.label': { text: '世界中のユーザー', back: 'Users from around the world' },
   'scenario.global.hint': { text: '全ロケールを混在', back: 'All locales mixed' },
+  'scenario.messy.label': { text: '乱れたデータ', back: 'Messy data' },
+  'scenario.messy.hint': { text: 'null・絵文字・RTL・境界値', back: 'null, emoji, RTL, boundary values' },
   'scenario.reset.label': { text: 'リセット', back: 'Reset' },
   'scenario.reset.hint': { text: '正常系', back: 'Normal case' },
 
@@ -145,6 +147,8 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
   'simulate.never': { text: '失敗しない', back: 'Does not fail' },
   'simulate.share': { text: 'リクエストの {percent}%', back: '{percent}% of requests' },
   'simulate.always': { text: 'すべてのリクエスト', back: 'Every request' },
+  'simulate.messy': { text: '乱れたデータ', back: 'Messy data' },
+  'simulate.messyShare': { text: '値の {percent}%', back: '{percent}% of values' },
 
   'preview.snippets': { text: 'リクエストのスニペット', back: 'Request snippet' },
   'preview.url': { text: 'リクエスト URL', back: 'Request URL' },

@@ -57,6 +57,8 @@ export interface PlaygroundConfig {
   fields: Field[];
   /** The API's `locale`: which audience the generated data is written for. */
   locale: DataLocale;
+  /** Share of values the API's `messy` rewrites: 0 (clean) to 1 (every value). */
+  messy: number;
 }
 
 export const FORMATS: readonly OutputFormat[] = ['json', 'csv', 'yaml', 'xml'];
@@ -75,6 +77,9 @@ export const PAGING_STYLES = [
 ] as const satisfies ReadonlyArray<{ value: PagingStyle; label: PhraseKey }>;
 export const MAX_FIELDS = 50;
 export const MAX_SEED = 4294967295;
+/** The share `messy=true` rewrites, and the shares the playground offers. */
+export const DEFAULT_MESSY_SHARE = 0.15;
+export const MESSY_SHARES = [0, DEFAULT_MESSY_SHARE, 0.3, 0.5, 1] as const;
 /** The API's ceiling for `delay` and `trickle`, in milliseconds. */
 export const MAX_DELAY_MS = 10_000;
 
@@ -130,6 +135,7 @@ export function defaultConfig(apiBase = defaultApiBase()): PlaygroundConfig {
     failRate: 0,
     fields: DEFAULT_FIELDS,
     locale: 'en-CA',
+    messy: 0,
   };
 }
 
@@ -174,6 +180,7 @@ export function configFromHash(hash: string, fallback = defaultConfig()): Playgr
   const legacyStatus = params.get('fail') === 'true' ? int('status', 500, 400, 599) : 0;
   const fields = parseList(params.get('fields'), isField, MAX_FIELDS);
   const delay = params.has('delay') ? normalizeDelay(params.get('delay') ?? '') : null;
+  const messy = Number(params.get('messy') ?? fallback.messy);
 
   return {
     endpoint: endpoint && /^[a-z-]+$/.test(endpoint) ? endpoint : fallback.endpoint,
@@ -196,6 +203,7 @@ export function configFromHash(hash: string, fallback = defaultConfig()): Playgr
     failRate: Number.isFinite(failRate) && failRate >= 0 && failRate <= 1 ? failRate : 0,
     fields: fields && fields.length > 0 ? fields : fallback.fields,
     locale: LOCALE_CODE.test(params.get('locale') ?? '') ? (params.get('locale') as DataLocale) : fallback.locale,
+    messy: Number.isFinite(messy) && messy >= 0 && messy <= 1 ? messy : fallback.messy,
   };
 }
 

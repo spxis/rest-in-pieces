@@ -1,6 +1,6 @@
 import { useSpeaker } from '../i18n/LocaleProvider.tsx';
 import type { PhraseKey } from '../i18n/phrases.ts';
-import { FORMATS, MAX_DELAY_MS, normalizeDelay, type PlaygroundConfig } from '../lib/config.ts';
+import { FORMATS, MAX_DELAY_MS, MESSY_SHARES, normalizeDelay, type PlaygroundConfig } from '../lib/config.ts';
 
 type Update = (patch: Partial<PlaygroundConfig>) => void;
 
@@ -56,7 +56,7 @@ const failLabel = (rate: number): [PhraseKey, { percent: number }] =>
 export function SimulationPanel({ config, onChange }: { config: PlaygroundConfig; onChange: Update }) {
   const { say } = useSpeaker();
   const delay = normalizeDelay(config.delay);
-  const active = !!delay || config.trickle > 0 || config.status > 0 || config.failRate > 0;
+  const active = !!delay || config.trickle > 0 || config.status > 0 || config.failRate > 0 || config.messy > 0;
   return (
     <details className="simulation-details" open={active || undefined}>
       <summary>
@@ -108,6 +108,16 @@ export function SimulationPanel({ config, onChange }: { config: PlaygroundConfig
             {FAIL_RATES.map((rate) => (
               <option key={rate} value={rate}>
                 {say(...failLabel(rate))}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="control">
+          <span>{say('simulate.messy')}</span>
+          <select value={config.messy} onChange={(event) => onChange({ messy: Number(event.target.value) })}>
+            {MESSY_SHARES.map((share) => (
+              <option key={share} value={share}>
+                {share === 0 ? say('simulate.none') : say('simulate.messyShare', { percent: Math.round(share * 100) })}
               </option>
             ))}
           </select>
