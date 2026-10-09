@@ -39,3 +39,21 @@ test('signs in against the API inside the tab', async ({ page }) => {
   await page.getByRole('button', { name: /Send request/ }).click();
   await expect(page.getByTestId('response-status')).toHaveText(/200/);
 });
+
+// Relations, safe values and pictures need no server either: the avatars are drawn in the page.
+test('answers nested lists and safe values in the tab, with avatars drawn in the page', async ({ page }) => {
+  await page.goto('./');
+  await expect(page.getByText('IN-BROWSER API')).toBeVisible();
+  await page.getByRole('tab', { name: /Posts/ }).click();
+  const relations = page.getByTestId('relations');
+  await relations.getByRole('button', { name: 'user', exact: true }).click();
+  await page.getByRole('checkbox', { name: 'Safe values' }).check();
+  await page.getByRole('button', { name: /Send request/ }).click();
+  await expect(page.getByTestId('response-status')).toHaveText(/200/);
+  await page.getByRole('tab', { name: 'UI preview' }).click();
+  const avatar = page.getByTestId('ui-cards').locator('img').first();
+  await expect(avatar).toHaveAttribute('src', /^data:image\/svg\+xml/);
+  expect(await avatar.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+  await page.getByRole('tab', { name: /Body/ }).click();
+  await expect(page.locator('.response-body')).toContainText('/rest-in-pieces/api/avatars/');
+});
