@@ -50,13 +50,18 @@ const CJK = /[぀-ヿ㐀-䶿一-鿿가-힯豈-﫿]/u;
 /**
  * The letters an avatar shows for a name. Latin, Cyrillic and other spaced scripts take the first letter of the
  * first and last words (`Ada Lovelace` → `AL`). A Japanese name is written family name first with a space
- * (`佐藤 美穂`), and shows its family name, up to two characters (`佐藤`); a Chinese or Korean name written
- * without a space shows its first character, the family name (`王`).
+ * (`佐藤 美穂`), and shows a family name of one or two characters whole (`佐藤`, `森`) and a longer one by its first
+ * character (`長谷川` → `長`), since two characters cut from it can read as another surname; a Chinese or Korean
+ * name written without a space shows its first character, the family name (`王`).
  */
 export function initialsOf(name: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean);
   const first = words[0] ?? '';
-  if (CJK.test(first)) return words.length > 1 ? [...first].slice(0, 2).join('') : ([...first][0] ?? '');
+  if (CJK.test(first)) {
+    const family = [...first];
+    // Two characters cut from a longer family name can read as another surname (長谷川 → 長谷), so those show one.
+    return words.length > 1 && family.length <= 2 ? family.join('') : (family[0] ?? '');
+  }
   const letters = [words[0], words.length > 1 ? words[words.length - 1] : undefined]
     .map((word) => [...(word ?? '').replace(/^[^\p{L}\p{N}]+/u, '')][0] ?? '')
     .join('');

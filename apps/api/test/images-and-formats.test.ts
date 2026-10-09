@@ -34,7 +34,8 @@ describe('/avatars/{seed}.svg', () => {
     expect(initialsOf('Нонна Журавлева')).toBe('НЖ');
     expect(initialsOf('佐藤 美穂')).toBe('佐藤');
     expect(initialsOf('森 隆')).toBe('森');
-    expect(initialsOf('長谷川 翔')).toBe('長谷');
+    expect(initialsOf('長谷川 翔')).toBe('長');
+    expect(initialsOf('五十嵐 葵')).toBe('五');
     expect(initialsOf('王伟')).toBe('王');
     expect(initialsOf('김민준')).toBe('김');
     expect(initialsOf('')).toBe('');

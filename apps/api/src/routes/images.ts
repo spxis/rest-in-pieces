@@ -33,7 +33,7 @@ export function imageRoutes(app: OpenAPIHono): void {
     operationId: 'avatar',
     summary: 'An SVG avatar',
     description:
-      'A square, deterministic avatar: the seed picks the colour, and `name` the initials (`Ada Lovelace` → `AL`; a Japanese name, family name first, shows the family name: `佐藤 美穂` → `佐藤`). Without a name it draws a symmetric pattern from the seed. White on a mid-tone tile, so it reads on light and dark pages. With `safe=true`, every `avatar` the datasets serve points here.',
+      'A square, deterministic avatar: the seed picks the colour, and `name` the initials (`Ada Lovelace` → `AL`; a Japanese name, family name first, shows a family name of one or two characters: `佐藤 美穂` → `佐藤`, and the first of a longer one: `長谷川 翔` → `長`). Without a name it draws a symmetric pattern from the seed. White on a mid-tone tile, so it reads on light and dark pages. With `safe=true`, every `avatar` the datasets serve points here.',
     request: {
       params: z.object({
         seed: z.string().openapi({ description: 'Any text, e.g. a username or id.', example: 'ada' }),
