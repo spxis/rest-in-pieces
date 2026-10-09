@@ -4,16 +4,30 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Added
+
+- Fifteen data locales: `en-CA` (still the default), `en-US`, `en-IN`, `zh-CN`, `pt-BR`, `en-GB`, `ru`, `de`, `id`, `ja`, `fr`, `fr-CA`, `ko`, `es-MX` and `vi`. Every dataset and `/generate` writes native names, addresses, postal codes and phone numbers for the locale, prices products in its currency and names countries in its language. Japanese keeps its hand-built data.
+- `locale=global`: each record from a locale chosen by the seed, weighted toward the bigger developer populations, with `country` saying which. Same seed, same mix.
+- `GET /locales` lists the data locales with their names, BCP 47 tag, country and currency. The OpenAPI `locale` description and `/resources` read the same list.
+- `/generate` types `locale.country` and `locale.currency`.
+- Playground: the data locale picker reads `/locales`, and a "Global users" scenario switches to the mix.
+
+### Changed
+
+- `Product.currency` is an ISO 4217 string rather than the `CAD` / `JPY` enum.
+- Companies carry `country`, like people and users.
+- Company domains drop punctuation from the name (`S.A.` no longer leaves `..` in a domain).
+- A `/generate` type a locale has no data for returns `null` instead of failing the request.
+- `locale` accepts underscore spellings and full tags (`en_US`, `de-DE`).
+- Responses for `locale=global` carry no `Content-Language`, since they mix languages.
+
 ## 2.4.0 - 2026-10-08
 
 ### Added
 
+- An npm package. `npx rest-in-pieces` starts the API, playground and docs on port 6800 (`--port` and `--host` change it). The package also exports the app for tests that need no server (`import { createApp } from 'rest-in-pieces'`, then `app.request(...)`), and `rest-in-pieces/browser`, which answers `fetch` calls inside a browser tab so a frontend on StackBlitz or CodeSandbox gets a backend with no server.
 - `delay` takes a range, such as `delay=200-800`: the wait is chosen from the request and its seed, so a shared URL waits the same time on every machine.
 - `trickle=<ms>` sends the headers at once and the body in pieces that far apart, in every format, to test time-to-first-byte and total-time handling separately. `delay` and `trickle` together stay within the 10 s ceiling.
-
-### Added
-
-- An npm package. `npx rest-in-pieces` starts the API, playground and docs on port 6800 (`--port` and `--host` change it). The package also exports the app for tests that need no server (`import { createApp } from 'rest-in-pieces'`, then `app.request(...)`), and `rest-in-pieces/browser`, which answers `fetch` calls inside a browser tab so a frontend on StackBlitz or CodeSandbox gets a backend with no server.
 
 ## 2.3.0 - 2026-10-08
 

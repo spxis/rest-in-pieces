@@ -63,8 +63,9 @@ const { results } = await (await fetch('/api/users?limit=10&seed=7')).json();
 ## Why use it
 
 - **Repeatable data.** `?seed=42` always returns the same records. Screenshots, snapshot tests and bug reports stay stable.
-- **Realistic collections.** People, users, products, companies and countries, plus any shape you describe with 237 generator types.
-- **Japanese data too.** `?locale=ja` switches every dataset to data written for a Japanese audience: kanji names with katakana readings, real prefectures and cities, 〒 postal codes, mobile numbers, yen prices and Japanese country names.
+- **Realistic collections.** People, users, products, companies and countries, plus any shape you describe with 239 generator types.
+- **Fifteen countries, and a global mix.** `?locale=de`, `?locale=pt-BR` or `?locale=ko` writes every dataset for that country: native names, addresses, postal codes and phone numbers, and prices in the local currency. `?locale=global` mixes them record by record, the way a real international user table looks, and still repeats per seed. See [Data locales](#data-locales).
+- **Hand-built Japanese data.** `?locale=ja` gives kanji names with katakana readings, real prefectures and cities, 〒 postal codes, mobile numbers, yen prices and Japanese country names.
 - **Everything a list screen needs.** Paging, sorting, field filters with ranges, free-text search, `X-Total-Count` and `Link` headers, and ETags.
 - **The unhappy path on demand.** `?delay=1500`, `?status=503` or `?fail=0.2` rehearse slow, failing and flaky backends without touching your client.
 - **Any format.** JSON, CSV, YAML or XML, chosen by `?format=` or the `Accept` header.
@@ -121,6 +122,9 @@ curl 'http://localhost:6800/products?department=Books&price[lt]=100&format=csv'
 # The same people, for a Japanese audience
 curl 'http://localhost:6800/names?locale=ja&province=東京都&limit=5'
 
+# An international user table: every row from its own country
+curl 'http://localhost:8080/users?locale=global&limit=20'
+
 # Your own shape
 curl 'http://localhost:6800/generate?fields=name:person.fullName,email:internet.email,plan:commerce.productAdjective&seed=3'
 curl -X POST 'http://localhost:6800/generate?limit=5' \
@@ -138,16 +142,17 @@ curl -N 'http://localhost:6800/users?delay=200-800&trickle=200'
 
 | Endpoint                   | Description |
 | -------------------------- | ----------- |
-| `GET /names`               | People: name, age, address, city, province, postal code, gender. Canadian by default, Japanese with `locale=ja`. The original dataset, also at `/random-names`. |
+| `GET /names`               | People: name, age, address, city, province, postal code, country, gender, written for the `locale` (Canadian by default). The original dataset, also at `/random-names`. |
 | `GET /users`               | Application users with profile, avatar, contact details and account status. |
-| `GET /products`            | Catalogue products with SKU, department, price, rating and stock. |
-| `GET /companies`           | Companies with industry, website, size and founding year. |
+| `GET /products`            | Catalogue products with SKU, department, price in the locale's currency (`currency` is ISO 4217), rating and stock. |
+| `GET /companies`           | Companies with industry, website, size, founding year and location. |
 | `GET /countries`           | Every country and territory with ISO codes, currencies, languages and calling codes. |
 | `GET /{dataset}/{id}`      | One record: `/names/0`, `/users/1`, `/countries/CA` or `/countries/CAN`. |
 | `GET /generate`            | Records from a field list, e.g. `fields=name:person.fullName,email:internet.email`. |
 | `POST /generate`           | The same, with the fields, `count` and `seed` in a JSON body. |
 | `GET /generators`          | Every generator type, flat and grouped by module. |
-| `GET /resources`           | The datasets and their fields. |
+| `GET /resources`           | The datasets and their fields, per locale. |
+| `GET /locales`             | The data locales, with their names, BCP 47 tag, country and currency. |
 | `GET /health`              | Status, version and uptime. |
 | `GET /docs`, `/openapi.json` | Interactive reference and the OpenAPI 3.1 document. |
 
@@ -167,7 +172,7 @@ These work on every collection, including `/generate`.
 | `q`             | none      | Case-insensitive search across every field. |
 | *field name*    | none      | Filters: `gender=female`, `province=Ontario,Quebec`, `age[gte]=30`. Operators: `eq`, `ne`, `gt`, `gte`, `lt`, `lte`. |
 | `seed`          | `1`       | Selects a repeatable dataset. |
-| `locale`        | `en-CA`   | `ja` for Japanese data. See [Japanese data](#japanese-data). |
+| `locale`        | `en-CA`   | Which country the data is written for, or `global` for a mix. See [Data locales](#data-locales). |
 | `metadata`      | on        | `false` returns the bare array. `/countries` defaults to off for compatibility. |
 | `resultsName`   | `results` | Renames the results key, e.g. `rows`. |
 | `format`        | `json`    | `csv`, `yaml` or `xml`. The `Accept` header works too. |
@@ -201,6 +206,36 @@ Simulated responses carry `X-Simulated: true`, and 429 and 503 carry `Retry-Afte
 `total` counts the records after filters and `max`. The same numbers are in the `X-Total-Count` and `Link` headers, which are exposed to browsers through CORS.
 
 `links` and the `Link` header page the way the request did: with `offset` and `limit`, with `page` and `pageSize`, or with `cursor`. `nextCursor` is null on the last page and `prevCursor` on the first.
+
+## Data locales
+
+Add `locale` to any dataset, item route or `/generate` call. `GET /locales` lists the same table.
+
+| `locale` | Data for | `country` | `currency` |
+| -------- | -------- | --------- | ---------- |
+| `en-CA` | English (Canada), the default | `CA` | `CAD` |
+| `en-US` | English (United States) | `US` | `USD` |
+| `en-IN` | English (India) | `IN` | `INR` |
+| `zh-CN` | Chinese (China) | `CN` | `CNY` |
+| `pt-BR` | Portuguese (Brazil) | `BR` | `BRL` |
+| `en-GB` | English (United Kingdom) | `GB` | `GBP` |
+| `ru` | Russian (Russia) | `RU` | `RUB` |
+| `de` | German (Germany) | `DE` | `EUR` |
+| `id` | Indonesian (Indonesia) | `ID` | `IDR` |
+| `ja` | Japanese (Japan), hand-built | `JP` | `JPY` |
+| `fr` | French (France) | `FR` | `EUR` |
+| `fr-CA` | French (Canada) | `CA` | `CAD` |
+| `ko` | Korean (South Korea) | `KR` | `KRW` |
+| `es-MX` | Spanish (Mexico) | `MX` | `MXN` |
+| `vi` | Vietnamese (Vietnam) | `VN` | `VND` |
+| `global` | A mix of all of the above | each record's own | each product's own |
+
+- **Same shape everywhere.** Field names never change with the locale: `province` holds a state, prefecture or region and `postal` a ZIP, PIN or postcode. `country` (ISO 3166-1 alpha-2) on every person, user and company tells a client how to read them, and `currency` on every product says what `price` is in.
+- **`global` is a mix, not a blend.** Each record's locale is chosen from the seed, weighted roughly by each country's developer population, so the US, India and China turn up most and the smaller locales less often. A table then holds 古谷 あゆみ, Нонна Журавлева and a German street address side by side, which is where layout bugs live. The same seed always gives the same mix. Japanese records keep their `nameKana` and `nameRomaji`; other records don't have them. Responses for the mix carry no `Content-Language`.
+- **Spellings.** `en_US`, `pt-br` and full tags such as `ja-JP` or `de-DE` work too. Anything else is a 400 that lists the choices.
+- **Custom data.** `/generate` draws every field from the record's locale. Two extra types, `locale.country` and `locale.currency`, put the record's country and currency in a field, which says where each row of a `global` schema came from. A type the locale has no data for (Russian has no name prefixes) comes back `null`.
+- **Country names.** `/countries` names countries in the locale's language from the runtime's CLDR data; English locales and `global` keep the English names.
+- **Where Faker falls back.** Every locale but Japanese comes from Faker, which falls back to US English without saying so where a locale lacks data. Canadian and British names and Canadian streets are its US English lists, and Vietnamese streets use English street types (`Toàn Thắng Plain`). Product names, job titles and slogans are English in several locales. `apps/api/test/locales.test.ts` records each of these, so a Faker upgrade that changes one fails a test instead of passing unnoticed.
 
 ## Japanese data
 
