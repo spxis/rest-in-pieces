@@ -11,19 +11,20 @@
     "node": ">=22.18"
   },
   "scripts": {
+    "build": "pnpm --filter @rest-in-pieces/web build",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm pack:test",
     "dev": "pnpm -r --parallel dev",
     "dev:api": "pnpm --filter rest-in-pieces dev",
     "dev:web": "pnpm --filter @rest-in-pieces/web dev",
+    "format": "biome check --write .",
+    "lint": "biome check .",
+    "pack:test": "pnpm --filter rest-in-pieces pack:test",
+    "release": "node scripts/release.ts",
     "start": "pnpm --filter rest-in-pieces start",
-    "build": "pnpm --filter @rest-in-pieces/web build",
     "test": "pnpm -r test",
     "test:coverage": "pnpm --filter rest-in-pieces test:coverage",
     "test:e2e": "playwright test",
-    "pack:test": "pnpm --filter rest-in-pieces pack:test",
-    "typecheck": "pnpm -r typecheck",
-    "lint": "biome check .",
-    "format": "biome check --write .",
-    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm pack:test"
+    "typecheck": "pnpm -r typecheck"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",
