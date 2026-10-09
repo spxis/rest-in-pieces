@@ -4,6 +4,8 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+## 2.10.2 - 2026-10-09
+
 ### Fixed
 
 - Releases publish again. The release workflow's first job ran `setup-node` without pnpm installed, which `setup-node` v5 refuses, so 2.10.1 published nothing: no image, no package, no GitHub release. This release carries 2.10.1's changes as well.
