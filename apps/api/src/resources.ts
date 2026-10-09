@@ -1,20 +1,30 @@
 import type { z } from '@hono/zod-openapi';
 import { build, type Makers } from './data/build.ts';
-import { cached } from './data/cache.ts';
 import { type CountryRecord, countries, findCountry, localizedCountries } from './data/countries.ts';
-import { makeCompanyJa, makePersonJa, makeProductJa, makeUserJa } from './data/ja/generate.ts';
-import { makePerson } from './data/people.ts';
-import { makeCompany, makeProduct, makeUser } from './data/presets.ts';
+import { loadComments, loadOrders, loadPosts, loadReviews, loadTodos } from './data/related.ts';
+import { COMPANIES, PEOPLE, PRODUCTS, seededLoader, USERS } from './data/seeded.ts';
 import { type CollectionDefaults, MAX_RECORDS } from './lib/collection.ts';
+import { type Derive, deriveOrder } from './lib/integrity.ts';
 import { GLOBAL, LOCALES, type Locale } from './lib/locale.ts';
+import type { RelatedResource, Relation } from './lib/relations.ts';
 import {
+  Comment,
+  CommentInput,
   Company,
   CompanyInput,
   Country,
+  Order,
+  OrderInput,
   Person,
   PersonInput,
+  Post,
+  PostInput,
   Product,
   ProductInput,
+  Review,
+  ReviewInput,
+  Todo,
+  TodoInput,
   User,
   UserInput,
 } from './schemas.ts';
@@ -22,7 +32,7 @@ import {
 export const DEFAULT_SEED = 1;
 export const MAX_SEED = 2 ** 32 - 1;
 
-export interface Resource {
+export interface Resource extends RelatedResource {
   /** Path segment, e.g. `users`. */
   name: string;
   /** Singular name used in docs. */
@@ -44,6 +54,10 @@ export interface Resource {
   fields(locale: Locale): string[];
   /** Looks a record up in the dataset `load` returned. */
   find(records: readonly object[], id: string): object | undefined;
+  /** Fields that hold another dataset's id, and which dataset: `{ userId: 'users' }`. Writes must name a record that exists. */
+  references?: Readonly<Record<string, string>>;
+  /** Fills in what the server works out on a write (an order's prices and totals), or says which fields are wrong. */
+  derive?: Derive;
 }
 
 const STATIC_DATE = new Date('2026-09-27T00:00:00Z');
@@ -56,7 +70,7 @@ function seededResource<T extends object>(
   const keysIn = (locale: Exclude<Locale, typeof GLOBAL>) => Object.keys(build(makers, 1, 1, locale)[0] ?? {});
   return {
     seeded: true,
-    load: (seed, locale) => cached(`${name}:${locale}:${seed}`, () => build(makers, MAX_RECORDS, seed, locale)),
+    load: seededLoader(name, makers),
     fields: (locale) =>
       locale === GLOBAL ? [...new Set(LOCALES.flatMap((info) => keysIn(info.code)))] : keysIn(locale),
   };
@@ -81,7 +95,7 @@ export const resources: Resource[] = [
     idDescription: 'Zero-based `index` of the person.',
     defaults: { limit: 10, metadata: true },
     find: byNumericField('index'),
-    ...seededResource('names', { default: makePerson, ja: makePersonJa }),
+    ...seededResource('names', PEOPLE),
   },
   {
     name: 'users',
@@ -93,7 +107,12 @@ export const resources: Resource[] = [
     idDescription: 'One-based `id` of the user.',
     defaults: { limit: 10, metadata: true },
     find: byNumericField('id'),
-    ...seededResource('users', { default: makeUser, ja: makeUserJa }),
+    relations: {
+      orders: { kind: 'many', target: 'orders', key: 'userId' },
+      posts: { kind: 'many', target: 'posts', key: 'userId' },
+      todos: { kind: 'many', target: 'todos', key: 'userId' },
+    },
+    ...seededResource('users', USERS),
   },
   {
     name: 'products',
@@ -106,7 +125,8 @@ export const resources: Resource[] = [
     idDescription: 'One-based `id` of the product.',
     defaults: { limit: 10, metadata: true },
     find: byNumericField('id'),
-    ...seededResource('products', { default: makeProduct, ja: makeProductJa }),
+    relations: { reviews: { kind: 'many', target: 'reviews', key: 'productId' } },
+    ...seededResource('products', PRODUCTS),
   },
   {
     name: 'companies',
@@ -118,7 +138,7 @@ export const resources: Resource[] = [
     idDescription: 'One-based `id` of the company.',
     defaults: { limit: 10, metadata: true },
     find: byNumericField('id'),
-    ...seededResource('companies', { default: makeCompany, ja: makeCompanyJa }),
+    ...seededResource('companies', COMPANIES),
   },
   {
     name: 'countries',
@@ -134,4 +154,102 @@ export const resources: Resource[] = [
     fields: () => Object.keys(countries[0] ?? {}),
     find: (records, id) => findCountry(records as readonly CountryRecord[], id),
   },
+  ...related(),
 ];
+
+/** A related dataset: seeded, keyed by `id`, its fields the same in every locale. */
+function relatedResource(
+  base: Pick<
+    Resource,
+    'name' | 'title' | 'description' | 'schema' | 'input' | 'references' | 'relations' | 'derive'
+  > & {
+    load: Resource['load'];
+    owner: string;
+  },
+): Resource {
+  const fields = Object.keys((base.schema as z.ZodObject).shape);
+  const { owner, ...rest } = base;
+  const keys = Object.keys(base.references ?? {});
+  return {
+    ...rest,
+    idField: 'id',
+    idDescription: `One-based \`id\` of the ${base.title.toLowerCase()}.`,
+    seeded: true,
+    defaults: { limit: 10, metadata: true },
+    find: byNumericField('id'),
+    fields: () => fields,
+    keep: ['id', ...keys],
+    owned: { dataset: base.name as never, key: owner },
+  };
+}
+
+function related(): Resource[] {
+  const user: Relation = { kind: 'one', target: 'users', key: 'userId' };
+  const product = { kind: 'one', target: 'products', key: 'productId' } as const;
+  return [
+    relatedResource({
+      name: 'orders',
+      title: 'Order',
+      description:
+        "Orders with their line items, each joined to `/users` by `userId` and every item to `/products` by `productId`. Totals add up: each line is `quantity × unitPrice`, `tax` is the subtotal times the buyer's locale's rate, and `total` is the two together, in the locale's currency. Dates follow one another: placed after the buyer joined, shipped after that, delivered after that. `/users/{id}/orders` lists one user's.",
+      schema: Order,
+      input: OrderInput,
+      references: { userId: 'users' },
+      relations: { user, items: { kind: 'items', relations: { product } } },
+      derive: deriveOrder,
+      load: loadOrders,
+      owner: 'userId',
+    }),
+    relatedResource({
+      name: 'posts',
+      title: 'Post',
+      description:
+        "Blog posts, joined to `/users` by `userId`: JSONPlaceholder's shape (`userId`, `id`, `title`, `body`) plus `createdAt`. Text is Faker's lorem in the locale's language, and hand-written Japanese for `ja`. `/users/{id}/posts` lists one user's, and `/posts/{id}/comments` a post's comments.",
+      schema: Post,
+      input: PostInput,
+      references: { userId: 'users' },
+      relations: { user, comments: { kind: 'many', target: 'comments', key: 'postId' } },
+      load: loadPosts,
+      owner: 'userId',
+    }),
+    relatedResource({
+      name: 'comments',
+      title: 'Comment',
+      description:
+        "Comments on `/posts`, by `postId`, written by `/users`, by `userId`: JSONPlaceholder's shape (`postId`, `id`, `name`, `email`, `body`) plus `userId` and `createdAt`. Each comes after its post and after the comments before it, and nobody comments on their own post.",
+      schema: Comment,
+      input: CommentInput,
+      references: { postId: 'posts', userId: 'users' },
+      relations: { post: { kind: 'one', target: 'posts', key: 'postId' }, user },
+      load: loadComments,
+      owner: 'postId',
+    }),
+    relatedResource({
+      name: 'todos',
+      title: 'Todo',
+      description:
+        "To-do items, joined to `/users` by `userId`: JSONPlaceholder's shape (`userId`, `id`, `title`, `completed`) plus `dueOn` and `createdAt`. `/users/{id}/todos` lists one user's.",
+      schema: Todo,
+      input: TodoInput,
+      references: { userId: 'users' },
+      relations: { user },
+      load: loadTodos,
+      owner: 'userId',
+    }),
+    relatedResource({
+      name: 'reviews',
+      title: 'Review',
+      description:
+        "Product reviews, joined to `/products` by `productId` and to `/users` by `userId`. Ratings gather around the product's own `rating`, the words match the stars, and each review comes after the product was listed and the reviewer joined. `/products/{id}/reviews` lists one product's.",
+      schema: Review,
+      input: ReviewInput,
+      references: { productId: 'products', userId: 'users' },
+      relations: { product, user },
+      load: loadReviews,
+      owner: 'productId',
+    }),
+  ];
+}
+
+/** Looks a dataset up by name. */
+export const resourceNamed = (name: string): Resource | undefined => resources.find((r) => r.name === name);

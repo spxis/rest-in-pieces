@@ -35,6 +35,11 @@ export interface CountryLocale {
   currency: string;
   /** Roughly how many units of `currency` buy what one Canadian dollar does, so prices read as local. */
   priceScale: number;
+  /**
+   * The sales tax or VAT an order adds, as a fraction: one headline rate per country (the standard VAT or GST
+   * rate, or a representative state or provincial rate where there is no national one). Not tax advice.
+   */
+  taxRate: number;
   script: Script;
   /**
    * Share of `locale=global` records: roughly each country's developer population on GitHub, in millions.
@@ -52,6 +57,7 @@ export interface CountryLocale {
 export const LOCALES = [
   {
     code: 'en-CA',
+    taxRate: 0.13,
     tag: 'en-CA',
     name: 'English (Canada)',
     nativeName: 'English (Canada)',
@@ -64,6 +70,7 @@ export const LOCALES = [
   },
   {
     code: 'en-US',
+    taxRate: 0.0725,
     tag: 'en-US',
     name: 'English (United States)',
     nativeName: 'English (United States)',
@@ -76,6 +83,7 @@ export const LOCALES = [
   },
   {
     code: 'en-IN',
+    taxRate: 0.18,
     tag: 'en-IN',
     name: 'English (India)',
     nativeName: 'English (India)',
@@ -88,6 +96,7 @@ export const LOCALES = [
   },
   {
     code: 'zh-CN',
+    taxRate: 0.13,
     tag: 'zh-CN',
     name: 'Chinese (China)',
     nativeName: '中文（中国）',
@@ -100,6 +109,7 @@ export const LOCALES = [
   },
   {
     code: 'pt-BR',
+    taxRate: 0.18,
     tag: 'pt-BR',
     name: 'Portuguese (Brazil)',
     nativeName: 'Português (Brasil)',
@@ -112,6 +122,7 @@ export const LOCALES = [
   },
   {
     code: 'en-GB',
+    taxRate: 0.2,
     tag: 'en-GB',
     name: 'English (United Kingdom)',
     nativeName: 'English (United Kingdom)',
@@ -124,6 +135,7 @@ export const LOCALES = [
   },
   {
     code: 'ru',
+    taxRate: 0.22,
     tag: 'ru-RU',
     name: 'Russian (Russia)',
     nativeName: 'Русский (Россия)',
@@ -136,6 +148,7 @@ export const LOCALES = [
   },
   {
     code: 'de',
+    taxRate: 0.19,
     tag: 'de-DE',
     name: 'German (Germany)',
     nativeName: 'Deutsch (Deutschland)',
@@ -148,6 +161,7 @@ export const LOCALES = [
   },
   {
     code: 'id',
+    taxRate: 0.11,
     tag: 'id-ID',
     name: 'Indonesian (Indonesia)',
     nativeName: 'Bahasa Indonesia (Indonesia)',
@@ -160,6 +174,7 @@ export const LOCALES = [
   },
   {
     code: 'ja',
+    taxRate: 0.1,
     tag: 'ja-JP',
     name: 'Japanese (Japan)',
     nativeName: '日本語（日本）',
@@ -172,6 +187,7 @@ export const LOCALES = [
   },
   {
     code: 'fr',
+    taxRate: 0.2,
     tag: 'fr-FR',
     name: 'French (France)',
     nativeName: 'Français (France)',
@@ -184,6 +200,7 @@ export const LOCALES = [
   },
   {
     code: 'fr-CA',
+    taxRate: 0.14975,
     tag: 'fr-CA',
     name: 'French (Canada)',
     nativeName: 'Français (Canada)',
@@ -196,6 +213,7 @@ export const LOCALES = [
   },
   {
     code: 'ko',
+    taxRate: 0.1,
     tag: 'ko-KR',
     name: 'Korean (South Korea)',
     nativeName: '한국어(대한민국)',
@@ -208,6 +226,7 @@ export const LOCALES = [
   },
   {
     code: 'es-MX',
+    taxRate: 0.16,
     tag: 'es-MX',
     name: 'Spanish (Mexico)',
     nativeName: 'Español (México)',
@@ -220,6 +239,7 @@ export const LOCALES = [
   },
   {
     code: 'vi',
+    taxRate: 0.1,
     tag: 'vi-VN',
     name: 'Vietnamese (Vietnam)',
     nativeName: 'Tiếng Việt (Việt Nam)',

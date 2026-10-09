@@ -35,6 +35,21 @@ export const AUTH_DOCS =
   '`invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough ' +
   '`403` (`insufficient_role`). Fake tokens, not security.';
 
+/** The `safe` description, shared by every dataset and `/generate`. */
+export const SAFE_DOCS =
+  '`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` ' +
+  'and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction ' +
+  '(555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany ' +
+  'and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test ' +
+  'numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every ' +
+  "avatar from this API's own `/avatars/{seed}.svg`. Off by default in 2.x, so existing output does not change; " +
+  'it becomes the default in 3.0.';
+
+/** The `table` description, for `format=sql`. */
+export const TABLE_DOCS =
+  "With `format=sql`: the table the `INSERT` statements name. Defaults to the dataset's name. A letter or `_`, " +
+  'then letters, digits or `_`, up to 63 characters.';
+
 /** Data endpoints take a token only when `?auth=` asks for one, so the token is optional in the document. */
 export const OPTIONAL_BEARER = [{}, { bearerAuth: [] }];
 
@@ -98,7 +113,9 @@ export const ListQuery = z
     seed: param('Selects a repeatable dataset. The same seed always returns the same records.', '1'),
     locale: param(LOCALE_DOCS),
     messy: param(MESSY_DOCS),
-    format: param('`json` (default), `csv`, `yaml` or `xml`. The `Accept` header works too.'),
+    format: param(
+      "`json` (default), `csv`, `yaml`, `xml`, `ndjson` (one record per line) or `sql` (one `INSERT` per record, into `table=`). CSV, NDJSON and SQL hold the page's records without the metadata. The `Accept` header works too (`text/csv`, `application/x-ndjson`, `application/sql`).",
+    ),
     delay: param(
       'Wait this many milliseconds before responding, up to 10000. A range such as `200-800` picks a wait inside it from the request, seed included, so the same URL always waits the same time.',
     ),
@@ -257,6 +274,8 @@ export const TEXT_FORMATS = {
   'text/csv': { schema: z.string() },
   'application/yaml': { schema: z.string() },
   'application/xml': { schema: z.string() },
+  'application/x-ndjson': { schema: z.string() },
+  'application/sql': { schema: z.string() },
 };
 
 /** A write whose body did not validate: one message per field, keyed by its dotted path. */
@@ -321,3 +340,132 @@ export const CompanyInput = Company.omit({ id: true })
     country: text(),
   })
   .openapi('CompanyInput');
+
+const id = (description: string) => z.number().int().positive().openapi({ description });
+const iso = (description: string) => z.string().datetime().openapi({ description });
+
+export const OrderItem = z
+  .object({
+    productId: id('The product in `/products`, at the same `seed` and `locale`.'),
+    name: z.string().openapi({ description: "The product's name when it was ordered." }),
+    quantity: z.number().int().positive(),
+    unitPrice: z.number().openapi({ description: "The product's price when it was ordered, in the order's currency." }),
+    lineTotal: z.number().openapi({ description: '`quantity × unitPrice`.' }),
+  })
+  .openapi('OrderItem');
+
+export const ORDER_STATUS_VALUES = ['pending', 'paid', 'shipped', 'delivered', 'cancelled', 'refunded'] as const;
+
+export const Order = z
+  .object({
+    id: z.number().int(),
+    userId: id('The buyer in `/users`.'),
+    orderStatus: z.enum(ORDER_STATUS_VALUES).openapi({
+      description:
+        'Named `orderStatus` because `status` is the simulation parameter. `shipped` orders have `shippedAt`; `delivered` and `refunded` ones `deliveredAt` too.',
+    }),
+    items: z.array(OrderItem),
+    itemCount: z.number().int().openapi({ description: 'Units in the order: the quantities added up.' }),
+    currency: z.string().openapi({ description: "ISO 4217: the buyer's locale's currency.", example: 'CAD' }),
+    subtotal: z.number().openapi({ description: 'The line totals added up.' }),
+    taxRate: z.number().openapi({ description: "The buyer's locale's headline sales tax or VAT rate.", example: 0.13 }),
+    tax: z.number().openapi({ description: "`subtotal × taxRate`, rounded to the currency's smallest unit." }),
+    total: z.number().openapi({ description: '`subtotal + tax`.' }),
+    createdAt: iso('When the order was placed: after the buyer joined.'),
+    shippedAt: z.string().datetime().nullable().openapi({ description: 'After `createdAt`; null until shipped.' }),
+    deliveredAt: z.string().datetime().nullable().openapi({ description: 'After `shippedAt`; null until delivered.' }),
+  })
+  .openapi('Order');
+
+export const Post = z
+  .object({
+    id: z.number().int(),
+    userId: id('The author in `/users`.'),
+    title: z.string(),
+    body: z.string(),
+    createdAt: iso('After the author joined.'),
+  })
+  .openapi('Post');
+
+export const Comment = z
+  .object({
+    id: z.number().int(),
+    postId: id('The post in `/posts`.'),
+    userId: id('The commenter in `/users`: never the post’s author.'),
+    name: z.string().openapi({ description: "The commenter's name, as it was when they commented." }),
+    email: z.string().openapi({ description: "The commenter's email, as it was when they commented." }),
+    body: z.string(),
+    createdAt: iso('After the post, and after the comments before it.'),
+  })
+  .openapi('Comment');
+
+export const Todo = z
+  .object({
+    id: z.number().int(),
+    userId: id('The owner in `/users`.'),
+    title: z.string(),
+    completed: z.boolean(),
+    dueOn: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .nullable()
+      .openapi({ description: 'A date after `createdAt`, or null.', example: '2025-06-30' }),
+    createdAt: iso('After the owner joined.'),
+  })
+  .openapi('Todo');
+
+export const Review = z
+  .object({
+    id: z.number().int(),
+    productId: id('The product in `/products`.'),
+    userId: id('The reviewer in `/users`.'),
+    rating: z
+      .number()
+      .int()
+      .min(1)
+      .max(5)
+      .openapi({ description: "1 to 5, gathered around the product's own rating." }),
+    title: z.string(),
+    body: z.string(),
+    createdAt: iso('After the product was listed and the reviewer joined.'),
+  })
+  .openapi('Review');
+
+const ref = () => z.number({ error: 'Required' }).int('Use a whole number').positive('Use an id of 1 or more');
+
+export const OrderInput = z
+  .object({
+    userId: ref(),
+    items: z
+      .array(z.object({ productId: ref(), quantity: z.number().int().min(1).max(99) }))
+      .min(1, 'An order needs at least one item')
+      .max(20, 'An order takes at most 20 items'),
+    orderStatus: z.enum(ORDER_STATUS_VALUES).optional().openapi({ description: 'Defaults to `pending`.' }),
+  })
+  .openapi('OrderInput', {
+    description:
+      "The buyer and what they bought. The server fills in each item's name and price from `/products`, the totals and tax from the buyer's locale, and the dates.",
+  });
+
+export const PostInput = z.object({ userId: ref(), title: text(), body: text() }).openapi('PostInput');
+
+export const CommentInput = z
+  .object({ postId: ref(), userId: ref(), name: text(), email: email(), body: text() })
+  .openapi('CommentInput');
+
+export const TodoInput = z
+  .object({
+    userId: ref(),
+    title: text(),
+    completed: z.boolean().optional().openapi({ description: 'Defaults to `false`.' }),
+    dueOn: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use a date such as 2026-03-14')
+      .nullable()
+      .optional(),
+  })
+  .openapi('TodoInput');
+
+export const ReviewInput = z
+  .object({ productId: ref(), userId: ref(), rating: z.number().int().min(1).max(5), title: text(), body: text() })
+  .openapi('ReviewInput');

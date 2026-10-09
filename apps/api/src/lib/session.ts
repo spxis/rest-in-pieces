@@ -19,7 +19,12 @@ export interface SessionLimits {
   bytes: number;
 }
 
-export const DEFAULT_SESSION_LIMITS: SessionLimits = { records: 2000, datasets: 16, bytes: 8 * 1024 * 1024 };
+/**
+ * 64 datasets, because a delete can change several at once: a user takes their orders, posts, todos, comments and
+ * reviews along. A held dataset is a list of references to records already in memory, so it costs little; the
+ * bytes a client writes are what the byte limit caps.
+ */
+export const DEFAULT_SESSION_LIMITS: SessionLimits = { records: 2000, datasets: 64, bytes: 8 * 1024 * 1024 };
 
 /** `true` turns the session on with the default limits; an object turns it on with some limits changed. */
 export type SessionOption = boolean | Partial<SessionLimits>;
@@ -42,6 +47,8 @@ interface Overlay {
   locale: Locale;
   idField: string;
   records: Fields[];
+  /** The most records this dataset may hold: `limits.records`, scaled up for a dataset seeded with more than 1,000. */
+  capacity: number;
   /** The id the next create takes. It never goes back, so a deleted id is never given out again. */
   nextId: number;
   created: Set<string>;
@@ -75,6 +82,15 @@ export interface Session {
   readonly enabled: boolean;
   /** The records a read sees: the session's copy once a write has changed them, the seeded dataset otherwise. */
   load(resource: SessionResource, seed: number, locale: Locale): { records: object[]; generatedAt: Date };
+  /** Whether the session holds a changed copy of the dataset at this seed and locale. */
+  holds(dataset: string, seed: number, locale: Locale): boolean;
+  /**
+   * Makes sure the session holds a copy of each dataset, so a write that touches several (a delete that takes a
+   * user's orders with it) either has room for all of them or changes nothing. Throws `SessionFullError` first.
+   */
+  reserve(resources: readonly SessionResource[], seed: number, locale: Locale): void;
+  /** Removes every record whose id is in `ids`, in one pass. */
+  removeMany(resource: SessionResource, seed: number, locale: Locale, ids: ReadonlySet<string>): void;
   /** The id a create would take. */
   nextId(resource: SessionResource, seed: number, locale: Locale): number;
   /** Keeps a new record. Throws `SessionFullError` when the session has no room for it. */
@@ -88,6 +104,9 @@ export interface Session {
 }
 
 const keyOf = (dataset: string, seed: number, locale: Locale) => `${dataset}:${locale}:${seed}`;
+
+/** A dataset of 1,000 seeded records may grow to `limits.records`; a bigger one, in proportion to its size. */
+const SEEDED_SIZE = 1000;
 const sizeOf = (record: Fields) => new TextEncoder().encode(JSON.stringify(record)).length;
 
 /** The session `createApp` uses: a store when `option` asks for one, and a pass-through to the seeded data when not. */
@@ -118,6 +137,7 @@ export function createSession(option: SessionOption | undefined): Session {
       locale,
       idField: resource.idField,
       records: [...(records as Fields[])],
+      capacity: Math.max(limits.records, Math.ceil((limits.records * records.length) / SEEDED_SIZE)),
       nextId: maxId(records, resource.idField) + 1,
       created: new Set(),
       updated: new Set(),
@@ -147,6 +167,30 @@ export function createSession(option: SessionOption | undefined): Session {
       const overlay = enabled ? overlays.get(keyOf(resource.name, seed, locale)) : undefined;
       return overlay ? { records: overlay.records, generatedAt: overlay.lastWrite } : resource.load(seed, locale);
     },
+    holds(dataset, seed, locale) {
+      return enabled && overlays.has(keyOf(dataset, seed, locale));
+    },
+    reserve(resources, seed, locale) {
+      if (!enabled) return;
+      const missing = resources.filter((resource) => !overlays.has(keyOf(resource.name, seed, locale)));
+      if (overlays.size + missing.length > limits.datasets) {
+        throw new SessionFullError(
+          `This write changes ${missing.length} more datasets, and the session keeps changes to at most ${limits.datasets} (counting each seed and locale apart). POST /reset to start again.`,
+        );
+      }
+      for (const resource of missing) overlayFor(resource, seed, locale);
+    },
+    removeMany(resource, seed, locale, ids) {
+      if (!enabled || ids.size === 0) return;
+      const overlay = overlayFor(resource, seed, locale);
+      overlay.records = overlay.records.filter((existing) => !ids.has(String(existing[overlay.idField])));
+      for (const id of ids) {
+        overlay.written.delete(id);
+        overlay.updated.delete(id);
+        if (!overlay.created.delete(id)) overlay.deleted.add(id);
+      }
+      overlay.lastWrite = new Date();
+    },
     nextId(resource, seed, locale) {
       const overlay = enabled ? overlays.get(keyOf(resource.name, seed, locale)) : undefined;
       return overlay ? overlay.nextId : maxId(resource.load(seed, locale).records, resource.idField) + 1;
@@ -154,9 +198,9 @@ export function createSession(option: SessionOption | undefined): Session {
     create(resource, seed, locale, record) {
       if (!enabled) return;
       const overlay = overlayFor(resource, seed, locale);
-      if (overlay.records.length >= limits.records) {
+      if (overlay.records.length >= overlay.capacity) {
         throw new SessionFullError(
-          `The session keeps at most ${limits.records} ${resource.name} at one seed and locale. Delete some, or POST /reset to start again.`,
+          `The session keeps at most ${overlay.capacity} ${resource.name} at one seed and locale. Delete some, or POST /reset to start again.`,
         );
       }
       const id = idOf(overlay, record);

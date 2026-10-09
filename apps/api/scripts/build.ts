@@ -29,6 +29,9 @@ for (const expected of [
   '"/auth/login": {',
   '"/reset": {',
   'AuthTokens: {',
+  'Order: {',
+  '"/users/{id}/orders": {',
+  '"/avatars/{seed}.svg": {',
 ]) {
   if (!types.includes(expected)) throw new Error(`The generated types have no \`${expected}\`.`);
 }

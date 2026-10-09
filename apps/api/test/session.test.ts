@@ -112,8 +112,8 @@ describe('the session, on', () => {
     const api = client();
     await api.send('POST', '/users', ADA);
     await api.send('PATCH', '/users/1', { active: false });
-    await api.send('DELETE', '/products/1');
-    await api.send('PATCH', '/products/2?seed=9', { stock: 0 });
+    await api.send('DELETE', '/companies/1');
+    await api.send('PATCH', '/companies/2?seed=9', { employees: 3 });
     const state = await api.get<{ enabled: boolean; datasets: Fields[]; usage: { datasets: number; bytes: number } }>(
       '/session',
     );
@@ -132,10 +132,10 @@ describe('the session, on', () => {
       }),
     );
 
-    const one = await api.send<{ reset: number; datasets: Fields[] }>('POST', '/reset?dataset=products');
+    const one = await api.send<{ reset: number; datasets: Fields[] }>('POST', '/reset?dataset=companies');
     expect(one.body.reset).toBe(2);
     expect(one.body.datasets.map((d) => d.dataset)).toEqual(['users']);
-    expect((await api.get('/products/1')).status).toBe(200);
+    expect((await api.get('/companies/1')).status).toBe(200);
 
     const all = await api.send<{ reset: number }>('POST', '/reset');
     expect(all.body.reset).toBe(1);
@@ -159,9 +159,15 @@ describe('the session, on', () => {
     expect((await api.get('/users?limit=1')).body.metadata.total).toBe(1001);
 
     const few = client({ datasets: 1 });
-    expect((await few.send('DELETE', '/users/1')).status).toBe(204);
-    expect((await few.send('DELETE', '/users/1?seed=2')).status).toBe(507);
-    expect((await few.get('/users/1?seed=2')).status).toBe(200);
+    expect((await few.send('DELETE', '/companies/1')).status).toBe(204);
+    expect((await few.send('DELETE', '/companies/1?seed=2')).status).toBe(507);
+    expect((await few.get('/companies/1?seed=2')).status).toBe(200);
+    // A user takes their orders, posts, todos, comments and reviews along, so it needs room for all of them or none.
+    const two = await few.send<{ error: string }>('DELETE', '/users/1?seed=3');
+    expect(two.status).toBe(507);
+    expect(two.body.error).toContain('more datasets');
+    expect((await few.get('/users/1?seed=3')).status).toBe(200);
+    expect((await few.get('/users/1/orders?seed=3')).body.metadata.total).toBeGreaterThanOrEqual(0);
 
     const small = client({ bytes: 100 });
     expect((await small.send('POST', '/users', ADA)).status).toBe(507);

@@ -5,6 +5,7 @@ import {
   generateRecords,
   MAX_FIELDS,
   parseFieldList,
+  SAFE_TYPES,
   SchemaError,
   validateFields,
 } from '../data/generators.ts';
@@ -12,8 +13,31 @@ import { buildBody, MAX_RECORDS, pageLinks, queryCollection, setPaginationHeader
 import { requestedFormat, respond } from '../lib/format.ts';
 import { contentLanguage, parseLocale } from '../lib/locale.ts';
 import { intParam, pick } from '../lib/query.ts';
+import { publicBase, wantsSafe } from '../lib/safe.ts';
 import { DEFAULT_SEED, MAX_SEED } from '../resources.ts';
-import { ErrorBody, FILTER_DOCS, GeneratedRecord, ListQuery, listOf, TEXT_FORMATS } from '../schemas.ts';
+import {
+  ErrorBody,
+  FILTER_DOCS,
+  GeneratedRecord,
+  ListQuery,
+  listOf,
+  SAFE_DOCS,
+  TABLE_DOCS,
+  TEXT_FORMATS,
+} from '../schemas.ts';
+
+/** How a field's type is written, for the docs. */
+export const FIELD_SYNTAX_DOCS =
+  'A type may take arguments, choices and a blank rate:\n\n' +
+  '- `age:number.int(18,65)`, `price:commerce.price(5,500,2)`, `joined:date.between(2020-01-01,2025-12-31)`: ' +
+  'arguments in parentheses, in the order `GET /generators` lists them under `parameters`.\n' +
+  '- `status:pick(active,paused,closed)`: one of the choices, evenly; `pick(active,paused,closed|70,20,10)` ' +
+  'weights them, one weight per choice. Choices are text, at most 50 of up to 64 characters.\n' +
+  '- `nickname:person.firstName?blank=15`: `null` in about 15% of records (`15%` works too, written `15%25` in a URL).\n\n' +
+  'Commas inside parentheses belong to the arguments. A type that takes no arguments, a wrong count, a value out ' +
+  'of range or a bad weight answers `422` with `error` and the `field` it is about; an unknown type answers `400`. ' +
+  `With \`safe=true\`, these types come from the safe ranges: ${SAFE_TYPES.map((t) => `\`${t}\``).join(', ')}; ` +
+  'any email inside other text moves to an example domain.';
 
 const DEFAULTS = { limit: 10, metadata: true };
 
@@ -26,6 +50,24 @@ const listResponses = {
     description: 'Invalid field list or generator type, or a cursor that is invalid or belongs to another query.',
     content: { 'application/json': { schema: ErrorBody } },
   },
+  422: {
+    description: 'A field whose arguments, choices or blank rate cannot be used. `field` names it.',
+    content: {
+      'application/json': {
+        schema: z.object({ error: z.string(), field: z.string() }).openapi('FieldError', {
+          example: {
+            error: 'Field "age": max must be from -1000000000000000 to 1000000000000000; got 1e99.',
+            field: 'age',
+          },
+        }),
+      },
+    },
+  },
+};
+
+const extraQuery = {
+  safe: z.string().optional().openapi({ description: SAFE_DOCS }),
+  table: z.string().optional().openapi({ description: TABLE_DOCS }),
 };
 
 const getRoute = createRoute({
@@ -34,13 +76,14 @@ const getRoute = createRoute({
   tags: ['Custom data'],
   operationId: 'generate',
   summary: 'Generate records from a field list',
-  description: `Describe each field as \`name:generatorType\`, comma-separated. Every paging, sorting, filtering, format and simulation parameter works here too.\n\n${FILTER_DOCS}`,
+  description: `Describe each field as \`name:generatorType\`, comma-separated. Every paging, sorting, filtering, format and simulation parameter works here too.\n\n${FIELD_SYNTAX_DOCS}\n\n${FILTER_DOCS}`,
   request: {
     query: ListQuery.extend({
-      fields: z
-        .string()
-        .optional()
-        .openapi({ example: 'name:person.fullName,email:internet.email,price:commerce.price' }),
+      ...extraQuery,
+      fields: z.string().optional().openapi({
+        example:
+          'name:person.fullName,age:number.int(18,65),status:pick(active,paused,closed|70,20,10),nickname:person.firstName?blank=15',
+      }),
       count: z.string().optional().openapi({ description: 'Dataset size, 1 to 1000. Defaults to `max`, or 1000.' }),
     }),
   },
@@ -49,7 +92,9 @@ const getRoute = createRoute({
 
 const FieldsBody = z
   .union([
-    z.record(z.string(), z.string()).openapi({ example: { name: 'person.fullName', email: 'internet.email' } }),
+    z
+      .record(z.string(), z.string())
+      .openapi({ example: { name: 'person.fullName', age: 'number.int(18,65)', status: 'pick(active,paused|80,20)' } }),
     z.array(z.object({ name: z.string(), type: z.string() })).max(MAX_FIELDS),
   ])
   .openapi({
@@ -70,10 +115,9 @@ const postRoute = createRoute({
   tags: ['Custom data'],
   operationId: 'generatePost',
   summary: 'Generate records from a JSON schema',
-  description:
-    'Send the schema as JSON. Paging, sorting, filtering, format and simulation parameters stay in the query string.',
+  description: `Send the schema as JSON. Paging, sorting, filtering, format and simulation parameters stay in the query string.\n\n${FIELD_SYNTAX_DOCS}`,
   request: {
-    query: ListQuery,
+    query: ListQuery.extend(extraQuery),
     body: { required: true, content: { 'application/json': { schema: GenerateRequest } } },
   },
   responses: listResponses,
@@ -83,41 +127,45 @@ function toFieldSpecs(fields: z.infer<typeof FieldsBody>): FieldSpec[] {
   return Array.isArray(fields) ? fields : Object.entries(fields).map(([name, type]) => ({ name, type }));
 }
 
-export const generate = new OpenAPIHono({
-  defaultHook: (result, c) => {
-    if (!result.success) {
-      const issue = result.error.issues[0];
-      const where = issue?.path.length ? ` at "${issue.path.join('.')}"` : '';
-      return c.json({ error: `Invalid request${where}: ${issue?.message ?? 'unknown problem'}` }, 400);
-    }
-  },
-});
-
-function send(c: Context, fields: FieldSpec[], count: number, seed: number) {
-  requestedFormat(c);
-  const query = c.req.query();
-  const locale = parseLocale(pick(query, 'locale'));
-  contentLanguage(c, locale);
-  const page = queryCollection(generateRecords(fields, count, seed, locale), query, DEFAULTS, locale, {
-    seed,
-    keep: ['index'],
-  });
-  const links = pageLinks(c, page);
-  setPaginationHeaders(c, links, page.total);
-  return respond(c, buildBody(page, links, { generatedAt: new Date(), seed, locale }), page.records);
-}
-
-generate
-  .openapi(getRoute, (c) => {
+/** `GET` and `POST /generate`. `safe` serves safe values unless a request says `safe=false`. */
+export function generateRoutes({ safe = false }: { safe?: boolean } = {}) {
+  const send = (c: Context, fields: FieldSpec[], count: number, seed: number) => {
+    requestedFormat(c);
     const query = c.req.query();
-    const list = pick(query, 'fields');
-    if (!list) throw new SchemaError('Add a fields parameter, e.g. fields=name:person.fullName,email:internet.email');
-    const count = intParam(pick(query, 'count', 'max', 'maxRecords'), MAX_RECORDS, MAX_RECORDS);
-    const seed = intParam(pick(query, 'seed'), DEFAULT_SEED, MAX_SEED);
-    return send(c, parseFieldList(list), Math.max(count, 1), seed) as never;
+    const locale = parseLocale(pick(query, 'locale'));
+    contentLanguage(c, locale);
+    const context = wantsSafe(query, safe)
+      ? { safe: true, base: publicBase(c.req.url, c.req.header('x-forwarded-prefix')) }
+      : { safe: false, base: '' };
+    const page = queryCollection(generateRecords(fields, count, seed, locale, context), query, DEFAULTS, locale, {
+      seed,
+      keep: ['index'],
+    });
+    const links = pageLinks(c, page);
+    setPaginationHeaders(c, links, page.total);
+    return respond(c, buildBody(page, links, { generatedAt: new Date(), seed, locale }), page.records, 'generated');
+  };
+
+  return new OpenAPIHono({
+    defaultHook: (result, c) => {
+      if (!result.success) {
+        const issue = result.error.issues[0];
+        const where = issue?.path.length ? ` at "${issue.path.join('.')}"` : '';
+        return c.json({ error: `Invalid request${where}: ${issue?.message ?? 'unknown problem'}` }, 400);
+      }
+    },
   })
-  .openapi(postRoute, (c) => {
-    const body = c.req.valid('json');
-    const fields = validateFields(toFieldSpecs(body.fields));
-    return send(c, fields, body.count ?? MAX_RECORDS, body.seed ?? DEFAULT_SEED) as never;
-  });
+    .openapi(getRoute, (c) => {
+      const query = c.req.query();
+      const list = pick(query, 'fields');
+      if (!list) throw new SchemaError('Add a fields parameter, e.g. fields=name:person.fullName,email:internet.email');
+      const count = intParam(pick(query, 'count', 'max', 'maxRecords'), MAX_RECORDS, MAX_RECORDS);
+      const seed = intParam(pick(query, 'seed'), DEFAULT_SEED, MAX_SEED);
+      return send(c, parseFieldList(list), Math.max(count, 1), seed) as never;
+    })
+    .openapi(postRoute, (c) => {
+      const body = c.req.valid('json');
+      const fields = validateFields(toFieldSpecs(body.fields));
+      return send(c, fields, body.count ?? MAX_RECORDS, body.seed ?? DEFAULT_SEED) as never;
+    });
+}

@@ -108,6 +108,8 @@ try {
     'dist/msw.js',
     'dist/msw.d.ts',
     'dist/vite.js',
+    'dist/images.js',
+    'dist/serialize.js',
     'dist/vite.d.ts',
     'dist/types.d.ts',
     'dist/openapi.json',
@@ -134,9 +136,11 @@ try {
 import defaultApp, { app, createApp } from '@johnmorrisdotca/rest-in-pieces';
 import { type InBrowserApiOptions, installInBrowserApi } from '@johnmorrisdotca/rest-in-pieces/browser';
 import { createApp as createCoreApp } from '@johnmorrisdotca/rest-in-pieces/core';
+import { avatarSvg, placeholderSvg } from '@johnmorrisdotca/rest-in-pieces/images';
 import { restInPiecesHandlers } from '@johnmorrisdotca/rest-in-pieces/msw';
 import spec from '@johnmorrisdotca/rest-in-pieces/openapi.json' with { type: 'json' };
 import type { components, paths } from '@johnmorrisdotca/rest-in-pieces/types';
+import { toNdjson, toSql } from '@johnmorrisdotca/rest-in-pieces/serialize';
 import { restInPieces } from '@johnmorrisdotca/rest-in-pieces/vite';
 
 const fail = (message: string): never => {
@@ -158,6 +162,12 @@ const login = await kept.request('/auth/login', { method: 'POST', headers: { 'Co
 const { accessToken } = (await login.json()) as components['schemas']['AuthTokens'];
 if ((await kept.request('/users?auth=admin')).status !== 401) fail('?auth=admin let a request without a token through.');
 if ((await kept.request('/users?auth=admin', { headers: { Authorization: 'Bearer ' + accessToken } })).status !== 200) fail('The admin token was refused.');
+
+// Relations, safe values and the self-hosted pictures, from the installed package.
+const orders = await (await createApp({ safe: true }).request('/users/2/orders?expand=user,items.product')).json() as { results: Array<{ user: { email: string } }> };
+if (!orders.results.every((order) => /@example\\.(com|org|net)$/.test(order.user.email))) fail('Safe values did not reach an embedded user.');
+if (!avatarSvg('ada', 'Ada Lovelace').includes('>AL<') || !placeholderSvg(64, 32).includes('64×32')) fail('The images entry did not draw.');
+if (toNdjson([{ a: 1 }]) !== '{"a":1}\n' || !toSql([{ a: "it's" }], 't').includes("'it''s'")) fail('The serialize entry did not write.');
 
 const options: InBrowserApiOptions = { base: 'https://in-tab.test/api' };
 const uninstall: () => void = installInBrowserApi(options);

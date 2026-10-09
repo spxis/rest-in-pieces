@@ -4,7 +4,10 @@ import type { Session } from '../lib/session.ts';
 
 const Limits = z
   .object({
-    records: z.number().int().openapi({ description: 'Records one dataset may hold, at one seed and locale.' }),
+    records: z.number().int().openapi({
+      description:
+        'Records one dataset of 1,000 may hold, at one seed and locale. A dataset seeded with more (orders, comments, todos) may hold proportionally more.',
+    }),
     datasets: z
       .number()
       .int()

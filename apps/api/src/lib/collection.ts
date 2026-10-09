@@ -90,6 +90,8 @@ export interface Page<T> {
 export interface MessyContext {
   seed: number;
   keep?: readonly string[];
+  /** Each record's position in the whole dataset, when the collection is only part of it. */
+  positions?: readonly number[];
 }
 
 /**
@@ -103,10 +105,10 @@ export function queryCollection<T extends object>(
   query: Query,
   defaults: CollectionDefaults,
   locale: Locale = DEFAULT_LOCALE,
-  { seed, keep = [] }: MessyContext = { seed: 1 },
+  { seed, keep = [], positions }: MessyContext = { seed: 1 },
 ) {
   const options = parseListOptions(query, defaults, clean.length);
-  const source = messyRecords(clean, { share: options.messy, seed, keep });
+  const source = messyRecords(clean, { share: options.messy, seed, keep }, positions);
   // Every key any record has: a messy or mixed-locale record may lack one the first record has.
   const fields = new Set(source.flatMap((record) => Object.keys(record)));
   const filtered = filterRecords(source, parseFilters(query, fields), options.q);

@@ -10,7 +10,18 @@ describe('service endpoints', () => {
 
   it('lists the datasets with their fields', async () => {
     const { body } = await request<Array<{ name: string; fields: string[]; seeded: boolean }>>('/resources');
-    expect(body.map((r) => r.name)).toEqual(['names', 'users', 'products', 'companies', 'countries']);
+    expect(body.map((r) => r.name)).toEqual([
+      'names',
+      'users',
+      'products',
+      'companies',
+      'countries',
+      'orders',
+      'posts',
+      'comments',
+      'todos',
+      'reviews',
+    ]);
     expect(body.find((r) => r.name === 'names')?.fields).toContain('province');
     expect(body.find((r) => r.name === 'countries')?.seeded).toBe(false);
   });

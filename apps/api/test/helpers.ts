@@ -18,7 +18,12 @@ export async function request<T = Envelope>(path: string, init?: RequestInit) {
   const res = await app.request(path, init);
   const text = await res.text();
   const type = res.headers.get('content-type') ?? '';
-  return { res, status: res.status, text, body: (type.includes('json') && text ? JSON.parse(text) : text) as T };
+  return {
+    res,
+    status: res.status,
+    text,
+    body: (type.includes('json') && !type.includes('ndjson') && text ? JSON.parse(text) : text) as T,
+  };
 }
 
 export const postJson = <T = Envelope>(path: string, body: unknown) =>

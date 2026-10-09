@@ -1,8 +1,9 @@
 import { XMLBuilder } from 'fast-xml-parser';
 import type { Context } from 'hono';
 import { stringify as toYaml } from 'yaml';
+import { SQL_TABLE, SqlTableError, toNdjson, toSql } from '../serialize.ts';
 
-export const FORMATS = ['json', 'csv', 'yaml', 'xml'] as const;
+export const FORMATS = ['json', 'csv', 'yaml', 'xml', 'ndjson', 'sql'] as const;
 export type Format = (typeof FORMATS)[number];
 
 const MEDIA_TYPES: Record<Format, string> = {
@@ -10,11 +11,13 @@ const MEDIA_TYPES: Record<Format, string> = {
   csv: 'text/csv; charset=utf-8',
   yaml: 'application/yaml; charset=utf-8',
   xml: 'application/xml; charset=utf-8',
+  ndjson: 'application/x-ndjson; charset=utf-8',
+  sql: 'application/sql; charset=utf-8',
 };
 
 export class UnsupportedFormatError extends Error {
   constructor(format: string) {
-    super(`Unsupported format "${format}". Use json, csv, yaml or xml.`);
+    super(`Unsupported format "${format}". Use json, csv, yaml, xml, ndjson or sql.`);
   }
 }
 
@@ -27,6 +30,8 @@ export function negotiateFormat(format: string | undefined, accept: string | und
   }
   const header = accept?.toLowerCase() ?? '';
   if (header.includes('text/csv')) return 'csv';
+  if (/\b(application|text)\/(x-)?ndjson\b/.test(header)) return 'ndjson';
+  if (/\bapplication\/sql\b/.test(header)) return 'sql';
   if (/\b(application|text)\/(x-)?yaml\b/.test(header)) return 'yaml';
   if (/\b(application|text)\/xml\b/.test(header)) return 'xml';
   return 'json';
@@ -86,15 +91,21 @@ export function toXml(body: unknown): string {
 }
 
 /**
- * Sends `body` in the negotiated format. CSV writes `records` (the page) rather than the envelope,
- * after a UTF-8 byte-order mark.
- * Throws UnsupportedFormatError for an unknown `?format=`.
+ * The format a request asks for. Throws UnsupportedFormatError for an unknown `?format=`, and SqlTableError for a
+ * `table=` that `format=sql` could not write, before any work is done.
  */
 export function requestedFormat(c: Context): Format {
-  return negotiateFormat(c.req.query('format'), c.req.header('accept'));
+  const format = negotiateFormat(c.req.query('format'), c.req.header('accept'));
+  const table = c.req.query('table');
+  if (format === 'sql' && table && !SQL_TABLE.test(table)) throw new SqlTableError(table);
+  return format;
 }
 
-export function respond(c: Context, body: unknown, records: readonly unknown[]) {
+/**
+ * Sends `body` in the negotiated format. CSV, NDJSON and SQL write `records` (the page) rather than the envelope;
+ * CSV after a UTF-8 byte-order mark. SQL inserts into `table=`, or into `table` given here (the dataset's name).
+ */
+export function respond(c: Context, body: unknown, records: readonly unknown[], table = 'records') {
   const format = requestedFormat(c);
   const data = plain(body);
   c.header('Vary', 'Accept');
@@ -105,6 +116,12 @@ export function respond(c: Context, body: unknown, records: readonly unknown[]) 
       return c.body(toYaml(data), 200, { 'Content-Type': MEDIA_TYPES.yaml });
     case 'xml':
       return c.body(toXml(data), 200, { 'Content-Type': MEDIA_TYPES.xml });
+    case 'ndjson':
+      return c.body(toNdjson(plain(records) as unknown[]), 200, { 'Content-Type': MEDIA_TYPES.ndjson });
+    case 'sql':
+      return c.body(toSql(plain(records) as unknown[], c.req.query('table') || table), 200, {
+        'Content-Type': MEDIA_TYPES.sql,
+      });
     default:
       return c.json(data as object);
   }

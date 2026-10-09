@@ -7,20 +7,23 @@ import { HTTPException } from 'hono/http-exception';
 import { logger } from 'hono/logger';
 import { secureHeaders } from 'hono/secure-headers';
 import pkg from '../package.json' with { type: 'json' };
-import { SchemaError } from './data/generators.ts';
+import { FieldError, SchemaError } from './data/generators.ts';
 import { requireAuth, TOKEN_KEY } from './lib/auth.ts';
 import { simulate } from './lib/controls.ts';
 import { CursorError } from './lib/cursor.ts';
 import { UnsupportedFormatError } from './lib/format.ts';
 import { UnsupportedLocaleError } from './lib/locale.ts';
+import { ExpandError } from './lib/relations.ts';
 import { createSession, type SessionOption } from './lib/session.ts';
 import { resources } from './resources.ts';
 import { authRoutes } from './routes/auth.ts';
 import { collectionRoutes } from './routes/collection.ts';
-import { generate } from './routes/generate.ts';
+import { generateRoutes } from './routes/generate.ts';
 import { home } from './routes/home.ts';
+import { imageRoutes } from './routes/images.ts';
 import { meta } from './routes/meta.ts';
 import { sessionRoutes } from './routes/session.ts';
+import { SqlTableError } from './serialize.ts';
 
 export type { SessionLimits, SessionOption } from './lib/session.ts';
 
@@ -37,6 +40,12 @@ export interface AppOptions {
    * The store belongs to this app and lasts as long as it does: nothing is written anywhere else.
    */
   session?: SessionOption | undefined;
+  /**
+   * Serves safe values unless a request says `safe=false`: emails and URLs on example domains, phone numbers from
+   * the ranges kept for fiction, test card numbers, documentation IP addresses and self-hosted avatars. Off by
+   * default in 2.x, so existing output does not change; `?safe=true` asks for it on one request.
+   */
+  safe?: boolean | undefined;
 }
 
 /**
@@ -48,6 +57,7 @@ export function createApp({
   specUrl = '/openapi.json',
   mount,
   session: option,
+  safe = false,
 }: AppOptions = {}): OpenAPIHono {
   const app = new OpenAPIHono();
   const session = createSession(option);
@@ -65,6 +75,7 @@ export function createApp({
   const dataPaths = [...resources.map((r) => `/${r.name}`), '/random-names', '/generate'];
   // `/names/*` also matches `/names` itself, so one registration covers lists and items.
   for (const path of dataPaths) app.use(`${path}/*`, simulate(), etag());
+  for (const path of ['/avatars', '/images']) app.use(`${path}/*`, etag());
   // A slow or failing sign-in is worth rehearsing too.
   app.use('/auth/*', simulate());
 
@@ -77,10 +88,15 @@ export function createApp({
   // `?auth=` turns any data request into a protected route, after the simulation has had its say.
   for (const path of dataPaths) app.use(`${path}/*`, requireAuth());
 
-  for (const resource of resources) app.route(`/${resource.name}`, collectionRoutes(resource, { session }));
+  for (const resource of resources) {
+    app.route(`/${resource.name}`, collectionRoutes(resource, { session, all: resources, safe }));
+  }
   const names = resources.find((r) => r.name === 'names');
-  if (names) app.route('/random-names', collectionRoutes(names, { deprecated: true, path: 'random-names', session }));
-  app.route('/generate', generate);
+  if (names) {
+    app.route('/random-names', collectionRoutes(names, { deprecated: true, path: 'random-names', session, safe }));
+  }
+  app.route('/generate', generateRoutes({ safe }));
+  imageRoutes(app);
   const users = resources.find((r) => r.name === 'users');
   if (users) app.route('/auth', authRoutes(users, session));
   app.route('/', sessionRoutes(session));
@@ -101,7 +117,10 @@ export function createApp({
       description:
         'Realistic, repeatable fake data for building and testing client applications.\n\n' +
         'Every collection supports paging, sorting, filtering and text search; seeds for repeatable data; ' +
-        'JSON, CSV, YAML and XML output; and simulated latency and errors.\n\n' +
+        'JSON, CSV, YAML, XML, NDJSON and SQL output; and simulated latency and errors.\n\n' +
+        'Orders, posts, comments, todos and reviews are joined to users and products by ids that always resolve: ' +
+        "`/users/{id}/orders` lists one user's, and `expand=` embeds related records. `safe=true` writes values " +
+        'that cannot reach anybody, and `/avatars` and `/images` draw pictures with no other host.\n\n' +
         'Writes are rehearsals by default, and kept in memory until `POST /reset` with the session on. ' +
         '`POST /auth/login` signs in with fake tokens, and `?auth=` makes any data request a protected route.',
       license: { name: 'MIT', url: 'https://opensource.org/licenses/MIT' },
@@ -110,6 +129,7 @@ export function createApp({
       { name: 'Datasets', description: 'Seeded fake data. The same seed always returns the same records.' },
       { name: 'Reference data', description: 'Real-world lookup data.' },
       { name: 'Custom data', description: 'Records built from your own field list.' },
+      { name: 'Images', description: 'Self-hosted SVG avatars and placeholder images, drawn from the URL alone.' },
       {
         name: 'Auth',
         description:
@@ -133,10 +153,13 @@ export function createApp({
       err instanceof SchemaError ||
       err instanceof UnsupportedFormatError ||
       err instanceof UnsupportedLocaleError ||
-      err instanceof CursorError
+      err instanceof CursorError ||
+      err instanceof ExpandError ||
+      err instanceof SqlTableError
     ) {
       return c.json({ error: err.message }, 400);
     }
+    if (err instanceof FieldError) return c.json({ error: err.message, field: err.field }, 422);
     // Malformed JSON (400) and a body that is not JSON (415) come from the request validators.
     if (err instanceof HTTPException && err.status < 500) return c.json({ error: err.message }, err.status);
     console.error(err);

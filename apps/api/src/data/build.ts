@@ -33,6 +33,24 @@ function seedLocale(locale: CountryLocale, seed: number): void {
 
 const MIX = LOCALES.map((value: CountryLocale) => ({ value, weight: value.weight }));
 
+const picks = new Map<number, readonly CountryLocale[]>();
+
+/**
+ * The locale of each of the first `count` records of a `global` dataset at `seed`. Every dataset draws the same
+ * sequence, so record `i` of `/users`, `/products` and `/names` share a locale, and the related datasets read a
+ * user's or product's locale from here without building it.
+ */
+export function globalLocales(seed: number, count: number): readonly CountryLocale[] {
+  const known = picks.get(seed);
+  if (known && known.length >= count) return known.slice(0, count);
+  const picker = new Faker({ locale: base });
+  picker.seed([seed, hash(GLOBAL)]);
+  const list = Array.from({ length: count }, () => picker.helpers.weightedArrayElement(MIX));
+  if (picks.size >= 32) picks.delete(picks.keys().next().value as number);
+  picks.set(seed, list);
+  return list;
+}
+
 /**
  * Builds `count` records. A country locale builds them all from its own Faker; `global` chooses each
  * record's locale from the seed, weighted toward the bigger populations, so the same seed always gives
@@ -46,11 +64,10 @@ export function build<T>(makers: Makers<T>, count: number, seed: number, locale:
     const make = makerFor(info);
     return Array.from({ length: count }, (_, index) => make(info, index));
   }
-  const picker = new Faker({ locale: base });
-  picker.seed([seed, hash(GLOBAL)]);
+  const chosen = globalLocales(seed, count);
   const seeded = new Set<CountryLocale>();
   return Array.from({ length: count }, (_, index) => {
-    const info = picker.helpers.weightedArrayElement(MIX);
+    const info = chosen[index] as CountryLocale;
     if (!seeded.has(info)) {
       seedLocale(info, seed);
       seeded.add(info);

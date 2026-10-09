@@ -200,8 +200,15 @@ export function messyRecord<T extends object>(record: T, index: number, { share,
   return out as T;
 }
 
-/** Rewrites a whole dataset, or returns it untouched when `share` is 0. */
-export function messyRecords<T extends object>(records: readonly T[], options: MessyOptions): readonly T[] {
+/**
+ * Rewrites a whole dataset, or returns it untouched when `share` is 0. `positions` gives each record's place in
+ * the whole dataset when `records` is only part of it (a user's orders), so a record reads the same everywhere.
+ */
+export function messyRecords<T extends object>(
+  records: readonly T[],
+  options: MessyOptions,
+  positions?: readonly number[],
+): readonly T[] {
   if (options.share <= 0) return records;
-  return records.map((record, index) => messyRecord(record, index, options));
+  return records.map((record, index) => messyRecord(record, positions?.[index] ?? index, options));
 }

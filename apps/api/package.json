@@ -84,6 +84,16 @@
       "types": "./dist/cursor.d.ts",
       "default": "./dist/cursor.js"
     },
+    "./images": {
+      "rest-in-pieces:source": "./src/images.ts",
+      "types": "./dist/images.d.ts",
+      "default": "./dist/images.js"
+    },
+    "./serialize": {
+      "rest-in-pieces:source": "./src/serialize.ts",
+      "types": "./dist/serialize.d.ts",
+      "default": "./dist/serialize.js"
+    },
     "./msw": {
       "rest-in-pieces:source": "./src/msw.ts",
       "types": "./dist/msw.d.ts",

@@ -3,7 +3,13 @@ import { CliError, DEFAULT_PORT, displayUrl, parseCliArgs } from '../src/cli.ts'
 
 describe('parseCliArgs', () => {
   it('listens on localhost:6800 by default', () => {
-    expect(parseCliArgs([])).toEqual({ kind: 'serve', port: DEFAULT_PORT, host: 'localhost', session: false });
+    expect(parseCliArgs([])).toEqual({
+      kind: 'serve',
+      port: DEFAULT_PORT,
+      host: 'localhost',
+      session: false,
+      safe: false,
+    });
     expect(DEFAULT_PORT).toBe(6800);
   });
 
@@ -13,12 +19,14 @@ describe('parseCliArgs', () => {
       port: 6831,
       host: '0.0.0.0',
       session: false,
+      safe: false,
     });
     expect(parseCliArgs(['--port=6832', '--host=::1'])).toEqual({
       kind: 'serve',
       port: 6832,
       host: '::1',
       session: false,
+      safe: false,
     });
   });
 
@@ -31,6 +39,14 @@ describe('parseCliArgs', () => {
     }
     expect(parseCliArgs(['--session'], { REST_IN_PIECES_SESSION: 'false' })).toMatchObject({ session: true });
     expect(() => parseCliArgs(['--session=yes'])).toThrow(CliError);
+  });
+
+  it('serves safe values with --safe or REST_IN_PIECES_SAFE', () => {
+    expect(parseCliArgs(['--safe'])).toMatchObject({ safe: true, session: false });
+    expect(parseCliArgs([], { REST_IN_PIECES_SAFE: 'yes' })).toMatchObject({ safe: true });
+    expect(parseCliArgs([], { REST_IN_PIECES_SAFE: 'off' })).toMatchObject({ safe: false });
+    expect(parseCliArgs(['--safe', '--session'])).toMatchObject({ safe: true, session: true });
+    expect(() => parseCliArgs(['--safe=yes'])).toThrow(CliError);
   });
 
   it('falls back to PORT, which --port overrides', () => {

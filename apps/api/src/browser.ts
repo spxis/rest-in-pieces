@@ -27,9 +27,12 @@ export function inBrowserFetch(base: string, load: () => Promise<App>, passThrou
     const path = url.pathname.slice(prefix.length) || '/';
     // Copied field by field: re-wrapping a Request drops its body in some environments.
     const body = request.method === 'GET' || request.method === 'HEAD' ? null : await request.arrayBuffer();
+    // The prefix travels with the request, so links the API writes to itself (safe avatars) keep it.
+    const headers = new Headers(request.headers);
+    if (prefix && !headers.has('x-forwarded-prefix')) headers.set('X-Forwarded-Prefix', prefix);
     const forwarded = new Request(new URL(`${path}${url.search}`, url.origin), {
       method: request.method,
-      headers: request.headers,
+      headers,
       body,
     });
     return (await app).fetch(forwarded);

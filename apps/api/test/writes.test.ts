@@ -63,11 +63,25 @@ const NEW: Record<string, Fields> = {
   },
 };
 
+Object.assign(NEW, {
+  orders: { userId: 3, items: [{ productId: 5, quantity: 2 }], orderStatus: 'paid' },
+  posts: { userId: 3, title: 'On engines', body: 'The engine weaves algebraic patterns.' },
+  comments: { postId: 2, userId: 4, name: 'Charles Babbage', email: 'charles@example.com', body: 'Splendid.' },
+  todos: { userId: 3, title: 'Write the notes', completed: false, dueOn: '2026-02-01' },
+  reviews: { productId: 5, userId: 4, rating: 5, title: 'Splendid', body: 'Tabulates beautifully.' },
+});
+
 const CHANGES: Record<string, Fields> = {
   names: { city: 'Halifax' },
   users: { city: 'Halifax', active: false },
   products: { stock: 0, inStock: false },
   companies: { employees: 40 },
+  // An order's other changes move its totals and dates; `/orders` has tests of its own.
+  orders: {},
+  posts: { title: 'Revised' },
+  comments: { body: 'Edited.' },
+  todos: { completed: true },
+  reviews: { rating: 1 },
 };
 
 const writable = resources.filter((resource) => resource.input);
@@ -89,7 +103,7 @@ describe('write routes', () => {
       it('creates: 201 with the next id, timestamps and a Location header', async () => {
         const { status, res, body } = await send('POST', `/${name}`, { ...NEW[name], [idField]: 7, createdAt: 'x' });
         expect(status).toBe(201);
-        const next = firstId + 1000;
+        const next = firstId + (await request(`/${name}?limit=1`)).body.metadata.total;
         expect(body).toMatchObject({ ...NEW[name], [idField]: next });
         expect(res.headers.get('location')).toBe(`/${name}/${next}`);
         expect(isoDate(body.createdAt)).toBe(true);
@@ -121,7 +135,7 @@ describe('write routes', () => {
       it('answers 404 for an id that does not exist, as GET does', async () => {
         for (const method of ['PUT', 'PATCH', 'DELETE']) {
           const body = method === 'DELETE' ? undefined : NEW[name];
-          const { status, body: error } = await send<Failure>(method, `/${name}/${firstId + 1000}`, body);
+          const { status, body: error } = await send<Failure>(method, `/${name}/${firstId + 100000}`, body);
           expect(status, method).toBe(404);
           expect(error.error).toMatch(/^No /);
         }

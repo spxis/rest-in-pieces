@@ -18,12 +18,13 @@ function main(): void {
     return;
   }
 
-  const { host, port, session } = command;
-  const app = createNodeApp({ session });
+  const { host, port, session, safe } = command;
+  const app = createNodeApp({ session, safe });
   const server = serve({ fetch: app.fetch, port, hostname: host }, (info) => {
     const url = displayUrl(host, info.port);
     const kept = session ? '\nSession: on. Writes are kept in memory until POST /reset.' : '';
-    console.log(`REST in Pieces ${pkg.version} is running at ${url}\nAPI docs: ${url}/docs${kept}`);
+    const safely = safe ? '\nSafe values: on. Requests may still ask for safe=false.' : '';
+    console.log(`REST in Pieces ${pkg.version} is running at ${url}\nAPI docs: ${url}/docs${kept}${safely}`);
   });
   server.on('error', (error: NodeJS.ErrnoException) => {
     console.error(
