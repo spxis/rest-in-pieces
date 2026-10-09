@@ -4,6 +4,8 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+## 2.7.0 - 2026-10-08
+
 ### Added
 
 - `messy` on every dataset, item route and `/generate` rewrites a share of values into the ones that break layouts and parsers: null and missing keys, empty and whitespace-only strings, very long strings, emoji, combining marks and zero-width joiners, right-to-left text, leading and trailing whitespace, edge numbers and edge dates. `messy=true` rewrites about 15% of values and `messy=0.5` sets the share. Which values change comes from the seed and each record's position, so the same URL returns the same mess. Values keep their type; any field but the id may be null or missing. `messy` is part of the cursor fingerprint, and `metadata.parameters.messy` echoes the share.
