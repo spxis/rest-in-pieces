@@ -1,4 +1,4 @@
-import { createApp } from '@rest-in-pieces/api/core';
+import { createApp } from 'rest-in-pieces/core';
 import { describe, expect, it } from 'vitest';
 import { defaultConfig, PAGING_STYLES, type PlaygroundConfig } from './config.ts';
 import { buildRequestUrl } from './request.ts';

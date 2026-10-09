@@ -42,9 +42,9 @@
       "default": "./dist/browser.js"
     },
     "./cursor": {
-      "rest-in-pieces:source": "./src/lib/cursor.ts",
-      "types": "./dist/lib/cursor.d.ts",
-      "default": "./dist/lib/cursor.js"
+      "rest-in-pieces:source": "./src/cursor.ts",
+      "types": "./dist/cursor.d.ts",
+      "default": "./dist/cursor.js"
     },
     "./package.json": "./package.json"
   },

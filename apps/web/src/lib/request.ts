@@ -1,4 +1,4 @@
-import { encodeCursor, queryFingerprint } from '@rest-in-pieces/api/cursor';
+import { encodeCursor, queryFingerprint } from 'rest-in-pieces/cursor';
 import type { OutputFormat, PlaygroundConfig } from './config.ts';
 
 export const trimBase = (base: string) => base.trim().replace(/\/+$/, '');
