@@ -8,7 +8,7 @@ export interface Scenario {
   apply(config: PlaygroundConfig): Partial<PlaygroundConfig>;
 }
 
-const reset = { delay: 0, status: 0, failRate: 0 };
+const reset = { delay: '', trickle: 0, status: 0, failRate: 0 };
 const END_OF_RESULTS_MAX = 25;
 
 /** The page that reaches the end of a capped dataset. A page number can only land on a whole page. */
@@ -42,7 +42,13 @@ export const SCENARIOS: Scenario[] = [
     id: 'slow-response',
     label: 'scenario.slowResponse.label',
     hint: 'scenario.slowResponse.hint',
-    apply: () => ({ ...reset, delay: 1500 }),
+    apply: () => ({ ...reset, delay: '1500' }),
+  },
+  {
+    id: 'slow-body',
+    label: 'scenario.slowBody.label',
+    hint: 'scenario.slowBody.hint',
+    apply: () => ({ ...reset, trickle: 250 }),
   },
   {
     id: 'rate-limited',

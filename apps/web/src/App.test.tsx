@@ -49,6 +49,22 @@ describe('App', () => {
     expect(snippet.textContent).toContain('q=ada');
   });
 
+  it('sets up a slow body and takes a delay range', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    const snippet = screen.getByTestId('request-snippet');
+
+    await user.click(screen.getByRole('button', { name: /Slow body/ }));
+    expect(snippet.textContent).toBe('http://localhost:6800/names?limit=10&trickle=250');
+
+    const delay = screen.getByPlaceholderText('1500 or 200-800');
+    await user.type(delay, '200-800');
+    expect(snippet.textContent).toContain('delay=200-800');
+    await user.type(delay, '0000');
+    expect(delay.getAttribute('aria-invalid')).toBe('true');
+    expect(snippet.textContent).not.toContain('delay=');
+  });
+
   it('sends the request, shows a table and pages through results', async () => {
     const user = userEvent.setup();
     render(<App />);

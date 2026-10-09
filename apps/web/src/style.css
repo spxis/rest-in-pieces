@@ -292,6 +292,9 @@ h1 {
   border-color: #64806c;
   box-shadow: 0 0 0 3px #214b3715;
 }
+.control input[aria-invalid="true"] {
+  border-color: #a25a41;
+}
 .playground-grid {
   display: grid;
   grid-template-columns: minmax(420px, 0.88fr) minmax(0, 1.12fr);

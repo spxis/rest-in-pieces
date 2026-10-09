@@ -1,6 +1,6 @@
 import { useSpeaker } from '../i18n/LocaleProvider.tsx';
 import type { PhraseKey } from '../i18n/phrases.ts';
-import { FORMATS, type PlaygroundConfig } from '../lib/config.ts';
+import { FORMATS, MAX_DELAY_MS, normalizeDelay, type PlaygroundConfig } from '../lib/config.ts';
 
 type Update = (patch: Partial<PlaygroundConfig>) => void;
 
@@ -55,7 +55,8 @@ const failLabel = (rate: number): [PhraseKey, { percent: number }] =>
 
 export function SimulationPanel({ config, onChange }: { config: PlaygroundConfig; onChange: Update }) {
   const { say } = useSpeaker();
-  const active = config.delay > 0 || config.status > 0 || config.failRate > 0;
+  const delay = normalizeDelay(config.delay);
+  const active = !!delay || config.trickle > 0 || config.status > 0 || config.failRate > 0;
   return (
     <details className="simulation-details" open={active || undefined}>
       <summary>
@@ -65,12 +66,13 @@ export function SimulationPanel({ config, onChange }: { config: PlaygroundConfig
         <label className="control">
           <span>{say('simulate.delay')}</span>
           <input
-            type="number"
-            min="0"
-            max="10000"
-            step="100"
+            type="text"
+            inputMode="numeric"
+            placeholder={say('simulate.delayHint')}
+            title={say('simulate.delayHint')}
+            aria-invalid={delay === null || undefined}
             value={config.delay}
-            onChange={(event) => onChange({ delay: Math.min(10_000, Math.max(0, Number(event.target.value) || 0)) })}
+            onChange={(event) => onChange({ delay: event.target.value })}
           />
         </label>
         <label className="control">
@@ -82,6 +84,19 @@ export function SimulationPanel({ config, onChange }: { config: PlaygroundConfig
               </option>
             ))}
           </select>
+        </label>
+        <label className="control">
+          <span>{say('simulate.trickle')}</span>
+          <input
+            type="number"
+            min="0"
+            max={MAX_DELAY_MS}
+            step="50"
+            value={config.trickle}
+            onChange={(event) =>
+              onChange({ trickle: Math.min(MAX_DELAY_MS, Math.max(0, Math.round(Number(event.target.value)) || 0)) })
+            }
+          />
         </label>
         <label className="control">
           <span>{say('simulate.failures')}</span>

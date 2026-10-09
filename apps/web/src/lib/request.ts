@@ -1,5 +1,5 @@
 import { encodeCursor, queryFingerprint } from 'rest-in-pieces/cursor';
-import type { OutputFormat, PlaygroundConfig } from './config.ts';
+import { normalizeDelay, type OutputFormat, type PlaygroundConfig } from './config.ts';
 
 export const trimBase = (base: string) => base.trim().replace(/\/+$/, '');
 
@@ -60,7 +60,9 @@ export function buildRequestUrl(config: PlaygroundConfig, seeded = true): string
   }
   if (config.locale !== 'en-CA') params.set('locale', config.locale);
   if (config.format !== 'json') params.set('format', config.format);
-  if (config.delay > 0) params.set('delay', String(config.delay));
+  const delay = normalizeDelay(config.delay);
+  if (delay) params.set('delay', delay);
+  if (config.trickle > 0) params.set('trickle', String(config.trickle));
   if (config.status >= 400) params.set('status', String(config.status));
   else if (config.failRate > 0) params.set('fail', config.failRate >= 1 ? 'true' : String(config.failRate));
   return `${trimBase(config.apiBase)}/${config.endpoint}?${pagingParams(config, params)}&${params}`.replace(/&$/, '');

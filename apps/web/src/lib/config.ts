@@ -42,7 +42,10 @@ export interface PlaygroundConfig {
   filters: Filter[];
   format: OutputFormat;
   metadata: boolean;
-  delay: number;
+  /** Milliseconds as typed: `1500`, a range such as `200-800`, or empty for none. See `normalizeDelay`. */
+  delay: string;
+  /** Milliseconds between the pieces of a trickled body, or 0 to send it whole. */
+  trickle: number;
   /** A 4xx or 5xx status to simulate, or 0 for none. */
   status: number;
   /** Share of requests that fail: 0 (never) to 1 (always). */
@@ -72,6 +75,22 @@ export const PAGING_STYLES = [
 ] as const satisfies ReadonlyArray<{ value: PagingStyle; label: PhraseKey }>;
 export const MAX_FIELDS = 50;
 export const MAX_SEED = 4294967295;
+/** The API's ceiling for `delay` and `trickle`, in milliseconds. */
+export const MAX_DELAY_MS = 10_000;
+
+/**
+ * Reads a typed delay: `1500` or a range such as `200-800`, each 0 to 10000 and low to high.
+ * Returns the value to send (`''` for no delay), or null when it does not validate.
+ */
+export function normalizeDelay(text: string): string | null {
+  const match = text.replace(/\s+/g, '').match(/^(\d+)(?:-(\d+))?$/);
+  if (!match) return text.trim() === '' ? '' : null;
+  const low = Number(match[1]);
+  const high = match[2] === undefined ? low : Number(match[2]);
+  if (high > MAX_DELAY_MS || low > high) return null;
+  if (high === 0) return '';
+  return low === high ? String(low) : `${low}-${high}`;
+}
 
 export const DEFAULT_FIELDS: Field[] = [
   { id: 1, name: 'name', type: 'person.fullName' },
@@ -105,7 +124,8 @@ export function defaultConfig(apiBase = defaultApiBase()): PlaygroundConfig {
     filters: [],
     format: 'json',
     metadata: true,
-    delay: 0,
+    delay: '',
+    trickle: 0,
     status: 0,
     failRate: 0,
     fields: DEFAULT_FIELDS,
@@ -153,6 +173,7 @@ export function configFromHash(hash: string, fallback = defaultConfig()): Playgr
   const failRate = Number(params.get('failRate') ?? (params.get('fail') === 'true' ? 1 : 0));
   const legacyStatus = params.get('fail') === 'true' ? int('status', 500, 400, 599) : 0;
   const fields = parseList(params.get('fields'), isField, MAX_FIELDS);
+  const delay = params.has('delay') ? normalizeDelay(params.get('delay') ?? '') : null;
 
   return {
     endpoint: endpoint && /^[a-z-]+$/.test(endpoint) ? endpoint : fallback.endpoint,
@@ -169,7 +190,8 @@ export function configFromHash(hash: string, fallback = defaultConfig()): Playgr
     filters: parseList(params.get('filters'), isFilter, 20) ?? fallback.filters,
     format: FORMATS.includes(format as OutputFormat) ? (format as OutputFormat) : fallback.format,
     metadata: params.get('metadata') !== 'false',
-    delay: int('delay', fallback.delay, 0, 10_000),
+    delay: delay ?? fallback.delay,
+    trickle: int('trickle', fallback.trickle, 0, MAX_DELAY_MS),
     status: params.has('status') && !params.has('fail') ? int('status', 0, 0, 599) : legacyStatus,
     failRate: Number.isFinite(failRate) && failRate >= 0 && failRate <= 1 ? failRate : 0,
     fields: fields && fields.length > 0 ? fields : fallback.fields,

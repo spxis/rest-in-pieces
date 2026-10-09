@@ -29,7 +29,8 @@ describe('buildRequestUrl', () => {
         ],
         metadata: false,
         format: 'csv',
-        delay: 500,
+        delay: '500',
+        trickle: 200,
         status: 503,
       }),
     );
@@ -47,6 +48,7 @@ describe('buildRequestUrl', () => {
       metadata: 'false',
       format: 'csv',
       delay: '500',
+      trickle: '200',
       status: '503',
     });
   });
@@ -107,6 +109,16 @@ describe('buildRequestUrl', () => {
     );
     expect(url.searchParams.get('fields')).toBe('name:person.fullName,email:internet.email');
     expect(url.searchParams.get('fail')).toBe('0.3');
+  });
+});
+
+describe('simulation parameters', () => {
+  it('sends a delay range as typed, tidied, and leaves out one that does not validate', () => {
+    const delayOf = (delay: string) => new URL(buildRequestUrl({ ...base, delay })).searchParams.get('delay');
+    expect(delayOf('200-800')).toBe('200-800');
+    expect(delayOf(' 200 - 800 ')).toBe('200-800');
+    expect(delayOf('300-300')).toBe('300');
+    for (const delay of ['', '0', '800-200', '200-', '20000', 'abc']) expect(delayOf(delay), delay).toBeNull();
   });
 });
 

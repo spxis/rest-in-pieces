@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { configFromHash, configToHash, defaultConfig } from './config.ts';
+import { configFromHash, configToHash, defaultConfig, normalizeDelay } from './config.ts';
 
 const base = defaultConfig('http://localhost:6800');
 
@@ -14,6 +14,8 @@ describe('shared setups', () => {
       q: 'ont',
       filters: [{ id: 1, field: 'age', operator: 'gte' as const, value: '30' }],
       status: 503,
+      delay: '200-800',
+      trickle: 250,
       fields: [{ id: 3, name: 'price', type: 'commerce.price' }],
       locale: 'ja' as const,
     };
@@ -26,10 +28,23 @@ describe('shared setups', () => {
 
   it('ignores values that do not validate', () => {
     const config = configFromHash(
-      '#limit=5000&offset=-1&paging=keyset&seed=abc&locale=fr&format=pdf&endpoint=../x&fields=[{"bad":true}]&filters=nope',
+      '#limit=5000&offset=-1&paging=keyset&seed=abc&locale=fr&format=pdf&endpoint=../x&fields=[{"bad":true}]&filters=nope' +
+        '&delay=800-200&trickle=20000',
       base,
     );
     expect(config).toEqual(base);
+  });
+
+  it('reads delays and ranges only when they validate', () => {
+    expect(configFromHash('#delay=1500', base).delay).toBe('1500');
+    expect(configFromHash('#delay=200-800', base).delay).toBe('200-800');
+    for (const delay of ['5000-20000', '200-', '-5', '1.5', '1-2-3', '<b>']) {
+      expect(configFromHash(`#delay=${encodeURIComponent(delay)}`, base).delay, delay).toBe('');
+    }
+    expect(normalizeDelay('0-0')).toBe('');
+    expect(normalizeDelay('0-500')).toBe('0-500');
+    expect(normalizeDelay('10000')).toBe('10000');
+    expect(normalizeDelay('10001')).toBeNull();
   });
 
   it('reads links shared by the previous playground', () => {
