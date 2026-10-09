@@ -1,0 +1,150 @@
+name: Release
+
+# `pnpm release <version>` commits the version and tags it; pushing the tag starts this workflow.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+# A release runs to the end once started; a second push of the same tag waits for it.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  # The folder of the package published to npm.
+  PACKAGE_DIR: apps/api
+  IMAGE: ghcr.io/spxis/rest-in-pieces
+
+jobs:
+  verify:
+    name: Tag matches the version and changelog
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+      - name: Compare the tag with package.json and CHANGELOG.md
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          declared="$(node -p 'require("./package.json").version')"
+          if [ "$version" != "$declared" ]; then
+            echo "::error title=Version mismatch::The tag $GITHUB_REF_NAME does not match package.json ($declared). Cut releases with pnpm release <version>."
+            exit 1
+          fi
+          node scripts/release.ts --notes "$version" > /dev/null
+
+  checks:
+    name: Checks
+    needs: verify
+    permissions:
+      contents: read
+    uses: ./.github/workflows/ci.yml
+
+  image:
+    name: Docker image to GHCR
+    needs: checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/metadata-action@v6
+        id: meta
+        env:
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
+        with:
+          images: ${{ env.IMAGE }}
+          # The version without its v, and latest unless the version is a prerelease.
+          tags: type=semver,pattern={{version}}
+          flavor: latest=auto
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ steps.meta.outputs.annotations }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  npm:
+    name: Package to npm
+    needs: checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      # Secrets cannot be tested in `if:`; an empty value means the secret has not been added.
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - name: Skip without NPM_TOKEN
+        if: env.NPM_TOKEN == ''
+        run: |
+          message="NPM_TOKEN is not set, so nothing was published to npm. It is a repository secret only the owner can add (Settings > Secrets and variables > Actions); the next release publishes once it exists."
+          echo "::notice title=npm publish skipped::$message"
+          echo "### npm publish skipped" >> "$GITHUB_STEP_SUMMARY"
+          echo "$message" >> "$GITHUB_STEP_SUMMARY"
+      - if: env.NPM_TOKEN != ''
+        uses: actions/checkout@v5
+      - if: env.NPM_TOKEN != ''
+        uses: pnpm/action-setup@v4
+      - if: env.NPM_TOKEN != ''
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - if: env.NPM_TOKEN != ''
+        run: pnpm install --frozen-lockfile
+      - name: Publish
+        if: env.NPM_TOKEN != ''
+        working-directory: ${{ env.PACKAGE_DIR }}
+        # --provenance links the package to this workflow run, which is what id-token: write is for.
+        run: pnpm publish --access public --no-git-checks --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  release:
+    name: GitHub release
+    needs: [image, npm]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+      - name: Create the release from CHANGELOG.md
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          notes="$RUNNER_TEMP/notes.md"
+          node scripts/release.ts --notes "$version" > "$notes"
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            # A rerun after a failed job: refresh the notes rather than failing.
+            gh release edit "$GITHUB_REF_NAME" --title "$version" --notes-file "$notes"
+          else
+            prerelease=()
+            case "$version" in *-*) prerelease=(--prerelease) ;; esac
+            gh release create "$GITHUB_REF_NAME" --verify-tag --title "$version" --notes-file "$notes" "${prerelease[@]}"
+          fi
