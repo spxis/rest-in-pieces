@@ -3,6 +3,7 @@ import { Scalar } from '@scalar/hono-api-reference';
 import { bodyLimit } from 'hono/body-limit';
 import { cors } from 'hono/cors';
 import { etag } from 'hono/etag';
+import { HTTPException } from 'hono/http-exception';
 import { logger } from 'hono/logger';
 import { secureHeaders } from 'hono/secure-headers';
 import pkg from '../package.json' with { type: 'json' };
@@ -35,17 +36,21 @@ export function createApp({ log = false, specUrl = '/openapi.json', mount }: App
 
   if (log) app.use(logger());
   app.use(secureHeaders({ crossOriginResourcePolicy: 'cross-origin' }));
-  app.use(cors({ origin: '*', exposeHeaders: ['X-Total-Count', 'Link', 'ETag', 'X-Simulated', 'Retry-After'] }));
+  app.use(
+    cors({ origin: '*', exposeHeaders: ['X-Total-Count', 'Link', 'ETag', 'X-Simulated', 'Retry-After', 'Location'] }),
+  );
 
   // Simulation and caching apply to data endpoints only, never to docs or health checks.
   const dataPaths = [...resources.map((r) => `/${r.name}`), '/random-names', '/generate'];
   // `/names/*` also matches `/names` itself, so one registration covers lists and items.
   for (const path of dataPaths) app.use(`${path}/*`, simulate(), etag());
 
-  app.use(
-    '/generate/*',
-    bodyLimit({ maxSize: 64 * 1024, onError: (c) => c.json({ error: 'Request body is larger than 64 KB.' }, 413) }),
-  );
+  // Writes and `POST /generate` take a JSON body; none needs more than this.
+  const limit = bodyLimit({
+    maxSize: 64 * 1024,
+    onError: (c) => c.json({ error: 'Request body is larger than 64 KB.' }, 413),
+  });
+  for (const path of dataPaths) app.use(`${path}/*`, limit);
 
   for (const resource of resources) app.route(`/${resource.name}`, collectionRoutes(resource));
   const names = resources.find((r) => r.name === 'names');
@@ -86,6 +91,8 @@ export function createApp({ log = false, specUrl = '/openapi.json', mount }: App
     ) {
       return c.json({ error: err.message }, 400);
     }
+    // Malformed JSON (400) and a body that is not JSON (415) come from the request validators.
+    if (err instanceof HTTPException && err.status < 500) return c.json({ error: err.message }, err.status);
     console.error(err);
     return c.json({ error: 'Internal Server Error' }, 500);
   });

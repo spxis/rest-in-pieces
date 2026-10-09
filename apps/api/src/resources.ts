@@ -7,7 +7,17 @@ import { makePerson } from './data/people.ts';
 import { makeCompany, makeProduct, makeUser } from './data/presets.ts';
 import { type CollectionDefaults, MAX_RECORDS } from './lib/collection.ts';
 import { GLOBAL, LOCALES, type Locale } from './lib/locale.ts';
-import { Company, Country, Person, Product, User } from './schemas.ts';
+import {
+  Company,
+  CompanyInput,
+  Country,
+  Person,
+  PersonInput,
+  Product,
+  ProductInput,
+  User,
+  UserInput,
+} from './schemas.ts';
 
 export const DEFAULT_SEED = 1;
 export const MAX_SEED = 2 ** 32 - 1;
@@ -19,6 +29,11 @@ export interface Resource {
   title: string;
   description: string;
   schema: z.ZodType;
+  /**
+   * What a client sends to create or replace a record: the record without the fields the server sets.
+   * A resource with one takes `POST`, `PUT`, `PATCH` and `DELETE`; one without is read-only.
+   */
+  input?: z.ZodObject;
   /** The field `/{name}/{id}` looks records up by. */
   idField: string;
   idDescription: string;
@@ -61,6 +76,7 @@ export const resources: Resource[] = [
     description:
       'People with name, age, address, city, province, postal code, country and gender, written for the chosen `locale`: Canadian by default. The original REST in Pieces dataset; also served at `/random-names`.',
     schema: Person,
+    input: PersonInput,
     idField: 'index',
     idDescription: 'Zero-based `index` of the person.',
     defaults: { limit: 10, metadata: true },
@@ -72,6 +88,7 @@ export const resources: Resource[] = [
     title: 'User',
     description: 'Application users with profile, contact details, avatar and account status.',
     schema: User,
+    input: UserInput,
     idField: 'id',
     idDescription: 'One-based `id` of the user.',
     defaults: { limit: 10, metadata: true },
@@ -84,6 +101,7 @@ export const resources: Resource[] = [
     description:
       "Catalogue products with SKU, department, price in the locale's currency (ISO 4217), rating and stock.",
     schema: Product,
+    input: ProductInput,
     idField: 'id',
     idDescription: 'One-based `id` of the product.',
     defaults: { limit: 10, metadata: true },
@@ -95,6 +113,7 @@ export const resources: Resource[] = [
     title: 'Company',
     description: 'Companies with industry, website, contact details, size and founding year.',
     schema: Company,
+    input: CompanyInput,
     idField: 'id',
     idDescription: 'One-based `id` of the company.',
     defaults: { limit: 10, metadata: true },

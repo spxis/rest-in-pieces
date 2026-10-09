@@ -6,8 +6,12 @@ import { messyRecord, parseMessy } from '../lib/messy.ts';
 import { intParam, pick } from '../lib/query.ts';
 import { DEFAULT_SEED, MAX_SEED, type Resource } from '../resources.ts';
 import { ErrorBody, FILTER_DOCS, ListQuery, listOf, TEXT_FORMATS } from '../schemas.ts';
+import { writeRoutes } from './writes.ts';
 
-/** Builds the list and item routes for a resource. `deprecated` marks a legacy alias in the docs. */
+/**
+ * Builds the list and item routes for a resource, and the write routes when it has an input schema.
+ * `deprecated` marks a legacy alias in the docs; an alias takes no writes.
+ */
 export function collectionRoutes(resource: Resource, { deprecated = false, path = resource.name } = {}) {
   const id = path.replaceAll('-', '_');
   const tag = resource.name === 'countries' ? 'Reference data' : 'Datasets';
@@ -61,7 +65,7 @@ export function collectionRoutes(resource: Resource, { deprecated = false, path 
   const seedOf = (query: Record<string, string | undefined>) =>
     resource.seeded ? intParam(pick(query, 'seed'), DEFAULT_SEED, MAX_SEED) : null;
 
-  return new OpenAPIHono()
+  const routes = new OpenAPIHono()
     .openapi(listRoute, (c) => {
       requestedFormat(c);
       const query = c.req.query();
@@ -92,4 +96,7 @@ export function collectionRoutes(resource: Resource, { deprecated = false, path 
       const record = messyRecord(found, records.indexOf(found), { share, seed, keep: [resource.idField] });
       return respond(c, record, [record]) as never;
     });
+
+  const { input } = resource;
+  return deprecated || !input ? routes : routes.route('/', writeRoutes({ ...resource, input }, { id, tag }));
 }

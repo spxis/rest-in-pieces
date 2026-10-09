@@ -32,6 +32,18 @@ describe('inBrowserFetch', () => {
     expect(((await response.json()) as { results: unknown[] }).results).toHaveLength(3);
   });
 
+  it('answers writes, with and without a body', async () => {
+    const fetcher = inBrowserFetch(BASE, async () => createApp(), vi.fn());
+    const patched = await fetcher(`${BASE}/users/1`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ active: false }),
+    });
+    expect(patched.status).toBe(200);
+    expect(((await patched.json()) as { active: boolean }).active).toBe(false);
+    expect((await fetcher(`${BASE}/users/1`, { method: 'DELETE' })).status).toBe(204);
+  });
+
   it('hands the playground CSV text without the byte-order mark', async () => {
     const fetcher = inBrowserFetch(BASE, async () => createApp(), vi.fn());
     const response = await fetcher(`${BASE}/names?limit=1&format=csv`);

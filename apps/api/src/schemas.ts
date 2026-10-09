@@ -208,3 +208,66 @@ export const TEXT_FORMATS = {
   'application/yaml': { schema: z.string() },
   'application/xml': { schema: z.string() },
 };
+
+/** A write whose body did not validate: one message per field, keyed by its dotted path. */
+export const ValidationErrorBody = z
+  .object({
+    error: z.literal('Validation failed'),
+    fields: z.record(z.string(), z.string()).openapi({
+      description: 'One message per field that failed, keyed by its path (`address.city` for a nested one).',
+    }),
+  })
+  .openapi('ValidationError', { example: { error: 'Validation failed', fields: { email: 'Invalid email' } } });
+
+/*
+ * What a client sends to create or replace a record: the record without the fields the server sets
+ * (the id and `createdAt`), with the checks a real backend would make on a form.
+ */
+const text = () => z.string().trim().min(1, 'Required');
+const email = () => z.email('Invalid email');
+const url = () => z.url('Invalid URL');
+
+export const PersonInput = Person.omit({ index: true })
+  .extend({
+    name: text(),
+    age: z.number().int().min(0).max(130),
+    address: text(),
+    city: text(),
+    province: text(),
+    postal: text(),
+    country: text(),
+  })
+  .openapi('PersonInput');
+
+export const UserInput = User.omit({ id: true, createdAt: true })
+  .extend({
+    firstName: text(),
+    lastName: text(),
+    username: text(),
+    email: email(),
+    avatar: url(),
+    country: text(),
+  })
+  .openapi('UserInput');
+
+export const ProductInput = Product.omit({ id: true, createdAt: true })
+  .extend({
+    sku: text(),
+    name: text(),
+    price: z.number().nonnegative(),
+    currency: z.string().regex(/^[A-Z]{3}$/, 'Use an ISO 4217 code such as CAD'),
+    rating: z.number().min(0).max(5),
+    stock: z.number().int().nonnegative(),
+  })
+  .openapi('ProductInput');
+
+export const CompanyInput = Company.omit({ id: true })
+  .extend({
+    name: text(),
+    website: url(),
+    email: email(),
+    employees: z.number().int().positive(),
+    founded: z.number().int().min(1600).max(2100),
+    country: text(),
+  })
+  .openapi('CompanyInput');
