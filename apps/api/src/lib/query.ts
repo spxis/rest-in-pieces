@@ -61,4 +61,5 @@ export const RESERVED_PARAMS = new Set([
   'q',
   'locale',
   'messy',
+  'auth',
 ]);

@@ -22,7 +22,14 @@ execFileSync('tsc', ['-p', 'tsconfig.build.json'], {
 const spec = (await (await createApp().request('/openapi.json')).json()) as Parameters<typeof openapiTS>[0];
 writeFileSync(at('dist/openapi.json'), `${JSON.stringify(spec)}\n`);
 const types = astToString(await openapiTS(spec));
-for (const expected of ['export interface paths', 'export interface components', 'Person: {']) {
+for (const expected of [
+  'export interface paths',
+  'export interface components',
+  'Person: {',
+  '"/auth/login": {',
+  '"/reset": {',
+  'AuthTokens: {',
+]) {
   if (!types.includes(expected)) throw new Error(`The generated types have no \`${expected}\`.`);
 }
 writeFileSync(

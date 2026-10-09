@@ -91,4 +91,14 @@ describe('installInBrowserApi', () => {
     const docs = await (await fetch('https://mock.test/v1/docs')).text();
     expect(docs).toContain('/v1/openapi.json');
   });
+
+  it('keeps writes in the tab with app: { session: true }, until /reset', async () => {
+    globalThis.fetch = vi.fn<typeof fetch>();
+    installInBrowserApi({ base: 'https://tab.test/api', app: { session: true } });
+    const remove = await fetch('https://tab.test/api/users/1', { method: 'DELETE' });
+    expect(remove.status).toBe(204);
+    expect((await fetch('https://tab.test/api/users/1')).status).toBe(404);
+    expect((await fetch('https://tab.test/api/reset', { method: 'POST' })).status).toBe(200);
+    expect((await fetch('https://tab.test/api/users/1')).status).toBe(200);
+  });
 });

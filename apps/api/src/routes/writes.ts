@@ -2,8 +2,9 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import type { Context } from 'hono';
 import { contentLanguage, parseLocale } from '../lib/locale.ts';
 import { flagParam, intParam, pick } from '../lib/query.ts';
+import { type Session, SessionFullError } from '../lib/session.ts';
 import { DEFAULT_SEED, MAX_SEED, type Resource } from '../resources.ts';
-import { ErrorBody, ListQuery, ValidationErrorBody } from '../schemas.ts';
+import { AuthErrors, ErrorBody, ListQuery, OPTIONAL_BEARER, ValidationErrorBody } from '../schemas.ts';
 
 type Fields = Record<string, unknown>;
 
@@ -42,11 +43,14 @@ const WriteQuery = z.object({
   trickle: ListQuery.shape.trickle,
   status: ListQuery.shape.status,
   fail: ListQuery.shape.fail,
+  auth: ListQuery.shape.auth,
 });
 
 const STATELESS =
-  'Stateless by design: nothing is stored, so a later read returns the same data as before. ' +
-  'The response is what the write would have produced.';
+  'By default nothing is stored, so a later read returns the same data as before and the response is what ' +
+  'the write would have produced. With the session on (`--session`, `REST_IN_PIECES_SESSION=true` or ' +
+  '`createApp({ session: true })`), the change is kept in memory and later reads at the same `seed` and ' +
+  '`locale` see it, until `POST /reset`. A session that is full answers `507`.';
 
 const json = (schema: z.ZodType, description: string) => ({
   description,
@@ -56,7 +60,10 @@ const json = (schema: z.ZodType, description: string) => ({
 const jsonBody = (schema: z.ZodType, description: string) => ({ required: true, ...json(schema, description) });
 
 /** Builds `POST /`, `PUT /{id}`, `PATCH /{id}` and `DELETE /{id}` for a resource that has an input schema. */
-export function writeRoutes(resource: Resource & { input: z.ZodObject }, { id, tag }: { id: string; tag: string }) {
+export function writeRoutes(
+  resource: Resource & { input: z.ZodObject },
+  { id, tag, session }: { id: string; tag: string; session: Session },
+) {
   const title = resource.title.toLowerCase();
   const written =
     resource.schema instanceof z.ZodObject
@@ -75,6 +82,9 @@ export function writeRoutes(resource: Resource & { input: z.ZodObject }, { id, t
   const notFound = { 404: json(ErrorBody, 'No record has that id.') };
   const conflicted = { 409: json(ErrorBody, 'Answered when `conflict=true`.') };
   const invalid = { 422: json(ValidationErrorBody, 'The body did not validate. `fields` says which fields and why.') };
+  const full = {
+    507: json(ErrorBody, 'With the session on: it has no room for this write. `POST /reset` empties it.'),
+  };
 
   const postRoute = createRoute({
     method: 'post',
@@ -83,8 +93,15 @@ export function writeRoutes(resource: Resource & { input: z.ZodObject }, { id, t
     operationId: `create_${id}_item`,
     summary: `Create a ${title}`,
     description: `Validates the body and answers with the new ${title}: the next id after the dataset's last, \`createdAt\`, \`updatedAt\` and a \`Location\` header. Fields the server sets are ignored if sent.\n\n${STATELESS}`,
+    security: OPTIONAL_BEARER,
     request: { query: WriteQuery, body: jsonBody(resource.input, `The ${title}, without the fields the server sets.`) },
-    responses: { 201: json(written, `The ${title} as it would have been created.`), ...conflicted, ...invalid },
+    responses: {
+      201: json(written, `The ${title} as it was created.`),
+      ...conflicted,
+      ...invalid,
+      ...AuthErrors,
+      ...full,
+    },
   });
 
   const putRoute = createRoute({
@@ -94,12 +111,15 @@ export function writeRoutes(resource: Resource & { input: z.ZodObject }, { id, t
     operationId: `replace_${id}_item`,
     summary: `Replace a ${title}`,
     description: `Validates the whole ${title} and answers with it under the same id, with \`updatedAt\` set.\n\n${STATELESS}`,
+    security: OPTIONAL_BEARER,
     request: { params, query: WriteQuery, body: jsonBody(resource.input, `Every field of the ${title}.`) },
     responses: {
-      200: json(written, `The ${title} as it would have been saved.`),
+      200: json(written, `The ${title} as it was saved.`),
       ...notFound,
       ...conflicted,
       ...invalid,
+      ...AuthErrors,
+      ...full,
     },
   });
 
@@ -110,12 +130,15 @@ export function writeRoutes(resource: Resource & { input: z.ZodObject }, { id, t
     operationId: `update_${id}_item`,
     summary: `Update a ${title}`,
     description: `Validates the fields sent and answers with the ${title} merged with them, with \`updatedAt\` set.\n\n${STATELESS}`,
+    security: OPTIONAL_BEARER,
     request: { params, query: WriteQuery, body: jsonBody(resource.input.partial(), 'Only the fields to change.') },
     responses: {
-      200: json(written, `The ${title} as it would have been saved.`),
+      200: json(written, `The ${title} as it was saved.`),
       ...notFound,
       ...conflicted,
       ...invalid,
+      ...AuthErrors,
+      ...full,
     },
   });
 
@@ -126,17 +149,39 @@ export function writeRoutes(resource: Resource & { input: z.ZodObject }, { id, t
     operationId: `delete_${id}_item`,
     summary: `Delete a ${title}`,
     description: `Answers \`204 No Content\` for a ${title} that exists.\n\n${STATELESS}`,
+    security: OPTIONAL_BEARER,
     request: { params, query: WriteQuery },
-    responses: { 204: { description: `The ${title} would have been deleted.` }, ...notFound, ...conflicted },
+    responses: {
+      204: { description: `The ${title} was deleted.` },
+      ...notFound,
+      ...conflicted,
+      ...AuthErrors,
+      ...full,
+    },
   });
 
-  /** The dataset a read with the same `seed` and `locale` would see. */
-  const dataset = (c: Context) => {
+  /** Where a write lands: the dataset a read with the same `seed` and `locale` sees. */
+  const target = (c: Context) => {
     const query = c.req.query();
     const seed = resource.seeded ? intParam(pick(query, 'seed'), DEFAULT_SEED, MAX_SEED) : DEFAULT_SEED;
     const locale = parseLocale(pick(query, 'locale'));
     contentLanguage(c, locale);
-    return resource.load(seed, locale).records as Fields[];
+    return { seed, locale };
+  };
+  const dataset = (c: Context) => {
+    const { seed, locale } = target(c);
+    return session.load(resource, seed, locale).records as Fields[];
+  };
+  /** Keeps a write when the session is on; a session with no room answers 507 and keeps nothing. */
+  const keep = (c: Context, write: (seed: number, locale: ReturnType<typeof parseLocale>) => void) => {
+    const { seed, locale } = target(c);
+    try {
+      write(seed, locale);
+      return null;
+    } catch (error) {
+      if (error instanceof SessionFullError) return c.json({ error: error.message }, 507);
+      throw error;
+    }
   };
   const find = (c: Context, recordId: string) => resource.find(dataset(c), recordId) as Fields | undefined;
   /** The validated body. The input schema is only known at run time, so its type is a plain record. */
@@ -156,10 +201,14 @@ export function writeRoutes(resource: Resource & { input: z.ZodObject }, { id, t
   })
     .openapi(postRoute, (c) => {
       if (conflicting(c)) return c.json({ error: `A ${title} like this already exists.` }, 409);
-      const next = Math.max(-1, ...dataset(c).map((record) => Number(record[resource.idField]))) + 1;
+      const { seed, locale } = target(c);
+      const next = session.nextId(resource, seed, locale);
       const at = now();
+      const record = { [resource.idField]: next, ...sent(c), createdAt: at, updatedAt: at };
+      const refused = keep(c, (s, l) => session.create(resource, s, l, record));
+      if (refused) return refused as never;
       c.header('Location', `${c.req.path.replace(/\/+$/, '')}/${next}`);
-      return c.json({ [resource.idField]: next, ...sent(c), createdAt: at, updatedAt: at }, 201) as never;
+      return c.json(record, 201) as never;
     })
     .openapi(putRoute, (c) => {
       const { id: recordId } = c.req.valid('param');
@@ -167,19 +216,25 @@ export function writeRoutes(resource: Resource & { input: z.ZodObject }, { id, t
       if (!record) return notFoundFor(c, recordId);
       if (conflicting(c)) return c.json({ error: changedElsewhere }, 409);
       const kept = 'createdAt' in record ? { createdAt: record.createdAt } : {};
-      return c.json({ [resource.idField]: record[resource.idField], ...sent(c), ...kept, updatedAt: now() }) as never;
+      const saved = { [resource.idField]: record[resource.idField], ...sent(c), ...kept, updatedAt: now() };
+      const refused = keep(c, (s, l) => session.replace(resource, s, l, saved));
+      return (refused ?? c.json(saved)) as never;
     })
     .openapi(patchRoute, (c) => {
       const { id: recordId } = c.req.valid('param');
       const record = find(c, recordId);
       if (!record) return notFoundFor(c, recordId);
       if (conflicting(c)) return c.json({ error: changedElsewhere }, 409);
-      return c.json({ ...record, ...sent(c), updatedAt: now() }) as never;
+      const saved = { ...record, ...sent(c), updatedAt: now() };
+      const refused = keep(c, (s, l) => session.replace(resource, s, l, saved));
+      return (refused ?? c.json(saved)) as never;
     })
     .openapi(deleteRoute, (c) => {
       const { id: recordId } = c.req.valid('param');
-      if (!find(c, recordId)) return notFoundFor(c, recordId);
+      const record = find(c, recordId);
+      if (!record) return notFoundFor(c, recordId);
       if (conflicting(c)) return c.json({ error: changedElsewhere }, 409);
-      return c.body(null, 204);
+      const refused = keep(c, (s, l) => session.remove(resource, s, l, record[resource.idField]));
+      return (refused ?? c.body(null, 204)) as never;
     });
 }

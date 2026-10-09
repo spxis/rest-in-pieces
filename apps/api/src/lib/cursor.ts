@@ -25,6 +25,7 @@ const PAGE_AND_PRESENTATION = new Set([
   'delay',
   'status',
   'fail',
+  'auth',
 ]);
 
 /** Aliases share a name in the fingerprint, in the order the API reads them. */

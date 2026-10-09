@@ -19,6 +19,8 @@ const examples = [
   ['/names?delay=1500', 'A slow response'],
   ['/names?status=503', 'A 503 error'],
   ['/names?fail=0.3', 'Fails 30% of the time'],
+  ['/users?auth=required', 'A protected route: 401 until you sign in with POST /auth/login'],
+  ['/session', 'What the session holds (writes are kept only with --session)'],
 ] as const;
 
 export const home = new Hono().get('/', (c) =>

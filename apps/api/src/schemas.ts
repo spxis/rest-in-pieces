@@ -27,6 +27,53 @@ export const MESSY_DOCS =
   'date field a date in the same format), but while `messy` is on every field except the id may be null or ' +
   'missing, whatever the schema says.';
 
+/** The `auth` description, shared by every data endpoint. */
+export const AUTH_DOCS =
+  'Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in ' +
+  'account, `editor` the editor or admin role, `admin` the admin role. Without a valid ' +
+  '`Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, ' +
+  '`invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough ' +
+  '`403` (`insufficient_role`). Fake tokens, not security.';
+
+/** Data endpoints take a token only when `?auth=` asks for one, so the token is optional in the document. */
+export const OPTIONAL_BEARER = [{}, { bearerAuth: [] }];
+
+export const AuthError = z
+  .object({
+    error: z.string().openapi({ example: 'Unauthorized' }),
+    code: z
+      .enum([
+        'missing_token',
+        'invalid_token',
+        'token_expired',
+        'invalid_credentials',
+        'account_disabled',
+        'insufficient_role',
+      ])
+      .openapi({ description: 'What went wrong, for a client to branch on.' }),
+    message: z.string(),
+    required: z
+      .string()
+      .optional()
+      .openapi({ description: 'With `insufficient_role`: the role the request asked for.' }),
+    role: z.string().optional().openapi({ description: "With `insufficient_role`: the signed-in account's role." }),
+  })
+  .openapi('AuthError', {
+    example: { error: 'Unauthorized', code: 'token_expired', message: 'The access token has expired.' },
+  });
+
+/** The answers `?auth=` adds to a data endpoint. */
+export const AuthErrors = {
+  401: {
+    description: 'With `auth`: no token, a token that is not valid, or one that has expired.',
+    content: { 'application/json': { schema: AuthError } },
+  },
+  403: {
+    description: "With `auth=editor` or `auth=admin`: the account's role is not enough.",
+    content: { 'application/json': { schema: AuthError } },
+  },
+};
+
 /**
  * Query parameters shared by every collection. Parsing is deliberately lenient,
  * so they are documented as strings and bad values fall back to defaults.
@@ -40,7 +87,9 @@ export const ListQuery = z
     cursor: param(
       'An opaque cursor from `metadata.nextCursor` or `prevCursor`. Overrides `page` and `offset`; an empty `cursor=` starts on the first page with cursor links. A cursor used with different filters, sort, `q`, `seed`, `locale`, `messy` or `max` returns 400.',
     ),
-    max: param('Caps the dataset size to test end-of-data handling. Alias: `maxRecords`.'),
+    max: param(
+      'Caps the dataset size to test end-of-data handling. Defaults to every record: 1000, or more after creates with the session on. Alias: `maxRecords`.',
+    ),
     sortBy: param('Field to sort by. Append `:numeric` to compare as numbers, e.g. `age:numeric`.'),
     sortDirection: param('`asc` or `desc` (also `reverse`, `rev`, `backwards`, `-1`). Alias: `sortOrder`.'),
     q: param('Case-insensitive text search across every field.'),
@@ -58,6 +107,7 @@ export const ListQuery = z
     ),
     status: param('Respond with this status (200–599). 4xx and 5xx return a simulated error.'),
     fail: param('`true` fails the request; a fraction such as `0.2` fails that share of requests.'),
+    auth: param(AUTH_DOCS),
   })
   .catchall(z.string().optional());
 

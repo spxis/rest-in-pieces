@@ -37,28 +37,38 @@ export interface ListOptions {
  * Reads the page from `cursor`, then `page` (one-based, in pages of `limit`), then `offset`.
  * An empty `cursor=` starts a cursor walk on the first page. A cursor issued for a different query throws.
  */
-function readPage(query: Query, limit: number, fingerprint: string): { offset: number; paging: PagingStyle } {
+function readPage(
+  query: Query,
+  limit: number,
+  fingerprint: string,
+  ceiling: number,
+): { offset: number; paging: PagingStyle } {
   if (query.cursor !== undefined) {
     const offset = query.cursor === '' ? 0 : decodeCursor(query.cursor, fingerprint);
-    return { offset: Math.min(offset, MAX_RECORDS), paging: 'cursor' };
+    return { offset: Math.min(offset, ceiling), paging: 'cursor' };
   }
   const page = pick(query, 'page');
   if (page !== undefined) {
     const number = Math.max(1, intParam(page, 1));
-    return { offset: Math.min((number - 1) * limit, MAX_RECORDS), paging: 'page' };
+    return { offset: Math.min((number - 1) * limit, ceiling), paging: 'page' };
   }
-  return { offset: intParam(pick(query, 'offset'), 0, MAX_RECORDS), paging: 'offset' };
+  return { offset: intParam(pick(query, 'offset'), 0, ceiling), paging: 'offset' };
 }
 
-export function parseListOptions(query: Query, defaults: CollectionDefaults): ListOptions {
+/**
+ * Reads the paging, sorting and shaping parameters. `size` is how many records the dataset holds: 1000 for a
+ * seeded one, more once a session has kept creates, and `max` and `offset` reach as far as it does.
+ */
+export function parseListOptions(query: Query, defaults: CollectionDefaults, size = MAX_RECORDS): ListOptions {
   const requestedName = pick(query, 'resultsName');
   const limit = intParam(pick(query, 'limit', 'size', 'length', 'pageSize'), defaults.limit, MAX_RECORDS);
   const fingerprint = queryFingerprint(query);
+  const ceiling = Math.max(MAX_RECORDS, size);
   return {
     limit,
-    ...readPage(query, limit, fingerprint),
+    ...readPage(query, limit, fingerprint, ceiling),
     fingerprint,
-    max: intParam(pick(query, 'max', 'maxRecords'), MAX_RECORDS, MAX_RECORDS),
+    max: intParam(pick(query, 'max', 'maxRecords'), ceiling, ceiling),
     sort: parseSort(
       pick(query, 'sortBy', 'sortby', 'sortField', 'sortfield'),
       pick(query, 'sortDirection', 'sortdirection', 'sortOrder', 'sortorder'),
@@ -95,7 +105,7 @@ export function queryCollection<T extends object>(
   locale: Locale = DEFAULT_LOCALE,
   { seed, keep = [] }: MessyContext = { seed: 1 },
 ) {
-  const options = parseListOptions(query, defaults);
+  const options = parseListOptions(query, defaults, clean.length);
   const source = messyRecords(clean, { share: options.messy, seed, keep });
   // Every key any record has: a messy or mixed-locale record may lack one the first record has.
   const fields = new Set(source.flatMap((record) => Object.keys(record)));

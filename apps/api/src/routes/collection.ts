@@ -4,15 +4,27 @@ import { requestedFormat, respond } from '../lib/format.ts';
 import { contentLanguage, parseLocale } from '../lib/locale.ts';
 import { messyRecord, parseMessy } from '../lib/messy.ts';
 import { intParam, pick } from '../lib/query.ts';
+import { createSession, type Session } from '../lib/session.ts';
 import { DEFAULT_SEED, MAX_SEED, type Resource } from '../resources.ts';
-import { ErrorBody, FILTER_DOCS, ListQuery, listOf, TEXT_FORMATS } from '../schemas.ts';
+import { AuthErrors, ErrorBody, FILTER_DOCS, ListQuery, listOf, OPTIONAL_BEARER, TEXT_FORMATS } from '../schemas.ts';
 import { writeRoutes } from './writes.ts';
+
+export interface CollectionRouteOptions {
+  /** Marks a legacy alias in the docs. An alias takes no writes. */
+  deprecated?: boolean;
+  path?: string;
+  /** Where reads find the records and writes keep them. Without one, nothing is kept. */
+  session?: Session;
+}
 
 /**
  * Builds the list and item routes for a resource, and the write routes when it has an input schema.
  * `deprecated` marks a legacy alias in the docs; an alias takes no writes.
  */
-export function collectionRoutes(resource: Resource, { deprecated = false, path = resource.name } = {}) {
+export function collectionRoutes(
+  resource: Resource,
+  { deprecated = false, path = resource.name, session = createSession(false) }: CollectionRouteOptions = {},
+) {
   const id = path.replaceAll('-', '_');
   const tag = resource.name === 'countries' ? 'Reference data' : 'Datasets';
   const listRoute = createRoute({
@@ -23,6 +35,7 @@ export function collectionRoutes(resource: Resource, { deprecated = false, path 
     summary: `List ${resource.name}`,
     description: `${resource.description}\n\n${FILTER_DOCS}`,
     deprecated,
+    security: OPTIONAL_BEARER,
     request: { query: ListQuery },
     responses: {
       200: {
@@ -33,6 +46,7 @@ export function collectionRoutes(resource: Resource, { deprecated = false, path 
         description: 'Unsupported format or locale, or a cursor that is invalid or belongs to another query.',
         content: { 'application/json': { schema: ErrorBody } },
       },
+      ...AuthErrors,
     },
   });
 
@@ -43,6 +57,7 @@ export function collectionRoutes(resource: Resource, { deprecated = false, path 
     operationId: `get_${id}_item`,
     summary: `Get one ${resource.title.toLowerCase()}`,
     deprecated,
+    security: OPTIONAL_BEARER,
     request: {
       params: z.object({ id: z.string().openapi({ description: resource.idDescription }) }),
       query: z.object({
@@ -50,6 +65,7 @@ export function collectionRoutes(resource: Resource, { deprecated = false, path 
         locale: ListQuery.shape.locale,
         format: ListQuery.shape.format,
         messy: ListQuery.shape.messy,
+        auth: ListQuery.shape.auth,
       }),
     },
     responses: {
@@ -59,6 +75,7 @@ export function collectionRoutes(resource: Resource, { deprecated = false, path 
       },
       400: { description: 'Unsupported format or locale.', content: { 'application/json': { schema: ErrorBody } } },
       404: { description: 'No record has that id.', content: { 'application/json': { schema: ErrorBody } } },
+      ...AuthErrors,
     },
   });
 
@@ -71,7 +88,7 @@ export function collectionRoutes(resource: Resource, { deprecated = false, path 
       const query = c.req.query();
       const seed = seedOf(query);
       const locale = parseLocale(pick(query, 'locale'));
-      const { records, generatedAt } = resource.load(seed ?? DEFAULT_SEED, locale);
+      const { records, generatedAt } = session.load(resource, seed ?? DEFAULT_SEED, locale);
       contentLanguage(c, locale);
       const page = queryCollection(records, query, resource.defaults, locale, {
         seed: seed ?? DEFAULT_SEED,
@@ -86,7 +103,7 @@ export function collectionRoutes(resource: Resource, { deprecated = false, path 
       const query = c.req.query();
       const locale = parseLocale(pick(query, 'locale'));
       const seed = seedOf(query) ?? DEFAULT_SEED;
-      const { records } = resource.load(seed, locale);
+      const { records } = session.load(resource, seed, locale);
       contentLanguage(c, locale);
       const { id } = c.req.valid('param');
       const found = resource.find(records, id);
@@ -98,5 +115,5 @@ export function collectionRoutes(resource: Resource, { deprecated = false, path 
     });
 
   const { input } = resource;
-  return deprecated || !input ? routes : routes.route('/', writeRoutes({ ...resource, input }, { id, tag }));
+  return deprecated || !input ? routes : routes.route('/', writeRoutes({ ...resource, input }, { id, tag, session }));
 }

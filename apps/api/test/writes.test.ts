@@ -218,17 +218,27 @@ describe('write routes', () => {
     for (const name of Object.keys(NEW)) {
       const list = body.paths[`/${name}`] ?? {};
       const item = body.paths[`/${name}/{id}`] ?? {};
-      expect(Object.keys(list.post?.responses ?? {}).sort(), name).toEqual(['201', '409', '422']);
+      expect(Object.keys(list.post?.responses ?? {}).sort(), name).toEqual(['201', '401', '403', '409', '422', '507']);
       expect(list.post?.requestBody, name).toBeTruthy();
       for (const method of ['put', 'patch']) {
         expect(Object.keys(item[method]?.responses ?? {}).sort(), `${name} ${method}`).toEqual([
           '200',
+          '401',
+          '403',
           '404',
           '409',
           '422',
+          '507',
         ]);
       }
-      expect(Object.keys(item.delete?.responses ?? {}).sort(), name).toEqual(['204', '404', '409']);
+      expect(Object.keys(item.delete?.responses ?? {}).sort(), name).toEqual([
+        '204',
+        '401',
+        '403',
+        '404',
+        '409',
+        '507',
+      ]);
     }
     expect(Object.keys(body.paths['/countries/{id}'] ?? {})).toEqual(['get']);
     expect(Object.keys(body.paths['/random-names'] ?? {})).toEqual(['get']);
