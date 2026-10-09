@@ -4,6 +4,10 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Changed
+
+- The live demo is the front door: the README opens with it, the playground's top bar links to the API reference, the fixtures, the npm package and the repository, each scenario offers its share link first, and the page title and description say what the service is.
+
 ## 2.8.0 - 2026-10-08
 
 ### Added

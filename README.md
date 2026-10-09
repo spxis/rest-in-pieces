@@ -2,17 +2,18 @@
 
 [![CI](https://github.com/spxis/rest-in-pieces/actions/workflows/ci.yml/badge.svg)](https://github.com/spxis/rest-in-pieces/actions/workflows/ci.yml)
 [![Pages](https://github.com/spxis/rest-in-pieces/actions/workflows/pages.yml/badge.svg)](https://spxis.github.io/rest-in-pieces/)
+[![npm](https://img.shields.io/npm/v/rest-in-pieces)](https://www.npmjs.com/package/rest-in-pieces)
 ![Node 24](https://img.shields.io/badge/node-24_LTS-3c873a)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7-3178c6)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
+**Try it: [spxis.github.io/rest-in-pieces](https://spxis.github.io/rest-in-pieces/).** The live demo runs the whole API inside the page, so there is no server behind it and nothing to install.
+
 **A repeatable test backend for frontend development.** Build tables, pagination, sorting, filters, loading states, empty states and error handling against realistic data, before a real backend exists.
 
+[![The REST in Pieces playground](docs/images/playground.png)](https://spxis.github.io/rest-in-pieces/)
+
 Every dataset is generated from a seed. The same URL returns the same records on every machine and after every restart, so a bug can be reproduced from its URL instead of disappearing with a new random dataset.
-
-**[Try it in your browser](https://spxis.github.io/rest-in-pieces/).** The live demo runs the whole API inside the page, so there is no server behind it and nothing to install.
-
-![The REST in Pieces playground](docs/images/playground.png)
 
 ## Run it
 
@@ -29,8 +30,6 @@ npx rest-in-pieces --host 0.0.0.0   # reachable from other machines and containe
 ```sh
 docker run --rm -p 6800:6800 ghcr.io/spxis/rest-in-pieces
 ```
-
-**In your browser:** the [live demo on GitHub Pages](https://spxis.github.io/rest-in-pieces/) runs the whole API inside the tab.
 
 **Inside your tests**, with no port and no server to start. `createApp()` builds the API and `app.request()` answers in-process, in Vitest, Jest, Playwright or any Node script:
 
@@ -329,7 +328,7 @@ Set `PORT` to move the API, and `VITE_API_BASE_URL` to point the playground else
 
 **Docker.** Every release publishes `ghcr.io/spxis/rest-in-pieces` for amd64 and arm64, tagged with its version (such as `:2.2.0`) and `latest`. The image serves everything from port 6800, runs as a non-root user and includes a health check.
 
-**GitHub Pages.** `.github/workflows/pages.yml` publishes the in-browser playground on every push to `main`. `pnpm --filter @rest-in-pieces/web build:pages` builds it locally into `apps/web/dist-pages`: the playground, the API bundled as a chunk it loads on the first request, static copies of `api/openapi.json` and `api/docs/`, and the [fixtures](#fixtures). Set `PAGES_BASE` to serve it from somewhere other than `/rest-in-pieces/`.
+**GitHub Pages.** `.github/workflows/pages.yml` publishes the in-browser playground on every push to `main`. `pnpm --filter @rest-in-pieces/web build:pages` builds it locally into `apps/web/dist-pages`: the playground, the API bundled as a chunk it loads on the first request, static copies of `api/openapi.json` and `api/docs/`, and the [fixtures](#fixtures). Set `PAGES_BASE` to serve it from somewhere other than `/rest-in-pieces/`. [CONTRIBUTING.md](CONTRIBUTING.md#previewing-the-github-pages-build) shows how to preview it locally.
 
 ## License
 

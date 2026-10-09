@@ -15,6 +15,17 @@ pnpm dev        # API on :6800, playground on :6801
 
 Local ports come from this project's block, 6800–6899; [AGENTS.md](AGENTS.md) says which is which and how to pick a free one for a worktree.
 
+## Previewing the GitHub Pages build
+
+The live demo is a separate build of the playground with the whole API inside it. To check it before it is published:
+
+```sh
+pnpm --filter @rest-in-pieces/web build:pages
+pnpm --filter @rest-in-pieces/web exec vite preview --mode pages --port 6802 --strictPort
+```
+
+Then open [http://localhost:6802/rest-in-pieces/](http://localhost:6802/rest-in-pieces/). `--mode pages` makes the preview serve `apps/web/dist-pages` under `/rest-in-pieces/`, the paths the build was made for; without it the page loads but its scripts do not. The API reference is at `api/docs/` beside it. Take another free port in the block if 6802 is in use.
+
 ## Project layout
 
 | Path | Contents |
