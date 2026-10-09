@@ -1,5 +1,6 @@
 import type { Faker } from '@faker-js/faker';
 import type { Maker } from './build.ts';
+import { postalFor } from './postal.ts';
 
 export interface Person {
   index: number;
@@ -26,14 +27,21 @@ export const genderOf = (faker: Faker) => faker.person.sexType() as Person['gend
 /** The original `/names` record shape, kept as-is for existing clients; `country` says how to read the address. */
 export const makePerson: Maker<Person> = ({ faker, country }, index) => {
   const gender = genderOf(faker);
+  const name = faker.person.fullName({ sex: gender });
+  const age = faker.number.int({ min: 18, max: 65 });
+  const address = faker.location.streetAddress();
+  const city = faker.location.city();
+  // Drawn in the same order as always, so the seed gives the same people; the code then takes the province's prefix.
+  const province = faker.location.state();
+  const postal = postalFor(country, province, faker.location.zipCode());
   return {
     index,
-    name: faker.person.fullName({ sex: gender }),
-    age: faker.number.int({ min: 18, max: 65 }),
-    address: faker.location.streetAddress(),
-    city: faker.location.city(),
-    province: faker.location.state(),
-    postal: faker.location.zipCode(),
+    name,
+    age,
+    address,
+    city,
+    province,
+    postal,
     country,
     gender,
   };

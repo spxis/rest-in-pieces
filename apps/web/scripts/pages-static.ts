@@ -25,8 +25,9 @@ for (const [path, file] of [
 }
 
 // The site's full address, which the Pages workflow passes from actions/configure-pages; the package's homepage
-// otherwise. index.json lists every file at it.
-const site = (process.env.PAGES_URL || apiPackage.homepage).replace(/\/*$/, '/');
+// otherwise. index.json lists every file at it. configure-pages answers with http://, though GitHub Pages serves
+// every github.io site over HTTPS, so the scheme is upgraded rather than handing out links that redirect.
+const site = (process.env.PAGES_URL || apiPackage.homepage).replace(/^http:\/\//, 'https://').replace(/\/*$/, '/');
 const fixtures = fileURLToPath(new URL('../dist-pages/fixtures/', import.meta.url));
 const index = await writeFixtures(app, fixtures, `${site}fixtures/`);
 const problems = checkFixtures(fixtures);

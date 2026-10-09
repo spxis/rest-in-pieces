@@ -120,7 +120,7 @@ export const Person = z
       address: '4546 Marcos Junction',
       city: 'Pearlworth',
       province: 'Newfoundland and Labrador',
-      postal: 'R8M 8G0',
+      postal: 'A8M 8G0',
       country: 'CA',
       gender: 'female',
     },

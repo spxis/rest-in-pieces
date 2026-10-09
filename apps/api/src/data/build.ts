@@ -15,7 +15,7 @@ export type Maker<T> = (locale: CountryLocale, index: number) => T;
 export type Makers<T> = { default: Maker<T> } & Partial<Record<CountryLocaleCode, Maker<T>>>;
 
 /** 32-bit FNV-1a, so each locale's stream is told apart by something that never changes. */
-function hash(text: string): number {
+export function hash(text: string): number {
   let h = 0x811c9dc5;
   for (const char of text) h = Math.imul(h ^ (char.codePointAt(0) ?? 0), 0x01000193) >>> 0;
   return h;
