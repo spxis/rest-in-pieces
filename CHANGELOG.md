@@ -4,6 +4,8 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+## 2.10.1 - 2026-10-09
+
 ### Fixed
 
 - Canadian and US postal codes belong to the record's province or state. Faker drew the two separately, so at seed 1 about 92% of `/names` records in `en-CA`, `fr-CA` and `en-US` named one region and carried another's code (a Newfoundland address with Manitoba's `R8M 8G0`). The code now takes its region's prefix from [`@johnmorrisdotca/address-plus`](https://www.npmjs.com/package/@johnmorrisdotca/address-plus), and Canadian codes no longer use the letters Canada Post never does (D, F, I, O, Q and U). Only `postal` changes: every other field at a seed, and every other locale, is the same as before.
