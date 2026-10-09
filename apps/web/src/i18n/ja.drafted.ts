@@ -13,11 +13,14 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
   'topbar.invalid': { text: '無効な URL', back: 'Invalid URL' },
   'topbar.offline': { text: '接続不可', back: 'Unreachable' },
   'topbar.docs': { text: 'API ドキュメント', back: 'API documentation' },
+  'topbar.links': { text: 'プロジェクトのリンク', back: 'Project links' },
   'topbar.fixtures': { text: 'フィクスチャ', back: 'Fixtures' },
   'topbar.fixturesTitle': {
-    text: '全データセットの静的な JSON・CSV ファイル（一覧は index.json）',
-    back: 'Static JSON and CSV files of every dataset (the list is index.json)',
+    text: 'どこからでも取得できる、作成済みの JSON・CSV レスポンス',
+    back: 'Pre-made JSON and CSV responses you can fetch from anywhere',
   },
+  'topbar.npmTitle': { text: 'npm の rest-in-pieces パッケージ', back: 'The rest-in-pieces package on npm' },
+  'topbar.repoTitle': { text: 'GitHub のソースコード', back: 'Source code on GitHub' },
   'topbar.version': { text: 'バージョン {version}', back: 'Version {version}' },
   'topbar.versionCommit': {
     text: 'バージョン {version}（コミット {commit} からビルド）',

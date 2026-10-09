@@ -141,6 +141,7 @@ a {
   gap: 10px;
   font-size: 16px;
   font-weight: 600;
+  white-space: nowrap;
 }
 .brand b {
   color: #7b867d;
@@ -172,7 +173,7 @@ a {
   gap: 25px;
 }
 .environment,
-.docs-link,
+.topbar-link,
 .page-footer > span:last-child {
   display: inline-flex;
   align-items: center;
@@ -182,6 +183,7 @@ a {
 }
 .environment {
   color: #58655d;
+  white-space: nowrap;
 }
 .environment i,
 .green-dot,
@@ -221,11 +223,25 @@ a {
   outline: 2px solid #76a974;
   outline-offset: 1px;
 }
-.docs-link {
+.topbar-link {
   color: #41594a;
   font:
     500 12px "Space Grotesk",
     sans-serif;
+  white-space: nowrap;
+}
+.topbar-link:hover {
+  color: #1d4a32;
+}
+.topbar-link:focus-visible {
+  outline: 2px solid #76a974;
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+.topbar-links {
+  display: flex;
+  align-items: center;
+  gap: 18px;
 }
 /* Below this width the top bar has no room for it without squeezing the language picker; the README lists the fixtures. */
 @media (max-width: 760px) {
@@ -972,6 +988,17 @@ h1 {
   }
 }
 
+@media (max-width: 1100px) {
+  .topbar-link-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
 @media (max-width: 900px) {
   .workspace {
     padding-right: 24px;
@@ -995,10 +1022,12 @@ h1 {
 }
 
 @media (max-width: 560px) {
+  /* The name on the first row; where the API runs, the links and the language on the second. */
   .topbar {
-    height: 56px;
-    padding-right: 16px;
-    padding-left: 16px;
+    flex-wrap: wrap;
+    height: auto;
+    row-gap: 8px;
+    padding: 10px 16px;
   }
   .brand {
     font-size: 14px;
@@ -1013,12 +1042,17 @@ h1 {
     display: none;
   }
   .topbar-right {
+    width: 100%;
+    justify-content: space-between;
     gap: 13px;
+  }
+  .topbar-links {
+    gap: 11px;
   }
   .environment {
     font-size: 8px;
   }
-  .docs-link {
+  .topbar-link {
     font-size: 10px;
   }
   .language-picker button {

@@ -3,8 +3,9 @@ import { join } from 'node:path';
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { LocaleProvider } from '../i18n/LocaleProvider.tsx';
+import { NPM_URL, REPO_URL } from '../lib/links.ts';
 import { APP_COMMIT, APP_VERSION } from '../lib/version.ts';
-import { FIXTURES_URL, Topbar, VersionBadge } from './Topbar.tsx';
+import { Topbar, VersionBadge } from './Topbar.tsx';
 
 // The source of truth, read from disk rather than copied, so a playground showing any other number fails here.
 const apiPackage = JSON.parse(readFileSync(join(import.meta.dirname, '../../../api/package.json'), 'utf8')) as {
@@ -42,17 +43,23 @@ describe('the version in the top bar', () => {
   });
 });
 
-describe('the fixtures link in the top bar', () => {
+describe('the links in the top bar', () => {
   afterEach(cleanup);
 
-  it('opens the published fixtures index from a build that has none of its own', () => {
+  it('leads to the API reference, the fixtures, the npm package and the repository', () => {
     render(
       <LocaleProvider initial="en">
-        <Topbar apiBase="http://localhost:6800" online={true} />
+        <Topbar apiBase="http://localhost:6800/" online={true} />
       </LocaleProvider>,
     );
-    const link = screen.getByRole('link', { name: /Fixtures/ });
-    expect(link.getAttribute('href')).toBe(FIXTURES_URL);
-    expect(FIXTURES_URL).toBe('https://spxis.github.io/rest-in-pieces/fixtures/index.json');
+    const links = screen.getByRole('navigation', { name: 'Project links' });
+    const href = (name: string) => links.querySelector(`a[title="${name}"]`)?.getAttribute('href');
+    expect(screen.getByRole('link', { name: /API docs/ }).getAttribute('href')).toBe('http://localhost:6800/docs');
+    expect(screen.getByRole('link', { name: /Fixtures/ }).getAttribute('href')).toBe(
+      'https://spxis.github.io/rest-in-pieces/fixtures/index.json',
+    );
+    expect(href('The rest-in-pieces package on npm')).toBe(NPM_URL);
+    expect(href('Source code on GitHub')).toBe(REPO_URL);
+    for (const link of links.querySelectorAll('a')) expect(link.getAttribute('rel')).toBe('noreferrer');
   });
 });

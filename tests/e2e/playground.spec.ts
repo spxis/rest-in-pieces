@@ -69,6 +69,21 @@ test('shares a setup that restores the same request', async ({ page, context }) 
   await expect(snippet(page)).toHaveText(expected ?? '');
 });
 
+test('links to the API reference, the fixtures, npm and the repository', async ({ page }) => {
+  await expect(page).toHaveTitle(/fake REST API/);
+  const links = page.getByRole('navigation', { name: 'Project links' });
+  await expect(links.getByRole('link', { name: 'API docs' })).toHaveAttribute('href', /\/docs$/);
+  await expect(links.getByRole('link', { name: 'Fixtures' })).toHaveAttribute('href', /\/fixtures\/index\.json$/);
+  await expect(links.getByRole('link', { name: 'npm' })).toHaveAttribute(
+    'href',
+    'https://www.npmjs.com/package/rest-in-pieces',
+  );
+  await expect(links.getByRole('link', { name: 'GitHub' })).toHaveAttribute(
+    'href',
+    'https://github.com/spxis/rest-in-pieces',
+  );
+});
+
 test('switches to Japanese and fetches Japanese data', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: '日本語' }).click();

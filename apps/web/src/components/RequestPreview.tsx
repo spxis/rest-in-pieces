@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useSpeaker } from '../i18n/LocaleProvider.tsx';
 import type { OutputFormat } from '../lib/config.ts';
 import { isInBrowserUrl } from '../lib/inBrowserApi.ts';
+import { REPO_URL } from '../lib/links.ts';
 import { curlCommand, fetchSnippet } from '../lib/request.ts';
 
 type Snippet = 'url' | 'curl' | 'fetch';
@@ -63,7 +64,7 @@ export function RequestPreview({
         <p className="preview-note">
           {compose('preview.inBrowser', {
             link: (
-              <a href="https://github.com/spxis/rest-in-pieces#quick-start" target="_blank" rel="noreferrer">
+              <a href={`${REPO_URL}#run-it`} target="_blank" rel="noreferrer">
                 {say('preview.runItYourself')}
               </a>
             ),
