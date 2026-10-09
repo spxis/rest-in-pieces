@@ -73,6 +73,27 @@ describe('App', () => {
     expect(snippet.textContent).not.toContain('delay=');
   });
 
+  it('offers the share link first once a scenario is applied', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    const share = screen.getByRole('button', { name: 'Share link' });
+
+    await user.click(screen.getByRole('button', { name: /Empty result/ }));
+    expect(share.textContent).toBe('Share this scenario');
+    // Once the setup moves on from the scenario, the button no longer claims to share it.
+    await user.type(screen.getByPlaceholderText('Search every field…'), 'x');
+    expect(share.textContent).toBe('Share link');
+
+    await user.click(screen.getByRole('button', { name: /503 error/ }));
+    expect(share.textContent).toBe('Share this scenario');
+    await user.click(share);
+    expect(share.textContent).toBe('Copied');
+    const link = new URL(await navigator.clipboard.readText());
+    expect(new URLSearchParams(link.hash.slice(1)).get('status')).toBe('503');
+    // Only the button that copied says so.
+    expect(screen.getByRole('button', { name: 'Share setup' }).textContent).toBe('Share setup');
+  });
+
   it('sends the request, shows a table and pages through results', async () => {
     const user = userEvent.setup();
     render(<App />);

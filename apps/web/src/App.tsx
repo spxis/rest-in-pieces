@@ -6,7 +6,7 @@ import { FormatPicker, SimulationPanel } from './components/OutputAndSimulation.
 import { PageAndSort, SearchAndFilters } from './components/QueryControls.tsx';
 import { RequestPreview } from './components/RequestPreview.tsx';
 import { ResponsePanel } from './components/ResponsePanel.tsx';
-import { ScenarioPresets } from './components/ScenarioPresets.tsx';
+import { SCENARIO_SHARE, ScenarioPresets } from './components/ScenarioPresets.tsx';
 import { Topbar } from './components/Topbar.tsx';
 import { useCatalog } from './hooks/useCatalog.ts';
 import { useCopy } from './hooks/useCopy.ts';
@@ -73,10 +73,11 @@ export default function App() {
     update({ endpoint, offset: 0, sortBy: '', filters: [], metadata: endpoint !== 'countries' });
   };
 
-  const share = () => {
+  /** Copies a link that restores this setup. `key` says which button asked, so only that one says "Copied". */
+  const share = (key: string) => {
     const link = new URL(window.location.href);
     link.hash = configToHash(config);
-    void copy(link.toString(), 'setup');
+    void copy(link.toString(), key);
   };
 
   useEffect(() => {
@@ -139,7 +140,7 @@ export default function App() {
                 }
               />
             )}
-            <ScenarioPresets config={config} onApply={update} />
+            <ScenarioPresets config={config} onApply={update} copied={copied} onShare={() => share(SCENARIO_SHARE)} />
 
             {isGenerate && (
               <FieldsEditor
@@ -153,7 +154,13 @@ export default function App() {
             <SearchAndFilters config={config} fields={fields} onChange={update} />
             <FormatPicker value={config.format} onChange={update} />
             <SimulationPanel config={config} onChange={update} />
-            <RequestPreview url={url} format={config.format} copied={copied} onCopy={copy} onShare={share} />
+            <RequestPreview
+              url={url}
+              format={config.format}
+              copied={copied}
+              onCopy={copy}
+              onShare={() => share('setup')}
+            />
 
             <button
               type="button"

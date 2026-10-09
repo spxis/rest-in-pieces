@@ -65,6 +65,12 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
   },
 
   'scenario.heading': { text: '再現できるシナリオ', back: 'Scenarios you can reproduce' },
+  'scenario.share': { text: '共有リンク', back: 'Share link' },
+  'scenario.shareThis': { text: 'このシナリオを共有', back: 'Share this scenario' },
+  'scenario.shareTitle': {
+    text: 'この設定をそのまま開くリンクをコピー',
+    back: 'Copy a link that opens this setup exactly as it is',
+  },
   'scenario.nextPage.label': { text: '次のページ', back: 'Next page' },
   'scenario.nextPage.hint': { text: 'offset + limit', back: 'offset + limit' },
   'scenario.endOfResults.label': { text: '結果の最後', back: 'End of the results' },

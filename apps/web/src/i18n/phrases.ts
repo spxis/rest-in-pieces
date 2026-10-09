@@ -40,6 +40,9 @@ export const PHRASES = {
     'Every country and territory with ISO codes, currencies, languages and calling codes. Real data, so `seed` has no effect. For compatibility it returns every country as a bare array unless `metadata=true` is given.',
 
   'scenario.heading': 'REPEATABLE SCENARIOS',
+  'scenario.share': 'Share link',
+  'scenario.shareThis': 'Share this scenario',
+  'scenario.shareTitle': 'Copy a link that opens this exact setup',
   'scenario.nextPage.label': 'Next page',
   'scenario.nextPage.hint': 'offset + limit',
   'scenario.endOfResults.label': 'End of results',

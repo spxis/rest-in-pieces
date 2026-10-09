@@ -69,6 +69,19 @@ test('shares a setup that restores the same request', async ({ page, context }) 
   await expect(snippet(page)).toHaveText(expected ?? '');
 });
 
+test('offers a scenario as a share link first', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.getByRole('button', { name: /Slow response/ }).click();
+  const expected = await snippet(page).textContent();
+  await page.getByRole('button', { name: 'Share this scenario' }).click();
+  await expect(page.getByRole('button', { name: 'Copied' })).toBeVisible();
+  const link = await page.evaluate(() => navigator.clipboard.readText());
+
+  await page.goto(link);
+  await expect(snippet(page)).toHaveText(expected ?? '');
+  await expect(snippet(page)).toContainText('delay=1500');
+});
+
 test('links to the API reference, the fixtures, npm and the repository', async ({ page }) => {
   await expect(page).toHaveTitle(/fake REST API/);
   const links = page.getByRole('navigation', { name: 'Project links' });
