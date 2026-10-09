@@ -4,6 +4,17 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Added
+
+- `@johnmorrisdotca/rest-in-pieces/msw`: `restInPiecesHandlers({ http })` returns a Mock Service Worker handler that answers everything under `/api` (or `base`) from the whole API, for `setupWorker`, `setupServer`, MSW 3's Vite plugin, Storybook and `@msw/playwright`. Pass MSW's own `http`; it works with MSW 2 and 3, and a handler placed before it still wins. `msw` is an optional peer dependency.
+- `@johnmorrisdotca/rest-in-pieces/types` and `@johnmorrisdotca/rest-in-pieces/openapi.json`: the API's OpenAPI 3.1 document and TypeScript types for every path and schema, generated from it by openapi-typescript, so `openapi-fetch` and other typed clients work from the installed package with nothing running.
+- `@johnmorrisdotca/rest-in-pieces/vite`: `restInPieces()` serves the whole API from the Vite dev server under `/api` on the app's own origin, with no second process, proxy or entry file. It applies to `vite dev` only, and `?trickle=` still streams. `vite` is an optional peer dependency.
+- README: Use with, for Vite (the plugin, `@hono/vite-dev-server` and `server.proxy`), MSW, Storybook, Next.js, Playwright, Cypress and typed clients; How it compares, against json-server, MSW, Mirage, Prism, Mockoon, DummyJSON and JSONPlaceholder, and Faker; and what CORS allows.
+
+### Changed
+
+- The README opens with what the package is in one line, "Seeded, realistic, localized data plus latency, error and messy-data drills, as a REST API, a function call or a patch on `fetch`", and points to the integrations.
+
 ## 2.11.0 - 2026-10-09
 
 ### Changed
