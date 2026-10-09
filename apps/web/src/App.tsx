@@ -1,5 +1,6 @@
 import { LoaderCircle, Send, Workflow } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useReducer } from 'react';
+import { FAMILY, FAMILY_GROUPS, FAMILY_PITCH, FAMILY_PITCH_JA, familySite } from '../../../scripts/family-template.mjs';
 import { EndpointTabs } from './components/EndpointTabs.tsx';
 import { FieldsEditor, fieldProblem, schemaProblem } from './components/FieldsEditor.tsx';
 import { FormatPicker, SimulationPanel } from './components/OutputAndSimulation.tsx';
@@ -367,6 +368,23 @@ export default function App() {
           <span>
             {say('app.footerLabel')} <Workflow size={14} />
           </span>
+          <nav className="package-family" aria-label={uiLocale === 'ja' ? '姉妹パッケージ' : 'The family'}>
+            {FAMILY_GROUPS.map((group) => (
+              <div className="package-family-group" key={group.id}>
+                <strong>{uiLocale === 'ja' ? group.ja : group.en}</strong>
+                {group.members.map((id) => (
+                  <a
+                    key={id}
+                    href={familySite(id)}
+                    aria-current={id === 'rest-in-pieces' ? 'page' : undefined}
+                    title={uiLocale === 'ja' ? (FAMILY_PITCH_JA[id] ?? FAMILY_PITCH[id]) : FAMILY_PITCH[id]}
+                  >
+                    {FAMILY.find((one) => one.id === id)?.name}
+                  </a>
+                ))}
+              </div>
+            ))}
+          </nav>
         </footer>
       </main>
     </div>

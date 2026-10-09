@@ -12,7 +12,7 @@
   },
   "scripts": {
     "build": "pnpm --filter @rest-in-pieces/web build",
-    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm pack:test",
+    "check": "node --test scripts/family.test.mjs && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm pack:test",
     "collections": "node scripts/collections.ts",
     "dev": "pnpm -r --parallel dev",
     "dev:api": "pnpm --filter @johnmorrisdotca/rest-in-pieces dev",
@@ -26,7 +26,8 @@
     "test": "pnpm -r test",
     "test:coverage": "pnpm --filter @johnmorrisdotca/rest-in-pieces test:coverage",
     "test:e2e": "playwright test",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "family:readme": "node scripts/family-readme.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",

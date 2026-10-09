@@ -156,3 +156,24 @@ test('offers the datasets the tab can serve, and not the features that need Chiz
   await expect(page.getByRole('tab', { name: /Countries/ })).toBeVisible();
   await expect(page.getByRole('tab', { name: /Features/ })).toHaveCount(0);
 });
+
+for (const width of [390, 1280]) {
+  test(`the package family is grouped, translated and fits at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto('./?lang=en');
+    const family = page.locator('.package-family');
+    await expect(family.locator('.package-family-group')).toHaveCount(7);
+    await expect(family.locator('a')).toHaveCount(28);
+    await expect(family.locator('strong').first()).toHaveText('Games — board');
+    await expect(family.locator('a[aria-current="page"]')).toHaveText('REST in Pieces');
+    await expect(family.locator('a[aria-current="page"]')).toHaveAttribute(
+      'href',
+      'https://spxis.github.io/rest-in-pieces/',
+    );
+    await page.getByRole('button', { name: '日本語' }).click();
+    await expect(family.locator('strong').last()).toHaveText('開発ツール');
+    await expect(family.locator('a[aria-current="page"]')).toHaveAttribute('title', /フロントエンド/);
+    const sizes = await family.evaluate((element) => ({ scroll: element.scrollWidth, client: element.clientWidth }));
+    expect(sizes.scroll).toBeLessThanOrEqual(sizes.client);
+  });
+}

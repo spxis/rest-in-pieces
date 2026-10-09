@@ -1933,3 +1933,29 @@ kbd {
     display: none;
   }
 }
+
+/* The package family uses the same groups and order as the package READMEs. */
+.page-footer {
+  flex-wrap: wrap;
+}
+.package-family {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+.package-family-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 8px;
+}
+.package-family-group strong {
+  padding-block: 10px;
+}
+.package-family-group a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.package-family-group a[aria-current="page"] {
+  font-weight: 700;
+}
