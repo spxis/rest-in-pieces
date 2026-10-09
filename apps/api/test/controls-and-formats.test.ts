@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { request } from './helpers.ts';
+import { app } from '../src/app.ts';
+import { CSV_BOM, toCsv } from '../src/lib/format.ts';
+import { type Envelope, request } from './helpers.ts';
 
 describe('response simulation', () => {
   it('returns a simulated error for a 4xx or 5xx status', async () => {
@@ -64,6 +66,20 @@ describe('response formats', () => {
     const lines = text.trimEnd().split('\r\n');
     expect(lines[0]).toBe('index,name,age,address,city,province,postal,country,gender');
     expect(lines).toHaveLength(3);
+  });
+
+  it('starts CSV with a UTF-8 byte-order mark and leaves the rows unchanged', async () => {
+    const path = '/names?limit=3&locale=ja&format=csv';
+    const res = await app.request(path);
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    expect([...bytes.subarray(0, 3)]).toEqual([0xef, 0xbb, 0xbf]);
+
+    const text = new TextDecoder('utf-8', { ignoreBOM: true }).decode(bytes);
+    expect(text.charAt(0)).toBe(CSV_BOM);
+    expect(text.indexOf(CSV_BOM, 1)).toBe(-1);
+
+    const { body } = await request<Envelope<Record<string, unknown>>>(path.replace('&format=csv', ''));
+    expect(text.slice(1)).toBe(toCsv(body.results));
   });
 
   it('writes YAML', async () => {

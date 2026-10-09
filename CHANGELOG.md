@@ -12,6 +12,7 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 ### Fixed
 
 - Sorting no longer depends on the server's locale: strings are compared in the dataset's `locale`, numbers inside text sort as numbers (`item 9` before `item 10`), and `sortDirection=desc` is the exact mirror of `asc`, with equal keys kept in dataset order both ways.
+- `format=csv` starts with a UTF-8 byte-order mark, so Excel opens Japanese and other non-ASCII text correctly instead of reading it as Windows-1252.
 
 ## 2.1.0 - 2026-09-28
 

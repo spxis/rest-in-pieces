@@ -58,6 +58,9 @@ export function toCsv(records: readonly unknown[]): string {
   return `${[columns.map(csvCell).join(','), ...lines].join('\r\n')}\r\n`;
 }
 
+/** Excel reads a CSV without a byte-order mark as Windows-1252, which garbles anything outside ASCII. */
+export const CSV_BOM = '\uFEFF';
+
 const XML_NAME = /^[A-Za-z_][\w.-]*$/;
 
 /** Makes a key usable as an element name, e.g. `1st` becomes `_1st`. */
@@ -83,7 +86,8 @@ export function toXml(body: unknown): string {
 }
 
 /**
- * Sends `body` in the negotiated format. CSV writes `records` (the page) rather than the envelope.
+ * Sends `body` in the negotiated format. CSV writes `records` (the page) rather than the envelope,
+ * after a UTF-8 byte-order mark.
  * Throws UnsupportedFormatError for an unknown `?format=`.
  */
 export function requestedFormat(c: Context): Format {
@@ -96,7 +100,7 @@ export function respond(c: Context, body: unknown, records: readonly unknown[]) 
   c.header('Vary', 'Accept');
   switch (format) {
     case 'csv':
-      return c.body(toCsv(plain(records) as unknown[]), 200, { 'Content-Type': MEDIA_TYPES.csv });
+      return c.body(CSV_BOM + toCsv(plain(records) as unknown[]), 200, { 'Content-Type': MEDIA_TYPES.csv });
     case 'yaml':
       return c.body(toYaml(data), 200, { 'Content-Type': MEDIA_TYPES.yaml });
     case 'xml':

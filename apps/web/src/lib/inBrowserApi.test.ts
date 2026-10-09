@@ -32,6 +32,14 @@ describe('inBrowserFetch', () => {
     expect(((await response.json()) as { results: unknown[] }).results).toHaveLength(3);
   });
 
+  it('hands the playground CSV text without the byte-order mark', async () => {
+    const fetcher = inBrowserFetch(BASE, async () => createApp(), vi.fn());
+    const response = await fetcher(`${BASE}/names?limit=1&format=csv`);
+    const text = await response.text();
+    expect(text.startsWith('\uFEFF')).toBe(false);
+    expect(text.startsWith('index,name,')).toBe(true);
+  });
+
   it('leaves every other URL to the network', async () => {
     const passThrough = vi.fn<typeof fetch>(async () => new Response('real'));
     const load = vi.fn(async () => createApp());
