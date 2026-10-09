@@ -60,12 +60,12 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
     back: 'Companies with industry, website, contact details, size and founding year.',
   },
   'dataset.orders': {
-    text: '明細付きの注文。ユーザーと商品にひも付きます。合計は購入者の国の税込みで、現地の通貨で計算が合います。',
-    back: "Orders with line items, linked to users and products. Totals include the buyer's country's tax and add up, in the local currency.",
+    text: '明細付きの注文。ユーザーと商品に紐づきます。合計は購入者の現地の税を含み、現地通貨で明細と一致します。',
+    back: "Orders with line items, tied to users and products. Totals include the buyer's local tax and match the line items, in the local currency.",
   },
   'dataset.posts': {
-    text: 'ユーザーのブログ投稿。JSONPlaceholder と同じ形です。',
-    back: "Users' blog posts, in the same shape as JSONPlaceholder.",
+    text: 'ユーザーのブログ投稿。JSONPlaceholder と同じ構造です。',
+    back: "Users' blog posts, in the same structure as JSONPlaceholder.",
   },
   'dataset.comments': {
     text: '投稿へのコメント。投稿者本人以外のユーザーが書いています。',
@@ -129,10 +129,10 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
   },
   'fields.args': { text: '引数・選択肢・空欄の割合', back: 'Arguments, choices, blank rate' },
   'fields.syntax': {
-    text: '引数・選択肢・空欄の割合も指定できます: number.int(18,65)、pick(a,b|70,30)、person.firstName?blank=15',
-    back: 'You can also give arguments, choices and a blank rate: number.int(18,65), pick(a,b|70,30), person.firstName?blank=15',
+    text: '引数・選択肢・空欄の割合を指定できます：number.int(18,65)、pick(a,b|70,30)、person.firstName?blank=15',
+    back: 'You can specify arguments, choices and a blank rate: number.int(18,65), pick(a,b|70,30), person.firstName?blank=15',
   },
-  'fields.takes': { text: '{type} の引数: ({args})', back: 'Arguments of {type}: ({args})' },
+  'fields.takes': { text: '{type} の引数は ({args})', back: 'The arguments of {type} are ({args})' },
 
   'page.heading': { text: 'ページと並べ替え', back: 'Pages and sorting' },
   'page.limit': { text: '件数（limit）', back: 'Count (limit)' },
@@ -159,8 +159,8 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
   'metadata.include': { text: 'レスポンスにメタデータを含める', back: 'Include metadata in the response' },
   'data.safe': { text: '安全な値', back: 'Safe values' },
   'data.safeHint': {
-    text: 'メールアドレスと URL は例示用ドメイン、電話番号は架空用の番号帯、カード番号はテスト用番号、IP アドレスは文書用の範囲、アバターはこの API のものを使います',
-    back: 'Emails and URLs use example domains, phone numbers the fiction ranges, card numbers test numbers, IP addresses the documentation ranges, and avatars this API’s own',
+    text: 'メールアドレスと URL は例示用ドメイン、電話番号はフィクション用に確保された番号帯、カード番号はテスト用番号、IP アドレスはドキュメント用の範囲、アバターはこの API が配信する画像を使います',
+    back: 'Emails and URLs use example domains, phone numbers use number ranges reserved for fiction, card numbers use test numbers, IP addresses use the range for documentation, and avatars use images this API serves',
   },
   'relations.heading': { text: 'リレーション', back: 'Relations' },
   'relations.nested': { text: '一覧', back: 'List' },
@@ -168,8 +168,8 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
   'relations.parent': { text: 'レコード ID', back: 'Record ID' },
   'relations.expand': { text: '関連レコードを埋め込む', back: 'Embed related records' },
   'relations.expandHint': {
-    text: 'このページのレコードに対して、最大 2 階層まで',
-    back: 'For the records on this page, up to 2 levels',
+    text: 'このページのレコードに適用されます（最大 2 階層まで）',
+    back: 'Applies to the records on this page (up to 2 levels deep)',
   },
 
   'search.heading': { text: '検索とフィルター', back: 'Search and filter' },

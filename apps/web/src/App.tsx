@@ -36,7 +36,8 @@ const MAC = /Mac|iPhone|iPad/.test(navigator.userAgent);
 function Description({ text }: { text: string }) {
   return (
     <p className="endpoint-description">
-      {text.split('`').map((part, i) => (i % 2 ? <code key={part}>{part}</code> : part))}
+      {/* A description may name the same field twice (`userId`), so the key is the piece's place as well. */}
+      {text.split('`').map((part, i) => (i % 2 ? <code key={`${i}:${part}`}>{part}</code> : part))}
     </p>
   );
 }
