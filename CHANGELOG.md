@@ -4,6 +4,8 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+## 2.12.0 - 2026-10-09
+
 ### Added
 
 - `@johnmorrisdotca/rest-in-pieces/msw`: `restInPiecesHandlers({ http })` returns a Mock Service Worker handler that answers everything under `/api` (or `base`) from the whole API, for `setupWorker`, `setupServer`, MSW 3's Vite plugin, Storybook and `@msw/playwright`. Pass MSW's own `http`; it works with MSW 2 and 3, and a handler placed before it still wins. `msw` is an optional peer dependency.
