@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import type { OutputFormat } from '../lib/config.ts';
-import { mimeFor } from '../lib/request.ts';
+import { takesBody } from '../lib/config.ts';
+import { mimeFor, type SendOptions } from '../lib/request.ts';
 
 /** Errors the playground describes itself, in the reader's language. Any other error is the API's own message. */
 export const UNREACHABLE = 'response.unreachable';
@@ -29,58 +30,71 @@ export function useRequest() {
   const [sending, setSending] = useState(false);
   const inFlight = useRef<AbortController | null>(null);
 
-  const send = useCallback(async (url: string, format: OutputFormat) => {
-    inFlight.current?.abort();
-    const controller = new AbortController();
-    inFlight.current = controller;
-    setSending(true);
-    setError('');
-    const started = performance.now();
-    try {
-      const response = await fetch(url, { headers: { Accept: mimeFor(format) }, signal: controller.signal });
-      const raw = await response.text();
-      const contentType = response.headers.get('content-type') ?? 'unknown';
-      let json: unknown = null;
-      let body = raw;
-      if (contentType.includes('json') && raw) {
-        try {
-          json = JSON.parse(raw);
-          body = JSON.stringify(json, null, 2);
-        } catch {
-          json = null;
+  const send = useCallback(
+    async (url: string, format: OutputFormat, { method, body: payload }: SendOptions = { method: 'GET' }) => {
+      inFlight.current?.abort();
+      const controller = new AbortController();
+      inFlight.current = controller;
+      setSending(true);
+      setError('');
+      const started = performance.now();
+      try {
+        const withBody = takesBody(method);
+        const response = await fetch(url, {
+          method,
+          // Writes answer JSON whatever the reads were set to.
+          headers: {
+            Accept: mimeFor(method === 'GET' ? format : 'json'),
+            ...(withBody ? { 'Content-Type': 'application/json' } : {}),
+          },
+          ...(withBody ? { body: payload ?? '' } : {}),
+          signal: controller.signal,
+        });
+        const raw = await response.text();
+        const contentType = response.headers.get('content-type') ?? 'unknown';
+        let json: unknown = null;
+        let body = raw;
+        if (contentType.includes('json') && raw) {
+          try {
+            json = JSON.parse(raw);
+            body = JSON.stringify(json, null, 2);
+          } catch {
+            json = null;
+          }
+        }
+        const total = response.headers.get('x-total-count');
+        setResult({
+          url,
+          status: response.status,
+          statusText: response.statusText,
+          duration: Math.round(performance.now() - started),
+          size: new TextEncoder().encode(raw).length,
+          contentType,
+          raw,
+          body,
+          json,
+          headers: [...response.headers.entries()].sort(([a], [b]) => a.localeCompare(b)),
+          totalCount: total === null ? null : Number(total),
+        });
+      } catch (requestError) {
+        if (controller.signal.aborted) return;
+        setResult(null);
+        setError(
+          requestError instanceof TypeError
+            ? UNREACHABLE
+            : requestError instanceof Error
+              ? requestError.message
+              : REQUEST_FAILED,
+        );
+      } finally {
+        if (inFlight.current === controller) {
+          inFlight.current = null;
+          setSending(false);
         }
       }
-      const total = response.headers.get('x-total-count');
-      setResult({
-        url,
-        status: response.status,
-        statusText: response.statusText,
-        duration: Math.round(performance.now() - started),
-        size: new TextEncoder().encode(raw).length,
-        contentType,
-        raw,
-        body,
-        json,
-        headers: [...response.headers.entries()].sort(([a], [b]) => a.localeCompare(b)),
-        totalCount: total === null ? null : Number(total),
-      });
-    } catch (requestError) {
-      if (controller.signal.aborted) return;
-      setResult(null);
-      setError(
-        requestError instanceof TypeError
-          ? UNREACHABLE
-          : requestError instanceof Error
-            ? requestError.message
-            : REQUEST_FAILED,
-      );
-    } finally {
-      if (inFlight.current === controller) {
-        inFlight.current = null;
-        setSending(false);
-      }
-    }
-  }, []);
+    },
+    [],
+  );
 
   return { result, error, sending, send };
 }

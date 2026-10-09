@@ -130,6 +130,15 @@ export const PHRASES = {
   'simulate.messy': 'Messy data',
   'simulate.messyShare': '{percent}% of values',
 
+  'method.label': 'HTTP method',
+  'write.heading': 'WRITE',
+  'write.stateless': 'A rehearsal: nothing is stored, so a later read returns the same data as before.',
+  'write.recordId': 'Record id ({field})',
+  'write.body': 'JSON body',
+  'write.sample': 'Reset to sample',
+  'write.invalidJson': 'Not valid JSON: the API will answer 400. Send it anyway to rehearse that.',
+  'write.conflict': 'Answer 409 Conflict',
+
   'preview.snippets': 'Request snippet',
   'preview.url': 'REQUEST URL',
   'preview.params': '{count} params',

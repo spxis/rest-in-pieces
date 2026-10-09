@@ -164,6 +164,21 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
   'simulate.messy': { text: '乱れたデータ', back: 'Messy data' },
   'simulate.messyShare': { text: '値の {percent}%', back: '{percent}% of values' },
 
+  'method.label': { text: 'HTTP メソッド', back: 'HTTP method' },
+  'write.heading': { text: '書き込み', back: 'Write' },
+  'write.stateless': {
+    text: '予行演習です。何も保存されないため、後で読み込んでも以前と同じデータが返ります。',
+    back: 'It is a rehearsal. Nothing is saved, so reading later returns the same data as before.',
+  },
+  'write.recordId': { text: 'レコード ID（{field}）', back: 'Record ID ({field})' },
+  'write.body': { text: 'JSON ボディ', back: 'JSON body' },
+  'write.sample': { text: 'サンプルに戻す', back: 'Return to the sample' },
+  'write.invalidJson': {
+    text: 'JSON として正しくありません。API は 400 を返します。その動作を試すなら、このまま送信してください。',
+    back: 'It is not correct as JSON. The API returns 400. To try that behaviour, send it as it is.',
+  },
+  'write.conflict': { text: '409 Conflict を返す', back: 'Return 409 Conflict' },
+
   'preview.snippets': { text: 'リクエストのスニペット', back: 'Request snippet' },
   'preview.url': { text: 'リクエスト URL', back: 'Request URL' },
   'preview.params': { text: 'パラメーター {count} 個', back: '{count} parameters' },

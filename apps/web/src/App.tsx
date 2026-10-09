@@ -8,13 +8,22 @@ import { RequestPreview } from './components/RequestPreview.tsx';
 import { ResponsePanel } from './components/ResponsePanel.tsx';
 import { SCENARIO_SHARE, ScenarioPresets } from './components/ScenarioPresets.tsx';
 import { Topbar } from './components/Topbar.tsx';
+import { MethodPicker, WriteRequest } from './components/WriteControls.tsx';
 import { useCatalog } from './hooks/useCatalog.ts';
 import { useCopy } from './hooks/useCopy.ts';
 import { useRequest } from './hooks/useRequest.ts';
 import { useSpeaker } from './i18n/LocaleProvider.tsx';
 import type { PhraseKey } from './i18n/phrases.ts';
-import { configFromHash, configToHash, defaultConfig, type PlaygroundConfig } from './lib/config.ts';
+import {
+  configFromHash,
+  configToHash,
+  defaultConfig,
+  type HttpMethod,
+  METHODS,
+  type PlaygroundConfig,
+} from './lib/config.ts';
 import { buildRequestUrl } from './lib/request.ts';
+import { sampleBody } from './lib/samples.ts';
 
 const MAC = /Mac|iPhone|iPad/.test(navigator.userAgent);
 
@@ -57,20 +66,37 @@ export default function App() {
     ? ['index', ...config.fields.map((field) => field.name)]
     : (resource?.locales?.[config.locale]?.fields ?? resource?.fields ?? []);
   const seeded = isGenerate || (resource?.seeded ?? true);
-  const url = useMemo(() => buildRequestUrl(config, seeded), [config, seeded]);
+  // A dataset the API does not mark writable takes GET, whatever a shared link asked for.
+  const methods = resource?.writable ? METHODS : (['GET'] as const);
+  const method: HttpMethod = methods.includes(config.method) ? config.method : 'GET';
+  const writing = method !== 'GET';
+  const url = useMemo(() => buildRequestUrl({ ...config, method }, seeded), [config, method, seeded]);
   const problem = isGenerate ? fieldProblem(config.fields) : null;
 
   const sendConfig = useCallback(
     (next: PlaygroundConfig) => {
       if (isGenerate && fieldProblem(next.fields)) return;
-      void send(buildRequestUrl(next, seeded), next.format);
+      const request = { ...next, method };
+      void send(buildRequestUrl(request, seeded), next.format, { method, body: next.body });
     },
-    [isGenerate, seeded, send],
+    [isGenerate, method, seeded, send],
   );
 
+  /** A body the reader has not touched follows the dataset and method; one they edited stays. */
+  const untouched = !config.body.trim() || config.body === sampleBody(config.endpoint, config.method);
+  const chooseMethod = (next: HttpMethod) =>
+    update({ method: next, ...(untouched ? { body: sampleBody(config.endpoint, next) } : {}) });
+
   const openEndpoint = (endpoint: string) => {
-    // Sort fields and filters belong to the previous dataset, so they start fresh.
-    update({ endpoint, offset: 0, sortBy: '', filters: [], metadata: endpoint !== 'countries' });
+    // Sort fields, filters and a sample body belong to the previous dataset, so they start fresh.
+    update({
+      endpoint,
+      offset: 0,
+      sortBy: '',
+      filters: [],
+      metadata: endpoint !== 'countries',
+      ...(untouched ? { body: sampleBody(endpoint, config.method) } : {}),
+    });
   };
 
   /** Copies a link that restores this setup. `key` says which button asked, so only that one says "Copied". */
@@ -127,7 +153,7 @@ export default function App() {
                 <span className="step-number">01</span>
                 <h2>{say('app.build')}</h2>
               </div>
-              <span className="method-tag">GET</span>
+              <MethodPicker methods={methods} value={method} onChange={chooseMethod} />
             </div>
 
             <EndpointTabs resources={catalog.resources} value={config.endpoint} onChange={openEndpoint} />
@@ -140,7 +166,13 @@ export default function App() {
                 }
               />
             )}
-            <ScenarioPresets config={config} onApply={update} copied={copied} onShare={() => share(SCENARIO_SHARE)} />
+            <ScenarioPresets
+              config={config}
+              onApply={update}
+              copied={copied}
+              onShare={() => share(SCENARIO_SHARE)}
+              simulationOnly={writing}
+            />
 
             {isGenerate && (
               <FieldsEditor
@@ -150,13 +182,31 @@ export default function App() {
                 onChange={(next) => update({ fields: next })}
               />
             )}
-            <PageAndSort config={config} fields={fields} seeded={seeded} locales={catalog.locales} onChange={update} />
-            <SearchAndFilters config={config} fields={fields} onChange={update} />
-            <FormatPicker value={config.format} onChange={update} />
+            {writing ? (
+              <WriteRequest
+                config={{ ...config, method }}
+                idField={resource?.idField ?? 'id'}
+                onChange={update}
+                onResetBody={() => update({ body: sampleBody(config.endpoint, method) })}
+              />
+            ) : (
+              <>
+                <PageAndSort
+                  config={config}
+                  fields={fields}
+                  seeded={seeded}
+                  locales={catalog.locales}
+                  onChange={update}
+                />
+                <SearchAndFilters config={config} fields={fields} onChange={update} />
+                <FormatPicker value={config.format} onChange={update} />
+              </>
+            )}
             <SimulationPanel config={config} onChange={update} />
             <RequestPreview
               url={url}
               format={config.format}
+              request={{ method, body: config.body }}
               copied={copied}
               onCopy={copy}
               onShare={() => share('setup')}
@@ -182,15 +232,19 @@ export default function App() {
             copied={copied}
             onCopy={copy}
             onRetry={() => sendConfig(config)}
-            pager={{
-              offset: config.offset,
-              limit: config.limit,
-              onPage: (offset) => {
-                const next = { ...config, offset };
-                update({ offset });
-                sendConfig(next);
-              },
-            }}
+            pager={
+              writing
+                ? null
+                : {
+                    offset: config.offset,
+                    limit: config.limit,
+                    onPage: (offset) => {
+                      const next = { ...config, offset };
+                      update({ offset });
+                      sendConfig(next);
+                    },
+                  }
+            }
           />
         </div>
         <footer className="page-footer">

@@ -6,6 +6,8 @@ export interface ResourceInfo {
   description: string;
   idField: string;
   seeded: boolean;
+  /** Takes POST, PUT, PATCH and DELETE. Missing from an API that predates writes. */
+  writable?: boolean;
   fields: string[];
   /** Fields per data locale; Japanese records add readings such as `nameKana`. */
   locales?: Record<string, { fields: string[] }>;

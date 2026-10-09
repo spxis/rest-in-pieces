@@ -23,6 +23,20 @@ describe('shared setups', () => {
     expect(configFromHash(configToHash(config, base), base)).toEqual(config);
   });
 
+  it('round-trips a write: method, record, body and conflict', () => {
+    const config = {
+      ...base,
+      endpoint: 'users',
+      method: 'PATCH' as const,
+      recordId: '42',
+      body: '{\n  "city": "Halifax & Dartmouth"\n}',
+      conflict: true,
+    };
+    expect(configFromHash(configToHash(config, base), base)).toEqual(config);
+    const odd = configFromHash(`#method=TRACE&recordId=${encodeURIComponent('../1')}&body=${'x'.repeat(70_000)}`, base);
+    expect(odd).toEqual(base);
+  });
+
   it('leaves defaults out of the hash', () => {
     expect(configToHash(base, base)).toBe('endpoint=names');
   });

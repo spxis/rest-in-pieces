@@ -4,7 +4,7 @@ import { useSpeaker } from '../i18n/LocaleProvider.tsx';
 import type { OutputFormat } from '../lib/config.ts';
 import { isInBrowserUrl } from '../lib/inBrowserApi.ts';
 import { REPO_URL } from '../lib/links.ts';
-import { curlCommand, fetchSnippet } from '../lib/request.ts';
+import { curlCommand, fetchSnippet, type SendOptions } from '../lib/request.ts';
 
 type Snippet = 'url' | 'curl' | 'fetch';
 
@@ -13,19 +13,29 @@ const COPY_LABELS = { url: 'preview.copyUrl', curl: 'preview.copyCurl', fetch: '
 export function RequestPreview({
   url,
   format,
+  request,
   copied,
   onCopy,
   onShare,
 }: {
   url: string;
   format: OutputFormat;
+  /** The method and body; a GET sends only the URL. */
+  request: SendOptions;
   copied: string | null;
   onCopy: (value: string, key: string) => void;
   onShare: () => void;
 }) {
   const { say, compose } = useSpeaker();
   const [view, setView] = useState<Snippet>('url');
-  const text = view === 'url' ? url : view === 'curl' ? curlCommand(url, format) : fetchSnippet(url, format);
+  const text =
+    view === 'url'
+      ? request.method === 'GET'
+        ? url
+        : `${request.method} ${url}`
+      : view === 'curl'
+        ? curlCommand(url, format, request)
+        : fetchSnippet(url, format, request);
   const params = new URL(url, 'http://x').searchParams.size;
 
   const button = (key: string, label: string, value: string | null, icon = <Copy size={14} />) => (

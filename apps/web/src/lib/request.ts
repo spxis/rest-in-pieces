@@ -1,5 +1,13 @@
 import { encodeCursor, queryFingerprint } from 'rest-in-pieces/cursor';
-import { DEFAULT_MESSY_SHARE, normalizeDelay, type OutputFormat, type PlaygroundConfig } from './config.ts';
+import {
+  DEFAULT_MESSY_SHARE,
+  type HttpMethod,
+  normalizeDelay,
+  type OutputFormat,
+  type PlaygroundConfig,
+  takesBody,
+  takesId,
+} from './config.ts';
 
 export const trimBase = (base: string) => base.trim().replace(/\/+$/, '');
 
@@ -37,8 +45,34 @@ function pagingParams({ paging, limit, offset }: PlaygroundConfig, rest: URLSear
   return params;
 }
 
+/** The simulation parameters, shared by reads and writes. */
+function simulationParams(config: PlaygroundConfig, params: URLSearchParams): void {
+  const delay = normalizeDelay(config.delay);
+  if (delay) params.set('delay', delay);
+  if (config.trickle > 0) params.set('trickle', String(config.trickle));
+  if (config.status >= 400) params.set('status', String(config.status));
+  else if (config.failRate > 0) params.set('fail', config.failRate >= 1 ? 'true' : String(config.failRate));
+}
+
+/**
+ * A write's URL: the collection for `POST`, the record for the others. Paging, filters and format do not apply;
+ * `seed` and `locale` choose the record a `PUT`, `PATCH` or `DELETE` names.
+ */
+function buildWriteUrl(config: PlaygroundConfig, seeded: boolean): string {
+  const params = new URLSearchParams();
+  const named = takesId(config.method);
+  if (named && seeded && config.seed !== 1) params.set('seed', String(config.seed));
+  if (named && config.locale !== 'en-CA') params.set('locale', config.locale);
+  if (config.conflict) params.set('conflict', 'true');
+  simulationParams(config, params);
+  const path = named ? `/${encodeURIComponent(config.recordId.trim())}` : '';
+  const query = params.toString();
+  return `${trimBase(config.apiBase)}/${config.endpoint}${path}${query ? `?${query}` : ''}`;
+}
+
 /** Builds the request URL for a setup. Parameters at their API defaults are left out to keep URLs readable. */
 export function buildRequestUrl(config: PlaygroundConfig, seeded = true): string {
+  if (config.method !== 'GET') return buildWriteUrl(config, seeded);
   const params = new URLSearchParams();
   if (seeded && config.seed !== 1) params.set('seed', String(config.seed));
   if (config.max < 1000) params.set('max', String(config.max));
@@ -61,27 +95,76 @@ export function buildRequestUrl(config: PlaygroundConfig, seeded = true): string
   if (config.locale !== 'en-CA') params.set('locale', config.locale);
   if (config.messy > 0) params.set('messy', config.messy === DEFAULT_MESSY_SHARE ? 'true' : String(config.messy));
   if (config.format !== 'json') params.set('format', config.format);
-  const delay = normalizeDelay(config.delay);
-  if (delay) params.set('delay', delay);
-  if (config.trickle > 0) params.set('trickle', String(config.trickle));
-  if (config.status >= 400) params.set('status', String(config.status));
-  else if (config.failRate > 0) params.set('fail', config.failRate >= 1 ? 'true' : String(config.failRate));
+  simulationParams(config, params);
   return `${trimBase(config.apiBase)}/${config.endpoint}?${pagingParams(config, params)}&${params}`.replace(/&$/, '');
 }
 
 const shellQuote = (value: string) => `'${value.replaceAll("'", "'\\''")}'`;
 
-export function curlCommand(url: string, format: OutputFormat): string {
-  return `curl -i -H ${shellQuote(`Accept: ${mimeFor(format)}`)} ${shellQuote(url)}`;
+/** What a request sends besides its URL. A GET sends nothing. */
+export interface SendOptions {
+  method: HttpMethod;
+  /** The JSON body, as typed. Only `POST`, `PUT` and `PATCH` send one. */
+  body?: string;
 }
 
-export function fetchSnippet(url: string, format: OutputFormat): string {
+/** The body as one line when it is valid JSON, or as typed when it is not. */
+export function compactJson(body: string): string {
+  try {
+    return JSON.stringify(JSON.parse(body));
+  } catch {
+    return body;
+  }
+}
+
+/** Writes always answer JSON, whatever format the reads were set to. */
+const acceptFor = (format: OutputFormat, method: HttpMethod) => mimeFor(method === 'GET' ? format : 'json');
+
+export function curlCommand(
+  url: string,
+  format: OutputFormat,
+  { method, body }: SendOptions = { method: 'GET' },
+): string {
+  const parts = ['curl -i'];
+  if (method !== 'GET') parts.push(`-X ${method}`);
+  parts.push(`-H ${shellQuote(`Accept: ${acceptFor(format, method)}`)}`);
+  if (takesBody(method)) {
+    parts.push(`-H ${shellQuote('Content-Type: application/json')}`, `-d ${shellQuote(compactJson(body ?? ''))}`);
+  }
+  parts.push(shellQuote(url));
+  return parts.join(' ');
+}
+
+export function fetchSnippet(
+  url: string,
+  format: OutputFormat,
+  { method, body }: SendOptions = { method: 'GET' },
+): string {
+  const accept = JSON.stringify(acceptFor(format, method));
+  const sendsBody = takesBody(method);
+  const read =
+    method === 'DELETE'
+      ? 'const deleted = response.status === 204;'
+      : `const data = await response.${method !== 'GET' || format === 'json' ? 'json' : 'text'}();`;
   return [
     `const response = await fetch(${JSON.stringify(url)}, {`,
-    `  headers: { Accept: ${JSON.stringify(mimeFor(format))} },`,
+    ...(method === 'GET' ? [] : [`  method: '${method}',`]),
+    sendsBody
+      ? `  headers: { Accept: ${accept}, 'Content-Type': 'application/json' },`
+      : `  headers: { Accept: ${accept} },`,
+    ...(sendsBody ? [`  body: ${bodyExpression(body ?? '')},`] : []),
     '});',
-    `const data = await response.${format === 'json' ? 'json' : 'text'}();`,
+    read,
   ].join('\n');
+}
+
+/** `JSON.stringify({...})` for a valid body, so the snippet reads as code; the typed text as a string otherwise. */
+function bodyExpression(body: string): string {
+  try {
+    return `JSON.stringify(${JSON.stringify(JSON.parse(body))})`;
+  } catch {
+    return JSON.stringify(body);
+  }
 }
 
 export function isLocalApi(base: string): boolean | null {

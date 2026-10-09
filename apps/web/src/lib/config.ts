@@ -12,6 +12,17 @@ export type DataLocale = string;
 /** What a locale code looks like. The API itself says which ones exist, and rejects the rest with a 400. */
 const LOCALE_CODE = /^(global|[a-z]{2,3}(-[A-Z]{2})?)$/;
 
+/** The HTTP method. Datasets the API marks `writable` take all five; everything else takes GET. */
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+export const METHODS: readonly HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
+/** Methods that name a record in the path. */
+export const takesId = (method: HttpMethod) => method === 'PUT' || method === 'PATCH' || method === 'DELETE';
+/** Methods that send a JSON body. */
+export const takesBody = (method: HttpMethod) => method === 'POST' || method === 'PUT' || method === 'PATCH';
+/** The API refuses a larger body, so a shared link cannot carry one. */
+export const MAX_BODY_LENGTH = 64 * 1024;
+const RECORD_ID = /^[\w-]{1,40}$/;
+
 /** How the request names its page: `offset`, `page` and `pageSize`, or an opaque `cursor`. */
 export type PagingStyle = 'offset' | 'page' | 'cursor';
 
@@ -59,6 +70,13 @@ export interface PlaygroundConfig {
   locale: DataLocale;
   /** Share of values the API's `messy` rewrites: 0 (clean) to 1 (every value). */
   messy: number;
+  method: HttpMethod;
+  /** The record `PUT`, `PATCH` and `DELETE` name. */
+  recordId: string;
+  /** The JSON body of a `POST`, `PUT` or `PATCH`, as typed. */
+  body: string;
+  /** Asks a write for `409 Conflict`. */
+  conflict: boolean;
 }
 
 export const FORMATS: readonly OutputFormat[] = ['json', 'csv', 'yaml', 'xml'];
@@ -136,6 +154,10 @@ export function defaultConfig(apiBase = defaultApiBase()): PlaygroundConfig {
     fields: DEFAULT_FIELDS,
     locale: 'en-CA',
     messy: 0,
+    method: 'GET',
+    recordId: '1',
+    body: '',
+    conflict: false,
   };
 }
 
@@ -181,6 +203,9 @@ export function configFromHash(hash: string, fallback = defaultConfig()): Playgr
   const fields = parseList(params.get('fields'), isField, MAX_FIELDS);
   const delay = params.has('delay') ? normalizeDelay(params.get('delay') ?? '') : null;
   const messy = Number(params.get('messy') ?? fallback.messy);
+  const method = METHODS.find((value) => value === params.get('method'));
+  const recordId = params.get('recordId');
+  const body = params.get('body');
 
   return {
     endpoint: endpoint && /^[a-z-]+$/.test(endpoint) ? endpoint : fallback.endpoint,
@@ -204,6 +229,10 @@ export function configFromHash(hash: string, fallback = defaultConfig()): Playgr
     fields: fields && fields.length > 0 ? fields : fallback.fields,
     locale: LOCALE_CODE.test(params.get('locale') ?? '') ? (params.get('locale') as DataLocale) : fallback.locale,
     messy: Number.isFinite(messy) && messy >= 0 && messy <= 1 ? messy : fallback.messy,
+    method: method ?? fallback.method,
+    recordId: recordId !== null && RECORD_ID.test(recordId) ? recordId : fallback.recordId,
+    body: body !== null && body.length <= MAX_BODY_LENGTH ? body : fallback.body,
+    conflict: params.get('conflict') === 'true',
   };
 }
 

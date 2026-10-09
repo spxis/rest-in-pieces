@@ -51,6 +51,24 @@ test('generates custom records', async ({ page }) => {
   await expect(page.getByRole('columnheader', { name: 'email' })).toBeVisible();
 });
 
+test('rehearses a create, a validation error and a delete', async ({ page }) => {
+  await page.getByRole('tab', { name: /Users/ }).click();
+  await page.getByRole('button', { name: 'POST', exact: true }).click();
+  await page.getByRole('button', { name: /Send request/ }).click();
+  await expect(page.getByTestId('response-status')).toHaveText(/201/);
+  await expect(page.getByRole('cell', { name: '1001', exact: true })).toBeVisible();
+
+  const body = page.getByRole('textbox', { name: 'JSON body' });
+  await body.fill(((await body.inputValue()) ?? '').replace('ada@example.com', 'not-an-email'));
+  await page.getByRole('button', { name: /Send request/ }).click();
+  await expect(page.getByTestId('response-status')).toHaveText(/422/);
+  await expect(page.locator('.response-body')).toContainText('"email": "Invalid email"');
+
+  await page.getByRole('button', { name: 'DELETE', exact: true }).click();
+  await page.getByRole('button', { name: /Send request/ }).click();
+  await expect(page.getByTestId('response-status')).toHaveText(/204/);
+});
+
 test('returns CSV and shows the raw body', async ({ page }) => {
   await page.getByRole('button', { name: 'CSV' }).click();
   await page.getByRole('button', { name: /Send request/ }).click();

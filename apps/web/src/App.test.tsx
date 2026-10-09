@@ -5,7 +5,14 @@ import App from './App.tsx';
 import { LocaleProvider } from './i18n/LocaleProvider.tsx';
 
 const resources = [
-  { name: 'names', description: 'People', idField: 'index', seeded: true, fields: ['index', 'name', 'age'] },
+  {
+    name: 'names',
+    description: 'People',
+    idField: 'index',
+    seeded: true,
+    writable: true,
+    fields: ['index', 'name', 'age'],
+  },
   { name: 'countries', description: 'Countries', idField: 'alpha2', seeded: false, fields: ['alpha2', 'name'] },
 ];
 
@@ -114,6 +121,66 @@ describe('App', () => {
     await waitFor(() =>
       expect(screen.getByTestId('request-snippet').textContent).toBe('http://localhost:6800/countries?limit=10'),
     );
+  });
+
+  it('sends a write with its method and JSON body, and the snippets follow', async () => {
+    const user = userEvent.setup();
+    const api = mockApi();
+    vi.stubGlobal('fetch', api);
+    render(<App />);
+    const snippet = screen.getByTestId('request-snippet');
+
+    await user.click(await screen.findByRole('button', { name: 'POST' }));
+    expect(snippet.textContent).toBe('POST http://localhost:6800/names');
+    const body = screen.getByRole('textbox', { name: 'JSON body' }) as HTMLTextAreaElement;
+    expect(JSON.parse(body.value)).toMatchObject({ name: 'Ada Lovelace' });
+    expect(screen.queryByPlaceholderText('Search every field…')).toBeNull();
+    // Paging scenarios mean nothing to a write; simulation ones still apply.
+    expect(screen.queryByRole('button', { name: /Next page/ })).toBeNull();
+    await user.click(screen.getByRole('button', { name: /503 error/ }));
+    await user.click(screen.getByRole('checkbox', { name: 'Answer 409 Conflict' }));
+    expect(snippet.textContent).toBe('POST http://localhost:6800/names?conflict=true&status=503');
+
+    await user.click(screen.getByRole('tab', { name: 'CURL' }));
+    expect(snippet.textContent).toContain("-X POST -H 'Accept: application/json' -H 'Content-Type: application/json'");
+    expect(snippet.textContent).toContain('"name":"Ada Lovelace"');
+
+    await user.click(screen.getByRole('button', { name: /Send request/ }));
+    const [url, init] = api.mock.calls.at(-1) as unknown as [string, RequestInit];
+    expect(url).toBe('http://localhost:6800/names?conflict=true&status=503');
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(String(init.body))).toMatchObject({ name: 'Ada Lovelace' });
+
+    await user.click(screen.getByRole('button', { name: 'DELETE' }));
+    await user.click(screen.getByRole('tab', { name: /REQUEST URL/ }));
+    await user.clear(screen.getByRole('textbox', { name: 'Record id (index)' }));
+    await user.type(screen.getByRole('textbox', { name: 'Record id (index)' }), '12');
+    expect(snippet.textContent).toBe('DELETE http://localhost:6800/names/12?conflict=true&status=503');
+    expect(screen.queryByRole('textbox', { name: 'JSON body' })).toBeNull();
+  });
+
+  it('warns about a body that is not JSON and keeps an edited body across methods', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(await screen.findByRole('button', { name: 'PUT' }));
+    const body = screen.getByRole('textbox', { name: 'JSON body' });
+    await user.clear(body);
+    await user.type(body, '{{"name": ');
+    expect(await screen.findByText(/Not valid JSON/)).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'POST' }));
+    expect((screen.getByRole('textbox', { name: 'JSON body' }) as HTMLTextAreaElement).value).toBe('{"name": ');
+    await user.click(screen.getByRole('button', { name: /Reset to sample/ }));
+    expect(screen.queryByText(/Not valid JSON/)).toBeNull();
+  });
+
+  it('offers only GET on a dataset the API does not mark writable', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(await screen.findByRole('button', { name: 'POST' }));
+    await user.click(screen.getByRole('tab', { name: /Countries/ }));
+    expect(screen.queryByRole('button', { name: 'POST' })).toBeNull();
+    expect(screen.getByText('GET', { selector: '.method-tag' })).toBeTruthy();
+    expect(screen.getByTestId('request-snippet').textContent).toBe('http://localhost:6800/countries?limit=10');
   });
 
   it('explains when the API cannot be reached', async () => {
