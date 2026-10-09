@@ -1,16 +1,65 @@
 {
-  "name": "@rest-in-pieces/api",
+  "name": "rest-in-pieces",
   "version": "2.3.0",
-  "private": true,
-  "type": "module",
-  "exports": {
-    ".": "./index.ts",
-    "./core": "./src/core.ts",
-    "./cursor": "./src/lib/cursor.ts"
+  "description": "Realistic, repeatable fake data for building and testing client applications: a REST API you can run with npx, in-process or inside a browser tab.",
+  "keywords": [
+    "fake-data",
+    "mock-api",
+    "rest",
+    "test-backend",
+    "faker",
+    "hono",
+    "openapi",
+    "seed"
+  ],
+  "homepage": "https://spxis.github.io/rest-in-pieces/",
+  "bugs": "https://github.com/spxis/rest-in-pieces/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spxis/rest-in-pieces.git",
+    "directory": "apps/api"
   },
+  "license": "MIT",
+  "author": "John Morris <john@spxis.com>",
+  "type": "module",
+  "bin": {
+    "rest-in-pieces": "./bin/rest-in-pieces.js"
+  },
+  "exports": {
+    ".": {
+      "rest-in-pieces:source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./core": {
+      "rest-in-pieces:source": "./src/core.ts",
+      "types": "./dist/core.d.ts",
+      "default": "./dist/core.js"
+    },
+    "./browser": {
+      "rest-in-pieces:source": "./src/browser.ts",
+      "types": "./dist/browser.d.ts",
+      "default": "./dist/browser.js"
+    },
+    "./cursor": {
+      "rest-in-pieces:source": "./src/lib/cursor.ts",
+      "types": "./dist/lib/cursor.d.ts",
+      "default": "./dist/lib/cursor.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "!dist/main.d.ts",
+    "!dist/server.*",
+    "web"
+  ],
   "scripts": {
     "dev": "node --watch src/server.ts",
     "start": "node src/server.ts",
+    "build": "node scripts/build.ts",
+    "prepack": "pnpm --filter @rest-in-pieces/web build && node scripts/build.ts",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc -p ."
@@ -31,11 +80,7 @@
     "@vitest/coverage-v8": "^5.0.2",
     "vitest": "^5.0.2"
   },
-  "files": [
-    "src",
-    "index.ts"
-  ],
   "engines": {
-    "node": ">=22.18"
+    "node": ">=22.13"
   }
 }

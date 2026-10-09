@@ -4,6 +4,7 @@
     "lib": ["es2024", "dom", "dom.iterable"],
     "module": "esnext",
     "moduleResolution": "bundler",
+    "customConditions": ["rest-in-pieces:source"],
     "jsx": "react-jsx",
     "types": ["vite/client"]
   },

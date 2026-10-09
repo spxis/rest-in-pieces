@@ -1,8 +1,13 @@
 import react from '@vitejs/plugin-react';
+import { defaultClientConditions } from 'vite';
 import { defineConfig } from 'vitest/config';
+
+// Inside the workspace the playground uses the package's TypeScript sources, so nothing needs building first.
+const SOURCE = 'rest-in-pieces:source';
 
 export default defineConfig(({ mode }) => ({
   plugins: [react()],
+  resolve: { conditions: [SOURCE, ...defaultClientConditions] },
   // GitHub Pages serves the project from /<repository>/; PAGES_BASE overrides it for a custom domain.
   base: mode === 'pages' ? (process.env.PAGES_BASE ?? '/rest-in-pieces/') : '/',
   // This project's local ports are 6800–6899: 6800 is the API, 6801 the playground. See AGENTS.md.

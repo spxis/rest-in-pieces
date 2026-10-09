@@ -11,7 +11,8 @@ RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store pnpm install
 
 COPY . .
 RUN pnpm --filter @rest-in-pieces/web build \
-  && pnpm --filter @rest-in-pieces/api deploy --legacy --prod /out/api \
+  && pnpm --filter rest-in-pieces build \
+  && pnpm --filter rest-in-pieces deploy --legacy --prod /out/api \
   && cp -R apps/web/dist /out/web
 
 FROM node:24-alpine AS runtime
@@ -27,4 +28,4 @@ USER node
 EXPOSE 6800
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
   CMD wget -qO- "http://127.0.0.1:${PORT}/health" > /dev/null || exit 1
-CMD ["node", "src/server.ts"]
+CMD ["node", "bin/rest-in-pieces.js", "--host", "0.0.0.0"]

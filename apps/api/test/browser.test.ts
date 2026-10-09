@@ -1,6 +1,6 @@
-import { createApp } from '@rest-in-pieces/api/core';
-import { describe, expect, it, vi } from 'vitest';
-import { inBrowserFetch } from './inBrowserApi.ts';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { inBrowserFetch, installInBrowserApi } from '../src/browser.ts';
+import { createApp } from '../src/core.ts';
 
 const BASE = 'https://spxis.github.io/rest-in-pieces/api';
 
@@ -48,5 +48,35 @@ describe('inBrowserFetch', () => {
       expect(await (await fetcher(url)).text()).toBe('real');
     }
     expect(load).not.toHaveBeenCalled();
+  });
+});
+
+describe('installInBrowserApi', () => {
+  const original = globalThis.fetch;
+  afterEach(() => {
+    globalThis.fetch = original;
+    vi.unstubAllGlobals();
+  });
+
+  it('answers /api on the page by default and puts fetch back when removed', async () => {
+    const network = vi.fn<typeof fetch>(async () => new Response('real'));
+    globalThis.fetch = network;
+    vi.stubGlobal('location', { href: 'https://example.com/app/' });
+
+    const uninstall = installInBrowserApi();
+    const response = await fetch('https://example.com/api/users?limit=1&seed=7');
+    expect(((await response.json()) as { results: unknown[] }).results).toHaveLength(1);
+    expect(await (await fetch('https://example.com/other')).text()).toBe('real');
+    expect(network).toHaveBeenCalledOnce();
+
+    uninstall();
+    expect(globalThis.fetch).toBe(network);
+  });
+
+  it('takes an absolute base and app options', async () => {
+    globalThis.fetch = vi.fn<typeof fetch>();
+    installInBrowserApi({ base: 'https://mock.test/v1/', app: { specUrl: '/v1/openapi.json' } });
+    const docs = await (await fetch('https://mock.test/v1/docs')).text();
+    expect(docs).toContain('/v1/openapi.json');
   });
 });

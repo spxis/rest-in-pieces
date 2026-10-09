@@ -3,7 +3,7 @@
  * the OpenAPI document and the reference page, as static files under `dist-pages/api/`.
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { createApp } from '@rest-in-pieces/api/core';
+import { createApp } from 'rest-in-pieces/core';
 
 const out = new URL('../dist-pages/api/', import.meta.url);
 // The reference page lives at api/docs/, so the document is one folder up.

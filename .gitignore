@@ -16,3 +16,9 @@ test-results/
 apps/api/public/
 playwright-report/
 test-results/
+
+# Built into the npm package by apps/api/scripts/build.ts
+apps/api/web/
+apps/api/README.md
+apps/api/LICENSE
+*.tgz

@@ -1,5 +1,5 @@
 {
-  "name": "rest-in-pieces",
+  "name": "rest-in-pieces-workspace",
   "version": "2.3.0",
   "private": true,
   "description": "A REST service that serves realistic, repeatable fake data for building and testing client applications.",
@@ -12,18 +12,17 @@
   },
   "scripts": {
     "dev": "pnpm -r --parallel dev",
-    "dev:api": "pnpm --filter @rest-in-pieces/api dev",
+    "dev:api": "pnpm --filter rest-in-pieces dev",
     "dev:web": "pnpm --filter @rest-in-pieces/web dev",
-    "start": "pnpm --filter @rest-in-pieces/api start",
+    "start": "pnpm --filter rest-in-pieces start",
     "build": "pnpm --filter @rest-in-pieces/web build",
     "test": "pnpm -r test",
-    "test:coverage": "pnpm --filter @rest-in-pieces/api test:coverage",
+    "test:coverage": "pnpm --filter rest-in-pieces test:coverage",
     "test:e2e": "playwright test",
     "typecheck": "pnpm -r typecheck",
     "lint": "biome check .",
     "format": "biome check --write .",
-    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
-    "release": "node scripts/release.ts"
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",
