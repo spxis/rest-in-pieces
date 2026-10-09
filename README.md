@@ -150,6 +150,8 @@ curl -N 'http://localhost:6800/users?delay=200-800&trickle=200'
 | `GET /companies`           | Companies with industry, website, size, founding year and location. |
 | `GET /countries`           | Every country and territory with ISO codes, currencies, languages and calling codes. |
 | `GET /{dataset}/{id}`      | One record: `/names/0`, `/users/1`, `/countries/CA` or `/countries/CAN`. |
+| `POST /{dataset}`          | Validates a new record and answers `201` with it, as it would have been created. See [Writes](#writes). |
+| `PUT`, `PATCH`, `DELETE /{dataset}/{id}` | Replace, update or delete a record: `200` with the result, or `204` for a delete. Nothing is stored. |
 | `GET /generate`            | Records from a field list, e.g. `fields=name:person.fullName,email:internet.email`. |
 | `POST /generate`           | The same, with the fields, `count` and `seed` in a JSON body. |
 | `GET /generators`          | Every generator type, flat and grouped by module. |
@@ -209,6 +211,44 @@ Simulated responses carry `X-Simulated: true`, and 429 and 503 carry `Retry-Afte
 `total` counts the records after filters and `max`. The same numbers are in the `X-Total-Count` and `Link` headers, which are exposed to browsers through CORS.
 
 `links` and the `Link` header page the way the request did: with `offset` and `limit`, with `page` and `pageSize`, or with `cursor`. `nextCursor` is null on the last page and `prevCursor` on the first.
+
+### Writes
+
+`/names`, `/users`, `/products` and `/companies` take writes, so a client can rehearse a form submit, an optimistic update, a delete confirmation and a validation error:
+
+```sh
+# Create: 201, with the next id after the dataset's last, createdAt, updatedAt and a Location header
+curl -i -X POST 'http://localhost:6800/users' -H 'Content-Type: application/json' \
+  -d '{ "firstName": "Ada", "lastName": "Lovelace", "username": "ada", "email": "ada@example.com",
+        "avatar": "https://example.com/ada.png", "phone": "416-555-0100", "jobTitle": "Analyst",
+        "company": "Analytical Engines", "city": "Toronto", "country": "CA", "active": true }'
+
+# Update some fields: 200 with the record merged with them
+curl -X PATCH 'http://localhost:6800/users/42' -H 'Content-Type: application/json' -d '{ "active": false }'
+
+# Delete: 204
+curl -i -X DELETE 'http://localhost:6800/users/42'
+
+# A validation error, a conflict, and a slow failing save
+curl -X POST 'http://localhost:6800/users' -H 'Content-Type: application/json' -d '{ "email": "nope" }'
+curl -i -X PUT 'http://localhost:6800/users/42?conflict=true' -H 'Content-Type: application/json' -d '{ … }'
+curl -i -X PATCH 'http://localhost:6800/users/42?delay=1500&status=503' -H 'Content-Type: application/json' -d '{}'
+```
+
+| Request | Answer |
+| ------- | ------ |
+| `POST /{dataset}` | `201` with the record, the next id (`1001` for users, `1000` for the zero-based `/names`), `createdAt` and `updatedAt`, and `Location: /users/1001`. |
+| `PUT /{dataset}/{id}` | `200` with the body under the same id, `createdAt` kept and `updatedAt` set. Every field is required. |
+| `PATCH /{dataset}/{id}` | `200` with the record merged with the fields sent, and `updatedAt` set. |
+| `DELETE /{dataset}/{id}` | `204` with no body. |
+| An unknown id | `404`, as the `GET` answers. |
+| A body that fails validation | `422` with a message per field: `{ "error": "Validation failed", "fields": { "email": "Invalid email" } }`. A missing field says `Required`. |
+| `?conflict=true` | `409`, to rehearse "someone else changed this". |
+| Malformed JSON, or no `Content-Type: application/json` | `400` or `415`. Bodies over 64 KB get `413`. |
+
+The body is the record without the fields the server sets (the id and `createdAt`); those are ignored if sent, and so is any field the dataset does not have. The schemas are `PersonInput`, `UserInput`, `ProductInput` and `CompanyInput` in [`/openapi.json`](#endpoints). Every record a dataset serves is a valid `PUT` body. `delay`, `trickle`, `status` and `fail` work as they do on reads; on a `PUT`, `PATCH` or `DELETE`, `seed` and `locale` choose the record, as on the `GET`. Writes answer in JSON.
+
+**Stateless by design.** Nothing is stored: a write never changes what a later read returns, on a shared host or anywhere else. The response is what the write would have produced. This is a rehearsal backend, not a store. `/countries` is real reference data keyed by ISO code, so it stays read-only, as does the deprecated `/random-names` alias.
 
 ## Data locales
 

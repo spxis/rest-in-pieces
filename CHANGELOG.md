@@ -4,6 +4,16 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Added
+
+- Writes on `/names`, `/users`, `/products` and `/companies`: `POST` answers `201` with the record, the next id, `createdAt`, `updatedAt` and a `Location` header; `PUT` and `PATCH` answer `200` with the replaced or merged record; `DELETE` answers `204`. An unknown id is `404`, a body that fails validation is `422` with a message per field (`{ "error": "Validation failed", "fields": { "email": "Invalid email" } }`), and `?conflict=true` answers `409`. `delay`, `trickle`, `status` and `fail` apply. Writes are stateless: nothing is stored, so a later read returns the same data. `/countries` and `/random-names` stay read-only.
+- The OpenAPI document describes each write's body (`PersonInput`, `UserInput`, `ProductInput`, `CompanyInput`) and its `201`, `200`, `204`, `404`, `409` and `422` answers, and `/resources` says which datasets are `writable`.
+- Playground: a method switch on writable datasets, with a record id, a JSON body that starts from a sample, and a conflict switch. The URL, curl and fetch snippets carry the method and body.
+
+### Fixed
+
+- Malformed JSON and a body that is not JSON answer `400` and `415` instead of `500`, on `POST /generate` as well.
+
 ## 2.9.0 - 2026-10-08
 
 ### Changed
