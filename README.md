@@ -11,7 +11,7 @@ Seeded, realistic, localized data plus latency, error and messy-data drills, as 
 
 **Try it: [spxis.github.io/rest-in-pieces](https://spxis.github.io/rest-in-pieces/).** The live demo runs the whole API inside the page, so there is no server behind it and nothing to install.
 
-**A repeatable test backend for frontend development.** Build tables, pagination, sorting, filters, loading states, empty states and error handling against realistic data, before a real backend exists.
+**A repeatable test backend for frontend development.** Build tables, pagination, sorting, filters, loading states, empty states, error handling, CRUD forms and sign-in against realistic data, before a real backend exists.
 
 It plugs into [Vite, MSW, Storybook, Next.js, Playwright, Cypress and openapi-fetch](#use-with), and answers any origin.
 
@@ -27,12 +27,14 @@ Every dataset is generated from a seed. The same URL returns the same records on
 npx @johnmorrisdotca/rest-in-pieces                  # API, playground and docs on http://localhost:6800
 npx @johnmorrisdotca/rest-in-pieces --port 6900      # another port; PORT works too
 npx @johnmorrisdotca/rest-in-pieces --host 0.0.0.0   # reachable from other machines and containers
+npx @johnmorrisdotca/rest-in-pieces --session        # keep writes in memory until POST /reset
 ```
 
 **With Docker:**
 
 ```sh
 docker run --rm -p 6800:6800 ghcr.io/spxis/rest-in-pieces
+docker run --rm -p 6800:6800 -e REST_IN_PIECES_SESSION=true ghcr.io/spxis/rest-in-pieces   # keep writes
 ```
 
 **Inside your tests**, with no port and no server to start. `createApp()` builds the API and `app.request()` answers in-process, in Vitest, Jest, Playwright or any Node script:
@@ -49,6 +51,8 @@ test('lists five users', async () => {
 
 `@johnmorrisdotca/rest-in-pieces/core` exports `createApp` alone, with no Node imports, for workers and other fetch-style hosts.
 
+`createApp({ session: true })` keeps writes, so a test can create, edit and delete and then read the result back; each app has a store of its own, so a fresh `createApp` is a fresh dataset. See [Sessions](#sessions-keeping-writes).
+
 ### A backend inside the tab
 
 `@johnmorrisdotca/rest-in-pieces/browser` runs the API inside the page, so a frontend on StackBlitz, CodeSandbox or any static host gets a REST backend with no server:
@@ -61,7 +65,7 @@ installInBrowserApi(); // answers fetch('/api/...') in this tab; every other req
 const { results } = await (await fetch('/api/users?limit=10&seed=7')).json();
 ```
 
-`installInBrowserApi({ base: '/mock' })` moves it, and the function it returns puts the original `fetch` back. The API loads on the first request, so the page pays nothing for it until then. Only `fetch` is answered; libraries built on `XMLHttpRequest` still go to the network. To answer those too, use the [Mock Service Worker handlers](#mock-service-worker).
+`installInBrowserApi({ base: '/mock' })` moves it, `installInBrowserApi({ app: { session: true } })` keeps writes for as long as the tab is open, and the function it returns puts the original `fetch` back. The API loads on the first request, so the page pays nothing for it until then. Only `fetch` is answered; libraries built on `XMLHttpRequest` still go to the network. To answer those too, use the [Mock Service Worker handlers](#mock-service-worker).
 
 ## Use with
 
@@ -77,7 +81,7 @@ import { restInPieces } from '@johnmorrisdotca/rest-in-pieces/vite';
 export default defineConfig({ plugins: [restInPieces()] }); // fetch('/api/users?limit=10') in the app
 ```
 
-`restInPieces({ base: '/mock' })` moves it, and `app` passes options to `createApp()`. Every path outside the base stays Vite's. Because it runs in the dev server rather than the page, server-side rendering and any HTTP client work without a service worker.
+`restInPieces({ base: '/mock' })` moves it, and `app` passes options to `createApp()`: `restInPieces({ app: { session: true } })` keeps writes until `POST /api/reset` or a restart of the dev server. Every path outside the base stays Vite's. Because it runs in the dev server rather than the page, server-side rendering and any HTTP client work without a service worker.
 
 Two other ways, neither needing the plugin:
 
@@ -137,7 +141,7 @@ if (import.meta.env.DEV) {
 }
 ```
 
-`restInPiecesHandlers({ base, app, http })` takes the same `base` (default `/api`) and `app` options as `installInBrowserApi`, and loads the API on the first request it matches.
+`restInPiecesHandlers({ base, app, http })` takes the same `base` (default `/api`) and `app` options as `installInBrowserApi`, and loads the API on the first request it matches. With `app: { session: true }`, writes are kept by the handlers for as long as the page (or the test file, in Node) lives; a `POST` to `/api/reset` puts the seed back between tests.
 
 ### Storybook
 
@@ -199,6 +203,15 @@ test.beforeEach(({ page }) => page.route('**/api/**', async (route) => {
 
 Or start the API beside your app with Playwright's `webServer` (`command: 'npx @johnmorrisdotca/rest-in-pieces --port 6800'`, `url: 'http://localhost:6800/health'`).
 
+For a CRUD flow that reads its own writes, make the app with `createApp({ session: true })` and put the seed back before each test, so every test starts from the same data:
+
+```ts
+const app = createApp({ session: true });
+test.beforeEach(() => app.request('/reset', { method: 'POST' }));
+```
+
+A signed-in test can sign in once and keep the token: `const { accessToken } = await (await app.request('/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'admin', password: 'password' }) })).json()`. See [Sign-in](#sign-in-fake-auth).
+
 [`@msw/playwright`](https://github.com/mswjs/playwright) (MSW 3) does the same through MSW, so the [MSW handlers](#mock-service-worker) plug straight in. Give them the base at your app's origin:
 
 ```ts
@@ -219,7 +232,7 @@ Cypress runs its intercept handlers in the browser, so the API runs as a server 
 }
 ```
 
-Slow, failing and flaky answers come from the API's own `?delay=`, `?status=` and `?fail=`, with no mocking code in the test. Keep `cy.intercept` for the faults no server can make, such as a dropped connection: `cy.intercept('GET', '/api/users*', { forceNetworkError: true })`. Or call `installInBrowserApi()` in the app under test and need no server at all.
+Slow, failing and flaky answers come from the API's own `?delay=`, `?status=` and `?fail=`, with no mocking code in the test. To test a form that saves, start the API with `--session` (`"api": "rest-in-pieces --port 6800 --session"`) and put the seed back before each test with `beforeEach(() => cy.request('POST', 'http://localhost:6800/reset'))`. Keep `cy.intercept` for the faults no server can make, such as a dropped connection: `cy.intercept('GET', '/api/users*', { forceNetworkError: true })`. Or call `installInBrowserApi()` in the app under test and need no server at all.
 
 ### Typed clients
 
@@ -234,11 +247,11 @@ const { data } = await api.GET('/users', { params: { query: { limit: '10', seed:
 if (data && !Array.isArray(data)) console.log(data.metadata.total, data.results[0]?.email); // metadata=false returns a bare array
 ```
 
-`components['schemas']['User']`, `['Person']`, `['Product']` and the rest type single records, and `['UserInput']` and its siblings the write bodies. Query parameters are strings, as they are in a URL. To generate the types yourself, point openapi-typescript at the document: `npx openapi-typescript node_modules/@johnmorrisdotca/rest-in-pieces/dist/openapi.json -o rest-in-pieces.d.ts`, or at `/openapi.json` on any running instance.
+`components['schemas']['User']`, `['Person']`, `['Product']` and the rest type single records, `['UserInput']` and its siblings the write bodies, and `['AuthTokens']`, `['AuthUser']`, `['AuthError']` and `['Session']` the sign-in and session answers. Query parameters are strings, as they are in a URL. To generate the types yourself, point openapi-typescript at the document: `npx openapi-typescript node_modules/@johnmorrisdotca/rest-in-pieces/dist/openapi.json -o rest-in-pieces.d.ts`, or at `/openapi.json` on any running instance.
 
 ### Any origin
 
-CORS is on by default, so a frontend on any dev-server origin can call the API directly. Every response carries `Access-Control-Allow-Origin: *`; a preflight `OPTIONS` answers `204` with the methods allowed and the requested headers echoed back, so a write with an `Authorization` header preflights too; and `X-Total-Count`, `Link`, `ETag`, `X-Simulated`, `Retry-After` and `Location` are exposed to scripts.
+CORS is on by default, so a frontend on any dev-server origin can call the API directly. Every response carries `Access-Control-Allow-Origin: *`; a preflight `OPTIONS` answers `204` with the methods allowed and the requested headers echoed back, so a write with an `Authorization` header preflights too; and `X-Total-Count`, `Link`, `ETag`, `X-Simulated`, `Retry-After`, `Location` and `WWW-Authenticate` are exposed to scripts.
 
 ## Why use it
 
@@ -248,9 +261,11 @@ CORS is on by default, so a frontend on any dev-server origin can call the API d
 - **Hand-built Japanese data.** `?locale=ja` gives kanji names with katakana readings, real prefectures and cities, 〒 postal codes, mobile numbers, yen prices and Japanese country names.
 - **Everything a list screen needs.** Paging, sorting, field filters with ranges, free-text search, `X-Total-Count` and `Link` headers, and ETags.
 - **The unhappy path on demand.** `?delay=1500`, `?status=503` or `?fail=0.2` rehearse slow, failing and flaky backends without touching your client.
+- **CRUD that remembers, when you ask.** With `--session`, `POST`, `PUT`, `PATCH` and `DELETE` change an in-memory copy of the seeded data and every later read sees it, until `POST /reset`. Off by default, so a shared host stays stateless.
+- **Sign-in to rehearse against.** `POST /auth/login`, `/auth/refresh`, `/auth/me`, roles, expiring JWTs, and `?auth=` to make any request a protected route with real `401` and `403` answers. Fake tokens, for frontends, not security.
 - **Any format.** JSON, CSV, YAML or XML, chosen by `?format=` or the `Accept` header.
 - **Self-documenting.** An OpenAPI 3.1 spec generated from the same schemas that validate requests, with interactive docs at `/docs`.
-- **A playground in English and 日本語.** Build a request, inspect the table, body and headers, page through results, and share the exact setup as a link. The language follows the browser, `?lang=ja` or the toggle in the top bar.
+- **A playground in English and 日本語, light and dark.** Build a request, inspect the table, body and headers, see it drawn as an app would draw it (loading skeleton, cards, empty and error states), sign in and protect the request, keep writes and reset them, download the response as JSON, CSV or TXT, copy it as curl, fetch, axios, openapi-fetch, MSW or Vite code, and share the exact setup as a link. The language follows the browser, `?lang=ja` or the toggle in the top bar; the colours follow the system or the switch beside it.
 
 ## How it compares
 
@@ -258,12 +273,12 @@ Most tools in this space either intercept requests and leave you to write the da
 
 | Tool | What it is | Verdict |
 | ---- | ---------- | ------- |
-| [json-server](https://github.com/typicode/json-server) | A REST API over a `db.json` you write | Closest in spirit. It has persisted writes and relations today, which REST in Pieces does not (its writes are stateless); REST in Pieces has generated, seeded, localized data, paging, formats and failure drills with nothing to write. |
+| [json-server](https://github.com/typicode/json-server) | A REST API over a `db.json` you write | Closest in spirit. It writes changes back to `db.json` and has relations (`_embed`), which REST in Pieces does not: its [session](#sessions-keeping-writes) keeps writes in memory only, until a reset or a restart. REST in Pieces has generated, seeded, localized data, paging, formats, sign-in and failure drills with nothing to write. |
 | [MSW](https://mswjs.io/) | Request interception in the browser and Node | Not a rival but a host: MSW intercepts, REST in Pieces answers. Use the [MSW handlers](#mock-service-worker). |
-| [Mirage JS](https://miragejs.com/) | A fake server in the tab, with models and factories you define | Mirage wants a schema and routes; REST in Pieces needs no setup, but has no in-memory database. |
+| [Mirage JS](https://miragejs.com/) | A fake server in the tab, with models and factories you define | Mirage wants a schema and routes; REST in Pieces needs no setup. Both keep writes in memory (REST in Pieces with `session: true`); Mirage has relations between models, REST in Pieces does not. |
 | [Prism](https://github.com/stoplightio/prism) | A mock server generated from your OpenAPI file | Use Prism when you have a contract to mock; use REST in Pieces when you do not, and want realistic data rather than examples. |
 | [Mockoon](https://mockoon.com/) | A desktop app and CLI for hand-templated mock routes | Better for people who prefer a GUI and per-route templates; REST in Pieces is code-first, with seeds and locales built in. |
-| [DummyJSON](https://dummyjson.com/), [JSONPlaceholder](https://jsonplaceholder.typicode.com/) | Hosted fake APIs at public URLs | Nothing to install, but fixed English data and no failure drills; DummyJSON also has login and tokens, which REST in Pieces does not. The [fixtures](#fixtures) and the live demo are the hosted side here. |
+| [DummyJSON](https://dummyjson.com/), [JSONPlaceholder](https://jsonplaceholder.typicode.com/) | Hosted fake APIs at public URLs | Nothing to install, but fixed English data and no failure drills. Both answer writes without keeping them, as REST in Pieces does by default. DummyJSON's login, refresh and bearer-token routes match [REST in Pieces' sign-in](#sign-in-fake-auth) closely; REST in Pieces adds roles with `403`s, `?auth=` on any endpoint, tokens that expire on demand (`expiresIn=0`) and `WWW-Authenticate` headers. The [fixtures](#fixtures) and the live demo are the hosted side here. |
 | [Faker](https://fakerjs.dev/) | A library of generators you call in code | REST in Pieces is built on it, and serves it over HTTP with paging, filters, formats and seeds already done. |
 
 ## Quick start
@@ -325,6 +340,10 @@ curl -X POST 'http://localhost:6800/generate?limit=5' \
   -H 'Content-Type: application/json' \
   -d '{ "fields": { "sku": "string.uuid", "price": "commerce.price" }, "count": 200, "seed": 9 }'
 
+# Sign in, then call a protected route
+curl -X POST 'http://localhost:6800/auth/login' -H 'Content-Type: application/json' -d '{ "username": "admin", "password": "password" }'
+curl -i 'http://localhost:6800/users?auth=admin' -H 'Authorization: Bearer <accessToken>'
+
 # Data that breaks layouts: nulls, 2,000-character descriptions, emoji, Arabic, edge numbers and dates
 curl 'http://localhost:6800/products?messy=true&seed=1'
 
@@ -346,7 +365,11 @@ curl -N 'http://localhost:6800/users?delay=200-800&trickle=200'
 | `GET /countries`           | Every country and territory with ISO codes, currencies, languages and calling codes. |
 | `GET /{dataset}/{id}`      | One record: `/names/0`, `/users/1`, `/countries/CA` or `/countries/CAN`. |
 | `POST /{dataset}`          | Validates a new record and answers `201` with it, as it would have been created. See [Writes](#writes). |
-| `PUT`, `PATCH`, `DELETE /{dataset}/{id}` | Replace, update or delete a record: `200` with the result, or `204` for a delete. Nothing is stored. |
+| `PUT`, `PATCH`, `DELETE /{dataset}/{id}` | Replace, update or delete a record: `200` with the result, or `204` for a delete. Nothing is stored unless the [session](#sessions-keeping-writes) is on. |
+| `POST /auth/login`         | Sign in with a username or email from `/users` and the password `password`: an access token, a refresh token and the user with their role. See [Sign-in](#sign-in-fake-auth). |
+| `POST /auth/refresh`, `GET /auth/me`, `POST /auth/logout` | A new pair of tokens; the signed-in user; sign out. |
+| `GET /session`             | Whether writes are kept, the limits, and every dataset a write has changed. |
+| `POST /reset`              | Puts the seeded data back: every change, or one dataset's with `?dataset=users`. Harmless when the session is off. |
 | `GET /generate`            | Records from a field list, e.g. `fields=name:person.fullName,email:internet.email`. |
 | `POST /generate`           | The same, with the fields, `count` and `seed` in a JSON body. |
 | `GET /generators`          | Every generator type, flat and grouped by module. |
@@ -365,7 +388,7 @@ These work on every collection, including `/generate`.
 | `offset`        | `0`       | Records to skip. |
 | `page`          | none      | One-based page number in pages of `limit`: `page=3&pageSize=20` is `offset=40&limit=20`. |
 | `cursor`        | none      | An opaque cursor from `metadata.nextCursor` or `prevCursor`. Takes precedence over `page` and `offset`; an empty `cursor=` starts on the first page. A cursor used with different filters, sort, `q`, `seed`, `locale`, `messy` or `max` returns `400`. |
-| `max`           | `1000`    | Caps the dataset, to test the last page and end-of-data handling. Alias: `maxRecords`. |
+| `max`           | every record | Caps the dataset, to test the last page and end-of-data handling. Every record is 1000, or more after creates with the session on. Alias: `maxRecords`. |
 | `sortBy`        | none      | Field to sort by. Append `:numeric` to compare as numbers, e.g. `age:numeric`. |
 | `sortDirection` | `asc`     | `desc` (also `descending`, `reverse`, `rev`, `backwards`, `-1`). Alias: `sortOrder`. |
 | `q`             | none      | Case-insensitive search across every field. |
@@ -380,6 +403,7 @@ These work on every collection, including `/generate`.
 | `trickle`       | `0`       | Sends the headers at once and the body in pieces this many milliseconds apart, in any format, so time to first byte and total time can be told apart. With `delay`, the response still takes no more than 10 s. |
 | `status`        | none      | Respond with this status. 4xx and 5xx return a simulated error; 2xx and 3xx override the success status. |
 | `fail`          | off       | `true` fails the request with a 500 (or `status`); a fraction such as `0.2` fails that share of requests. |
+| `auth`          | off       | Makes the request a protected route: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. `401` without a valid token, `403` when the role is not enough. Also on items and writes. See [Sign-in](#sign-in-fake-auth). |
 
 Simulated responses carry `X-Simulated: true`, and 429 and 503 carry `Retry-After`. Simulation never applies to `/health` or the docs.
 
@@ -440,10 +464,70 @@ curl -i -X PATCH 'http://localhost:6800/users/42?delay=1500&status=503' -H 'Cont
 | A body that fails validation | `422` with a message per field: `{ "error": "Validation failed", "fields": { "email": "Invalid email" } }`. A missing field says `Required`. |
 | `?conflict=true` | `409`, to rehearse "someone else changed this". |
 | Malformed JSON, or no `Content-Type: application/json` | `400` or `415`. Bodies over 64 KB get `413`. |
+| A full session | `507` with a message saying which limit, when the [session](#sessions-keeping-writes) is on. |
 
 The body is the record without the fields the server sets (the id and `createdAt`); those are ignored if sent, and so is any field the dataset does not have. The schemas are `PersonInput`, `UserInput`, `ProductInput` and `CompanyInput` in [`/openapi.json`](#endpoints). Every record a dataset serves is a valid `PUT` body. `delay`, `trickle`, `status` and `fail` work as they do on reads; on a `PUT`, `PATCH` or `DELETE`, `seed` and `locale` choose the record, as on the `GET`. Writes answer in JSON.
 
-**Stateless by design.** Nothing is stored: a write never changes what a later read returns, on a shared host or anywhere else. The response is what the write would have produced. This is a rehearsal backend, not a store. `/countries` is real reference data keyed by ISO code, so it stays read-only, as does the deprecated `/random-names` alias.
+**Stateless by default.** Unless the session is on, nothing is stored: a write never changes what a later read returns, on a shared host or anywhere else, and the response is what the write would have produced. Turn the [session](#sessions-keeping-writes) on to keep writes. `/countries` is real reference data keyed by ISO code, so it stays read-only, as does the deprecated `/random-names` alias.
+
+### Sessions: keeping writes
+
+Off by default, and opt-in wherever the API runs:
+
+| Where | Turn it on |
+| ----- | ---------- |
+| The command line | `npx @johnmorrisdotca/rest-in-pieces --session`, or `REST_IN_PIECES_SESSION=true` (also in Docker: `-e REST_IN_PIECES_SESSION=true`) |
+| In-process | `createApp({ session: true })` |
+| The Vite plugin | `restInPieces({ app: { session: true } })` |
+| MSW | `restInPiecesHandlers({ http, app: { session: true } })` |
+| A browser tab | `installInBrowserApi({ app: { session: true } })` |
+
+```sh
+npx @johnmorrisdotca/rest-in-pieces --session
+
+curl -X DELETE 'http://localhost:6800/users/1'                # 204
+curl -i 'http://localhost:6800/users/1'                       # 404: it stays deleted
+curl 'http://localhost:6800/users?limit=1' | jq .metadata.total   # 999
+curl 'http://localhost:6800/session'                          # what the session holds
+curl -X POST 'http://localhost:6800/reset'                    # the seed again: 1000 users
+```
+
+- **What it keeps.** `POST` adds the record with the next id (ids are never given out twice, even after a delete), `PUT` and `PATCH` replace and merge, `DELETE` removes. Lists, counts, `X-Total-Count`, filters, search, sorting, paging, cursors, `messy` and item routes all see the change, and so does `/auth/me` for a user who was edited, disabled or deleted.
+- **Per seed and locale.** A dataset is copied into the session on its first write, at that request's `seed` and `locale`, so `/users?seed=7` and `/users?locale=ja` change apart from `/users`. Everything not written to is still read straight from the seed.
+- **`GET /session`** lists every changed dataset with its created, updated and deleted counts and its size, plus the limits. **`POST /reset`** drops every change, or one dataset's with `?dataset=users`, and answers `200` when the session is off too, so a test's `beforeEach` can call it either way.
+- **Capped.** At most 2,000 records in one dataset (at one seed and locale), 16 changed datasets, and 8 MB of written records. A write past a limit answers `507 Insufficient Storage` and keeps nothing; `createApp({ session: { records, datasets, bytes } })` moves the limits.
+- **Memory only.** Nothing is written to disk and nothing runs on a timer. A restart starts again from the seed, each `createApp()` has a store of its own, and on a serverless host every instance keeps its own copy, so keep it off there. The hosted demos are stateless: the Vercel deployment never turns it on, and the GitHub Pages playground keeps writes only in your tab, and only after you tick **Keep writes in this tab**.
+
+### Sign-in (fake auth)
+
+A login form, protected routes, roles and expired tokens, against realistic answers. **Not security:** every account's password is `password`, and the tokens are HS256 JWTs signed with the published key `rest-in-pieces-not-a-secret`, so anyone can mint one. They are real JWTs only so that a client's own JWT decoding works on them.
+
+```sh
+curl -X POST 'http://localhost:6800/auth/login?expiresIn=30s' -H 'Content-Type: application/json' \
+  -d '{ "username": "editor", "password": "password" }'
+curl 'http://localhost:6800/auth/me' -H 'Authorization: Bearer <accessToken>'
+curl -i 'http://localhost:6800/products?auth=admin' -H 'Authorization: Bearer <accessToken>'   # 403 for an editor
+```
+
+**Accounts.** Every user of `/users` signs in with their `username` or `email`, at the `seed` and `locale` in the login's query, so the same seed signs in the same person on every machine. The first active user is the `admin`, the second the `editor`, and every other user a `viewer`. Four usernames are shortcuts: `admin`, `editor` and `viewer` sign in as those accounts, and `disabled` names the first account that is not active.
+
+| Request | Answer |
+| ------- | ------ |
+| `POST /auth/login` `{ "username", "password" }` (or `email`) | `200` with `tokenType: "Bearer"`, `accessToken`, `expiresIn` (seconds), `expiresAt`, `refreshToken`, `refreshExpiresIn` and `user` (the `/users` record plus `role`). |
+| A wrong password or unknown user | `401` `{ "error": "Unauthorized", "code": "invalid_credentials", "message": … }` |
+| An account that is not active | `403` with `code: "account_disabled"` |
+| A missing field | `422` `{ "error": "Validation failed", "fields": { "password": "Required" } }` |
+| `POST /auth/refresh` `{ "refreshToken" }` | `200` with a new pair, read again from the user's current record. Tokens are not stored, so an old refresh token works until it expires. |
+| `GET /auth/me` with `Authorization: Bearer <accessToken>` | `200` with the user and their role. |
+| `POST /auth/logout` | `204`. Signing out is the client forgetting its tokens. |
+| No token, a malformed or tampered one, or a refresh token where an access token belongs | `401` with `code` `missing_token` or `invalid_token`, and `WWW-Authenticate: Bearer realm="rest-in-pieces"` (with `error="invalid_token"` and a description for a bad token). |
+| An expired token | `401` with `code: "token_expired"`. |
+| `?auth=editor` or `?auth=admin` with a role that is not enough | `403` with `code: "insufficient_role"`, `required` and `role`. |
+
+- **Lifetimes.** Access tokens last 15 minutes and refresh tokens 7 days. `?expiresIn=` and `?refreshExpiresIn=` on login and refresh take seconds (`30`) or a unit (`30s`, `5m`, `2h`, `7d`), up to 30 days. `expiresIn=0` gives an access token that has already expired, so the refresh path can be rehearsed at once.
+- **Protected routes.** `?auth=required`, `?auth=editor` or `?auth=admin` on any dataset, item, write or `/generate` turns that request into a protected route. Without `auth`, tokens are ignored, as before. A simulated `status` or `fail` still wins, so `?auth=required&status=503` is a `503`.
+- **Rehearsable failures too.** `delay`, `status` and `fail` work on `/auth/*`, for a slow or failing sign-in.
+- **In the OpenAPI document** as the `Auth` tag and a `bearerAuth` security scheme, so `/docs` can send a token.
 
 ## Data locales
 
@@ -559,7 +643,7 @@ Set `PORT` to move the API, and `VITE_API_BASE_URL` to point the playground else
 
 ## Deploying
 
-**Vercel.** Create one project with **Root Directory** `apps/api`. `apps/api/vercel.json` builds the playground into `public/`, so the playground, API and docs share one origin with no extra configuration.
+**Vercel.** Create one project with **Root Directory** `apps/api`. `apps/api/vercel.json` builds the playground into `public/`, so the playground, API and docs share one origin with no extra configuration. Leave `REST_IN_PIECES_SESSION` unset there: serverless instances each keep their own memory, so a session would answer differently from one request to the next.
 
 **Docker.** Every release publishes `ghcr.io/spxis/rest-in-pieces` for amd64 and arm64, tagged with its version (such as `:2.2.0`) and `latest`. The image serves everything from port 6800, runs as a non-root user and includes a health check.
 

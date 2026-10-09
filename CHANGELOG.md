@@ -4,6 +4,18 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Added
+
+- Sessions: an opt-in in-memory store that keeps writes. With `--session`, `REST_IN_PIECES_SESSION=true`, `createApp({ session: true })`, or `app: { session: true }` in the Vite plugin, the MSW handlers and `installInBrowserApi`, `POST`, `PUT`, `PATCH` and `DELETE` change a copy of the seeded dataset at the request's `seed` and `locale`, and every later read, count, filter, page and item sees the change. `POST /reset` puts the seed back (every dataset, or one with `?dataset=`), and `GET /session` lists what is held. Off by default; capped at 2,000 records a dataset, 16 changed datasets and 8 MB, answering `507` when full; memory only, with no timers and nothing written to disk. The hosted demos stay stateless.
+- Sign-in, for rehearsing login forms, protected routes, roles and expired tokens: `POST /auth/login`, `POST /auth/refresh`, `GET /auth/me` and `POST /auth/logout` over the `/users` dataset. The first active user is the admin, the second the editor and everyone else a viewer; `admin`, `editor`, `viewer` and `disabled` are shortcuts, and every password is `password`. Tokens are HS256 JWTs signed with a published key, so they are fake by design. `?auth=required`, `?auth=editor` or `?auth=admin` on any data endpoint answers `401` (`missing_token`, `invalid_token`, `token_expired`, with `WWW-Authenticate`) or `403` (`insufficient_role`), and `expiresIn=0` gives a token that has already expired.
+- The OpenAPI document, the generated types and `/docs` describe both: `Auth` and `Session` tags, a `bearerAuth` scheme, `AuthTokens`, `AuthUser`, `AuthError` and `Session` schemas, the `auth` parameter, and the `401`, `403` and `507` answers.
+- Playground: a sign-in panel (accounts, token lifetimes, a countdown, `/auth/me`, refresh, sign-out and the decoded claims) with "Protect this request"; a session panel that lists what the API keeps and resets it, and on GitHub Pages keeps writes in your tab when you ask; a UI preview tab that draws the response as an app would, with a loading skeleton, cards, and empty and error states; downloads of the response as JSON, CSV or TXT; copy-as tabs for axios, openapi-fetch, MSW and Vite beside curl and fetch; and dark colours that follow the system, with a switch to pin light or dark. In English and Japanese.
+
+### Changed
+
+- `max` defaults to every record the dataset holds, which is still 1000 unless the session has kept creates.
+- `WWW-Authenticate` is exposed to browsers through CORS.
+
 ## 2.12.1 - 2026-10-09
 
 ### Fixed
