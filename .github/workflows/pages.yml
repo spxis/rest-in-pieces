@@ -31,9 +31,11 @@ jobs:
         id: pages
       # The top bar shows the version and the short commit SHA. vite.config.ts reads the SHA from GITHUB_SHA, which the
       # runner sets on every step to the commit being built, and falls back to `git rev-parse --short HEAD`.
+      # PAGES_URL is the site's full address, which fixtures/index.json lists every fixture at.
       - run: pnpm --filter @rest-in-pieces/web build:pages
         env:
           PAGES_BASE: ${{ steps.pages.outputs.base_path }}/
+          PAGES_URL: ${{ steps.pages.outputs.base_url }}
       - uses: actions/upload-pages-artifact@v4
         with:
           path: apps/web/dist-pages

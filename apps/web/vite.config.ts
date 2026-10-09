@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import react from '@vitejs/plugin-react';
-import { defaultClientConditions } from 'vite';
+import { defaultClientConditions, defaultServerConditions } from 'vite';
 import { defineConfig } from 'vitest/config';
 import apiPackage from '../api/package.json' with { type: 'json' };
 
@@ -21,6 +21,8 @@ const SOURCE = 'rest-in-pieces:source';
 export default defineConfig(({ mode }) => ({
   plugins: [react()],
   resolve: { conditions: [SOURCE, ...defaultClientConditions] },
+  // Tests that run in Node rather than jsdom, such as the fixtures test, resolve as a server would.
+  ssr: { resolve: { conditions: [SOURCE, ...defaultServerConditions] } },
   // GitHub Pages serves the project from /<repository>/; PAGES_BASE overrides it for a custom domain.
   base: mode === 'pages' ? (process.env.PAGES_BASE ?? '/rest-in-pieces/') : '/',
   // The playground shows the API package's version, and the Pages build the commit too, so a live build is identifiable.
@@ -39,6 +41,6 @@ export default defineConfig(({ mode }) => ({
   },
   test: {
     environment: 'jsdom',
-    include: ['src/**/*.test.{ts,tsx}'],
+    include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.ts'],
   },
 }));
