@@ -4,6 +4,8 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+## 2.12.1 - 2026-10-09
+
 ### Fixed
 
 - The npm page shows the playground screenshot, and its LICENSE, SECURITY and CONTRIBUTING links open: npm resolved relative links against `apps/api`, where the package is published from.
