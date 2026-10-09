@@ -1,6 +1,6 @@
 {
   "name": "rest-in-pieces",
-  "version": "2.7.0",
+  "version": "2.8.0",
   "description": "Realistic, repeatable fake data for building and testing client applications: a REST API you can run with npx, in-process or inside a browser tab.",
   "keywords": [
     "fake-data",
