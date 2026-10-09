@@ -15,7 +15,7 @@
     "@fontsource/ibm-plex-mono": "^5.2.6",
     "@fontsource/space-grotesk": "^5.2.6",
     "rest-in-pieces": "workspace:*",
-    "lucide-react": "^1.48.0",
+    "lucide-react": "^1.52.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
@@ -24,9 +24,9 @@
     "@testing-library/user-event": "^14.6.7",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
-    "@vitejs/plugin-react": "^6.1.1",
-    "jsdom": "^30.1.1",
-    "vite": "^8.3.1",
-    "vitest": "^5.0.2"
+    "@vitejs/plugin-react": "^6.1.2",
+    "jsdom": "^30.1.2",
+    "vite": "^8.3.2",
+    "vitest": "^5.0.3"
   }
 }
