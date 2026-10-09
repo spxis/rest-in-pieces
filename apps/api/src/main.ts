@@ -1,6 +1,6 @@
 import { serve } from '@hono/node-server';
 import pkg from '../package.json' with { type: 'json' };
-import { app } from './app.ts';
+import { createNodeApp } from './app.ts';
 import { CliError, displayUrl, parseCliArgs, usage } from './cli.ts';
 
 function main(): void {
@@ -18,10 +18,12 @@ function main(): void {
     return;
   }
 
-  const { host, port } = command;
+  const { host, port, session } = command;
+  const app = createNodeApp({ session });
   const server = serve({ fetch: app.fetch, port, hostname: host }, (info) => {
     const url = displayUrl(host, info.port);
-    console.log(`REST in Pieces ${pkg.version} is running at ${url}\nAPI docs: ${url}/docs`);
+    const kept = session ? '\nSession: on. Writes are kept in memory until POST /reset.' : '';
+    console.log(`REST in Pieces ${pkg.version} is running at ${url}\nAPI docs: ${url}/docs${kept}`);
   });
   server.on('error', (error: NodeJS.ErrnoException) => {
     console.error(
