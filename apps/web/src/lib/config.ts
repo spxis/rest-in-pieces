@@ -6,7 +6,11 @@ export type SortType = 'string' | 'numeric';
 export type SortDirection = 'asc' | 'desc';
 export type FilterOperator = 'eq' | 'ne' | 'gt' | 'gte' | 'lt' | 'lte';
 
-export type DataLocale = 'en-CA' | 'ja';
+/** A data locale code, as `GET /locales` lists them: `en-CA`, `ja`, `global`. */
+export type DataLocale = string;
+
+/** What a locale code looks like. The API itself says which ones exist, and rejects the rest with a 400. */
+const LOCALE_CODE = /^(global|[a-z]{2,3}(-[A-Z]{2})?)$/;
 
 /** How the request names its page: `offset`, `page` and `pageSize`, or an opaque `cursor`. */
 export type PagingStyle = 'offset' | 'page' | 'cursor';
@@ -64,10 +68,6 @@ export const OPERATORS: ReadonlyArray<{ value: FilterOperator; label: string }> 
   { value: 'lt', label: '<' },
   { value: 'lte', label: '≤' },
 ];
-export const DATA_LOCALES = [
-  { value: 'en-CA', label: 'data.localeEn' },
-  { value: 'ja', label: 'data.localeJa' },
-] as const satisfies ReadonlyArray<{ value: DataLocale; label: PhraseKey }>;
 export const PAGING_STYLES = [
   { value: 'offset', label: 'page.styleOffset' },
   { value: 'page', label: 'page.stylePage' },
@@ -195,9 +195,7 @@ export function configFromHash(hash: string, fallback = defaultConfig()): Playgr
     status: params.has('status') && !params.has('fail') ? int('status', 0, 0, 599) : legacyStatus,
     failRate: Number.isFinite(failRate) && failRate >= 0 && failRate <= 1 ? failRate : 0,
     fields: fields && fields.length > 0 ? fields : fallback.fields,
-    locale: DATA_LOCALES.some((option) => option.value === params.get('locale'))
-      ? (params.get('locale') as DataLocale)
-      : fallback.locale,
+    locale: LOCALE_CODE.test(params.get('locale') ?? '') ? (params.get('locale') as DataLocale) : fallback.locale,
   };
 }
 

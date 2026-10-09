@@ -149,7 +149,7 @@ export default function App() {
                 onChange={(next) => update({ fields: next })}
               />
             )}
-            <PageAndSort config={config} fields={fields} seeded={seeded} onChange={update} />
+            <PageAndSort config={config} fields={fields} seeded={seeded} locales={catalog.locales} onChange={update} />
             <SearchAndFilters config={config} fields={fields} onChange={update} />
             <FormatPicker value={config.format} onChange={update} />
             <SimulationPanel config={config} onChange={update} />

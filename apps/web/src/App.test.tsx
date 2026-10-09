@@ -9,6 +9,13 @@ const resources = [
   { name: 'countries', description: 'Countries', idField: 'alpha2', seeded: false, fields: ['alpha2', 'name'] },
 ];
 
+const locales = [
+  { code: 'en-CA', name: 'English (Canada)', nativeName: 'English (Canada)', tag: 'en-CA', default: true },
+  { code: 'de', name: 'German (Germany)', nativeName: 'Deutsch (Deutschland)', tag: 'de-DE', default: false },
+  { code: 'ja', name: 'Japanese (Japan)', nativeName: '日本語（日本）', tag: 'ja-JP', default: false },
+  { code: 'global', name: 'Global mix', nativeName: 'Global mix', tag: null, default: false },
+];
+
 function mockApi() {
   return vi.fn(async (input: RequestInfo | URL) => {
     const url = new URL(String(input));
@@ -16,6 +23,7 @@ function mockApi() {
       new Response(JSON.stringify(body), { headers: { 'content-type': 'application/json', ...headers } });
     if (url.pathname === '/resources') return json(resources);
     if (url.pathname === '/generators') return json({ generators: [], modules: { person: ['fullName'] } });
+    if (url.pathname === '/locales') return json(locales);
     const offset = Number(url.searchParams.get('offset') ?? 0);
     return json(
       {
@@ -117,7 +125,19 @@ describe('App', () => {
     expect(screen.getByTestId('request-snippet').textContent).toContain('locale=ja');
   });
 
-  it('starts a Japanese reader on Japanese data', () => {
+  it('offers the locales the API lists, and a one-click global mix', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    const picker = screen.getByRole('combobox', { name: 'Data locale' });
+    expect(await screen.findByRole('option', { name: 'German (Germany)' })).toBeTruthy();
+    await user.selectOptions(picker, 'de');
+    expect(screen.getByTestId('request-snippet').textContent).toContain('locale=de');
+    await user.click(screen.getByRole('button', { name: /Global users/ }));
+    expect(screen.getByTestId('request-snippet').textContent).toContain('locale=global');
+    expect((picker as HTMLSelectElement).selectedOptions[0]?.textContent).toBe('Global mix');
+  });
+
+  it('starts a Japanese reader on Japanese data', async () => {
     render(
       <LocaleProvider initial="ja">
         <App />
@@ -125,5 +145,8 @@ describe('App', () => {
     );
     expect(screen.getByTestId('request-snippet').textContent).toContain('locale=ja');
     expect(screen.getByText('API プレイグラウンド', { selector: 'h1' })).toBeTruthy();
+    // Locale names come from the runtime in the reader's language; the mix has a phrase of its own.
+    expect(await screen.findByRole('option', { name: /ドイツ語/ })).toBeTruthy();
+    expect(screen.getByRole('option', { name: 'グローバル（全ロケール混在）' })).toBeTruthy();
   });
 });

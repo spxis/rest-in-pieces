@@ -31,16 +31,16 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
   'endpoints.label': { text: 'API エンドポイント', back: 'API endpoint' },
 
   'dataset.names': {
-    text: '氏名・年齢・住所・市区町村・州・郵便番号・性別を持つ人物データ。既定はカナダ、`locale=ja` で日本のデータになります。REST in Pieces の最初のデータセットで、`/random-names` でも取得できます。',
-    back: 'Person data with name, age, address, city, province, postal code and gender. Canada by default; `locale=ja` makes it Japanese data. The first REST in Pieces dataset, also available at `/random-names`.',
+    text: '氏名・年齢・住所・市区町村・州・郵便番号・国・性別を持つ人物データ。選んだデータロケール向けに作られ、既定はカナダです。REST in Pieces の最初のデータセットで、`/random-names` でも取得できます。',
+    back: 'Person data with name, age, address, city, province, postal code, country and gender. Made for the chosen data locale; the default is Canada. The first REST in Pieces dataset, also available at `/random-names`.',
   },
   'dataset.users': {
     text: 'プロフィール・連絡先・アバター・アカウント状態を持つアプリのユーザー。',
     back: 'App users with profile, contact details, avatar and account status.',
   },
   'dataset.products': {
-    text: 'SKU・部門・価格・評価・在庫を持つカタログ商品。',
-    back: 'Catalogue products with SKU, department, price, rating and stock.',
+    text: 'SKU・部門・現地通貨での価格・評価・在庫を持つカタログ商品。',
+    back: 'Catalogue products with SKU, department, price in the local currency, rating and stock.',
   },
   'dataset.companies': {
     text: '業種・ウェブサイト・連絡先・規模・設立年を持つ企業。',
@@ -68,6 +68,8 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
   'scenario.serviceUnavailable.hint': { text: 'サーバー停止', back: 'Server down' },
   'scenario.flaky.label': { text: '不安定', back: 'Unstable' },
   'scenario.flaky.hint': { text: '30% で失敗', back: 'Fails 30%' },
+  'scenario.global.label': { text: '世界中のユーザー', back: 'Users from around the world' },
+  'scenario.global.hint': { text: '全ロケールを混在', back: 'All locales mixed' },
   'scenario.reset.label': { text: 'リセット', back: 'Reset' },
   'scenario.reset.hint': { text: '正常系', back: 'Normal case' },
 
@@ -109,8 +111,7 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
   'seed.label': { text: 'シード', back: 'Seed' },
   'seed.hint': { text: '同じシードなら同じデータ', back: 'Same seed, same data' },
   'data.locale': { text: 'データのロケール', back: 'Data locale' },
-  'data.localeEn': { text: '英語（カナダ）', back: 'English (Canada)' },
-  'data.localeJa': { text: '日本語（日本）', back: 'Japanese (Japan)' },
+  'data.localeGlobal': { text: 'グローバル（全ロケール混在）', back: 'Global (all locales mixed)' },
   'metadata.include': { text: 'レスポンスにメタデータを含める', back: 'Include metadata in the response' },
 
   'search.heading': { text: '検索とフィルター', back: 'Search and filter' },

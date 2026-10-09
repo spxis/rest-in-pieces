@@ -25,9 +25,9 @@ export const PHRASES = {
   'endpoints.label': 'API endpoint',
 
   'dataset.names':
-    'People with name, age, address, city, province, postal code and gender: Canadian by default, Japanese with `locale=ja`. The original REST in Pieces dataset; also served at `/random-names`.',
+    'People with name, age, address, city, province, postal code, country and gender, written for the chosen data locale: Canadian by default. The original REST in Pieces dataset; also served at `/random-names`.',
   'dataset.users': 'Application users with profile, contact details, avatar and account status.',
-  'dataset.products': 'Catalogue products with SKU, department, price, rating and stock.',
+  'dataset.products': 'Catalogue products with SKU, department, price in the local currency, rating and stock.',
   'dataset.companies': 'Companies with industry, website, contact details, size and founding year.',
   'dataset.countries':
     'Every country and territory with ISO codes, currencies, languages and calling codes. Real data, so `seed` has no effect. For compatibility it returns every country as a bare array unless `metadata=true` is given.',
@@ -49,6 +49,8 @@ export const PHRASES = {
   'scenario.serviceUnavailable.hint': 'server down',
   'scenario.flaky.label': 'Flaky',
   'scenario.flaky.hint': 'fails 30%',
+  'scenario.global.label': 'Global users',
+  'scenario.global.hint': 'every locale mixed',
   'scenario.reset.label': 'Reset',
   'scenario.reset.hint': 'happy path',
 
@@ -84,8 +86,7 @@ export const PHRASES = {
   'seed.label': 'Seed',
   'seed.hint': 'Same seed, same dataset',
   'data.locale': 'Data locale',
-  'data.localeEn': 'English (Canada)',
-  'data.localeJa': 'Japanese (Japan)',
+  'data.localeGlobal': 'Global mix',
   'metadata.include': 'Include response metadata',
 
   'search.heading': 'SEARCH & FILTER',

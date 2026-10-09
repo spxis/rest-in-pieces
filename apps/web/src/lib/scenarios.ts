@@ -69,6 +69,12 @@ export const SCENARIOS: Scenario[] = [
     apply: () => ({ ...reset, failRate: 0.3 }),
   },
   {
+    id: 'global',
+    label: 'scenario.global.label',
+    hint: 'scenario.global.hint',
+    apply: () => ({ ...reset, offset: 0, locale: 'global' }),
+  },
+  {
     id: 'reset',
     label: 'scenario.reset.label',
     hint: 'scenario.reset.hint',

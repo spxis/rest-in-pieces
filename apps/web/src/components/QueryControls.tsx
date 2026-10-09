@@ -1,13 +1,8 @@
 import { ArrowUpDown, Filter as FilterIcon, Plus, Search, Trash2 } from 'lucide-react';
+import type { DataLocaleInfo } from '../hooks/useCatalog.ts';
 import { useSpeaker } from '../i18n/LocaleProvider.tsx';
-import {
-  DATA_LOCALES,
-  type Filter,
-  type FilterOperator,
-  OPERATORS,
-  PAGING_STYLES,
-  type PlaygroundConfig,
-} from '../lib/config.ts';
+import type { Speaker } from '../i18n/speaker.ts';
+import { type Filter, type FilterOperator, OPERATORS, PAGING_STYLES, type PlaygroundConfig } from '../lib/config.ts';
 
 type Update = (patch: Partial<PlaygroundConfig>) => void;
 
@@ -42,20 +37,43 @@ function NumberControl({
   );
 }
 
+/**
+ * A data locale's name in the playground's language: the API's English name, or the runtime's own name for the
+ * locale's tag in Japanese (`ドイツ語 (ドイツ)`). The mix has no tag, so it has a phrase of its own.
+ */
+export function dataLocaleLabel(locale: DataLocaleInfo, { locale: ui, say }: Speaker): string {
+  if (locale.tag === null) return say('data.localeGlobal');
+  if (ui === 'en') return locale.name;
+  try {
+    return new Intl.DisplayNames([ui], { type: 'language', languageDisplay: 'standard' }).of(locale.tag) ?? locale.name;
+  } catch {
+    return locale.name;
+  }
+}
+
 export function PageAndSort({
   config,
   fields,
   seeded,
+  locales,
   onChange,
 }: {
   config: PlaygroundConfig;
   fields: string[];
   seeded: boolean;
+  /** From `GET /locales`. */
+  locales: DataLocaleInfo[];
   onChange: Update;
 }) {
-  const { say } = useSpeaker();
+  const speaker = useSpeaker();
+  const { say } = speaker;
   const byPage = config.paging === 'page';
   const pageNumber = config.limit > 0 ? Math.floor(config.offset / config.limit) + 1 : 1;
+  // A shared link may name a locale this API does not list; it stays selectable rather than silently changing.
+  const options = locales.map((locale) => ({ code: locale.code, label: dataLocaleLabel(locale, speaker) }));
+  if (!options.some((option) => option.code === config.locale)) {
+    options.push({ code: config.locale, label: config.locale });
+  }
   return (
     <div className="form-section">
       <div className="section-label-row">
@@ -161,9 +179,9 @@ export function PageAndSort({
             value={config.locale}
             onChange={(event) => onChange({ locale: event.target.value as PlaygroundConfig['locale'] })}
           >
-            {DATA_LOCALES.map((option) => (
-              <option key={option.value} value={option.value}>
-                {say(option.label)}
+            {options.map((option) => (
+              <option key={option.code} value={option.code}>
+                {option.label}
               </option>
             ))}
           </select>
