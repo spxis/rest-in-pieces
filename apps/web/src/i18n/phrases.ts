@@ -10,6 +10,8 @@ export const PHRASES = {
   'topbar.invalid': 'INVALID URL',
   'topbar.offline': 'Not reachable',
   'topbar.docs': 'API docs',
+  'topbar.fixtures': 'Fixtures',
+  'topbar.fixturesTitle': 'Every dataset as static JSON and CSV files, listed in index.json',
   'topbar.version': 'Version {version}',
   'topbar.versionCommit': 'Version {version}, built from commit {commit}',
   'language.label': 'Language',

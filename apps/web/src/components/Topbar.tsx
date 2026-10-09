@@ -1,6 +1,6 @@
 import { ExternalLink, Workflow } from 'lucide-react';
 import { useSpeaker } from '../i18n/LocaleProvider.tsx';
-import { isInBrowserApi } from '../lib/inBrowserApi.ts';
+import { IN_BROWSER, isInBrowserApi } from '../lib/inBrowserApi.ts';
 import { isLocalApi, trimBase } from '../lib/request.ts';
 import { APP_COMMIT, APP_VERSION } from '../lib/version.ts';
 import { LanguagePicker } from './LanguagePicker.tsx';
@@ -19,6 +19,11 @@ export function VersionBadge({ version, commit }: { version: string; commit: str
     </span>
   );
 }
+
+/** The static fixtures are written into the Pages build only; every other build links to the published copy. */
+export const FIXTURES_URL = IN_BROWSER
+  ? `${import.meta.env.BASE_URL}fixtures/index.json`
+  : 'https://spxis.github.io/rest-in-pieces/fixtures/index.json';
 
 export function Topbar({ apiBase, online }: { apiBase: string; online: boolean | null }) {
   const { say } = useSpeaker();
@@ -54,6 +59,15 @@ export function Topbar({ apiBase, online }: { apiBase: string; online: boolean |
         </span>
         <a className="docs-link" href={`${trimBase(apiBase)}/docs`} target="_blank" rel="noreferrer">
           {say('topbar.docs')} <ExternalLink size={14} />
+        </a>
+        <a
+          className="docs-link fixtures-link"
+          href={FIXTURES_URL}
+          target="_blank"
+          rel="noreferrer"
+          title={say('topbar.fixturesTitle')}
+        >
+          {say('topbar.fixtures')} <ExternalLink size={14} />
         </a>
         <LanguagePicker />
       </div>

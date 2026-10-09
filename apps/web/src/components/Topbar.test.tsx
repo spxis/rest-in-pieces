@@ -4,7 +4,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { LocaleProvider } from '../i18n/LocaleProvider.tsx';
 import { APP_COMMIT, APP_VERSION } from '../lib/version.ts';
-import { Topbar, VersionBadge } from './Topbar.tsx';
+import { FIXTURES_URL, Topbar, VersionBadge } from './Topbar.tsx';
 
 // The source of truth, read from disk rather than copied, so a playground showing any other number fails here.
 const apiPackage = JSON.parse(readFileSync(join(import.meta.dirname, '../../../api/package.json'), 'utf8')) as {
@@ -39,5 +39,20 @@ describe('the version in the top bar', () => {
     const shown = screen.getByTestId('app-version');
     expect(shown.textContent).toBe('2.3.0 · abc1234');
     expect(shown.title).toBe('Version 2.3.0, built from commit abc1234');
+  });
+});
+
+describe('the fixtures link in the top bar', () => {
+  afterEach(cleanup);
+
+  it('opens the published fixtures index from a build that has none of its own', () => {
+    render(
+      <LocaleProvider initial="en">
+        <Topbar apiBase="http://localhost:6800" online={true} />
+      </LocaleProvider>,
+    );
+    const link = screen.getByRole('link', { name: /Fixtures/ });
+    expect(link.getAttribute('href')).toBe(FIXTURES_URL);
+    expect(FIXTURES_URL).toBe('https://spxis.github.io/rest-in-pieces/fixtures/index.json');
   });
 });

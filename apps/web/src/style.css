@@ -227,6 +227,12 @@ a {
     500 12px "Space Grotesk",
     sans-serif;
 }
+/* Below this width the top bar has no room for it without squeezing the language picker; the README lists the fixtures. */
+@media (max-width: 760px) {
+  .fixtures-link {
+    display: none;
+  }
+}
 .workspace {
   width: min(1440px, 100%);
   margin: 0 auto;
