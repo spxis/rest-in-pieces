@@ -8,6 +8,10 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import { LocaleProvider } from './i18n/LocaleProvider.tsx';
+import { applyTheme, readTheme } from './lib/theme.ts';
+
+// Before the first paint, so a pinned theme never flashes the other one.
+applyTheme(readTheme());
 
 // Written out rather than read from IN_BROWSER so every other build drops the API bundle entirely.
 if (import.meta.env.MODE === 'pages') (await import('./lib/inBrowserApi.ts')).installInBrowserApi();

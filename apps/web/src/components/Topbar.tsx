@@ -6,6 +6,7 @@ import { docsUrl, fixturesUrl, NPM_URL, REPO_URL } from '../lib/links.ts';
 import { isLocalApi } from '../lib/request.ts';
 import { APP_COMMIT, APP_VERSION } from '../lib/version.ts';
 import { LanguagePicker } from './LanguagePicker.tsx';
+import { ThemeSwitch } from './ThemeSwitch.tsx';
 
 /** `2.2.0 · abc1234` when the build knows its commit, `2.2.0` otherwise. A phone shows the version alone. */
 export function VersionBadge({ version, commit }: { version: string; commit: string }) {
@@ -88,6 +89,7 @@ export function Topbar({ apiBase, online }: { apiBase: string; online: boolean |
           <TopbarLink href={NPM_URL} icon={<Package size={14} />} label="npm" title={say('topbar.npmTitle')} />
           <TopbarLink href={REPO_URL} icon={<GitHubMark />} label="GitHub" title={say('topbar.repoTitle')} />
         </nav>
+        <ThemeSwitch />
         <LanguagePicker />
       </div>
     </header>
