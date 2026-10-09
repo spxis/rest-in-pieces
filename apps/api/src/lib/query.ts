@@ -54,6 +54,7 @@ export const RESERVED_PARAMS = new Set([
   'seed',
   'format',
   'delay',
+  'trickle',
   'status',
   'fail',
   'fields',

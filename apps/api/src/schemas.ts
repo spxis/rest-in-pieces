@@ -30,7 +30,12 @@ export const ListQuery = z
       '`en-CA` (default) or `ja` for Japanese data: kanji names with katakana readings, prefectures, 〒 postal codes, yen prices and Japanese country names.',
     ),
     format: param('`json` (default), `csv`, `yaml` or `xml`. The `Accept` header works too.'),
-    delay: param('Wait this many milliseconds before responding, up to 10000.'),
+    delay: param(
+      'Wait this many milliseconds before responding, up to 10000. A range such as `200-800` picks a wait inside it from the request, seed included, so the same URL always waits the same time.',
+    ),
+    trickle: param(
+      'Send the headers at once and the body in pieces this many milliseconds apart, whatever the format. With `delay`, the whole response takes no more than 10000 ms.',
+    ),
     status: param('Respond with this status (200–599). 4xx and 5xx return a simulated error.'),
     fail: param('`true` fails the request; a fraction such as `0.2` fails that share of requests.'),
   })

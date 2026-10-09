@@ -129,6 +129,9 @@ curl -X POST 'http://localhost:6800/generate?limit=5' \
 
 # A flaky backend: 30% of requests fail
 curl -i 'http://localhost:6800/users?fail=0.3'
+
+# Uneven latency, then a body that arrives in pieces 200 ms apart
+curl -N 'http://localhost:6800/users?delay=200-800&trickle=200'
 ```
 
 ### Endpoints
@@ -168,7 +171,8 @@ These work on every collection, including `/generate`.
 | `metadata`      | on        | `false` returns the bare array. `/countries` defaults to off for compatibility. |
 | `resultsName`   | `results` | Renames the results key, e.g. `rows`. |
 | `format`        | `json`    | `csv`, `yaml` or `xml`. The `Accept` header works too. |
-| `delay`         | `0`       | Milliseconds to wait before responding, up to 10000. |
+| `delay`         | `0`       | Milliseconds to wait before responding, up to 10000. A range such as `200-800` picks a wait inside it from the request, seed included, so the same URL waits the same time on every machine. |
+| `trickle`       | `0`       | Sends the headers at once and the body in pieces this many milliseconds apart, in any format, so time to first byte and total time can be told apart. With `delay`, the response still takes no more than 10 s. |
 | `status`        | none      | Respond with this status. 4xx and 5xx return a simulated error; 2xx and 3xx override the success status. |
 | `fail`          | off       | `true` fails the request with a 500 (or `status`); a fraction such as `0.2` fails that share of requests. |
 
@@ -230,7 +234,7 @@ flowchart LR
     UI[Playground] -->|fetch| API
   end
   subgraph api["apps/api · Hono on Node 24"]
-    API[Routes] --> SIM[Simulation<br/>delay · status · fail]
+    API[Routes] --> SIM[Simulation<br/>delay · trickle · status · fail]
     SIM --> COL[Collection pipeline<br/>filter → sort → max → page]
     COL --> FMT[Formats<br/>JSON · CSV · YAML · XML]
     COL --> DATA[(Seeded datasets<br/>Faker, LRU cache)]
