@@ -1,3 +1,4 @@
+import { createApp } from '@rest-in-pieces/api/core';
 import { describe, expect, it } from 'vitest';
 import { defaultConfig } from './config.ts';
 import { buildRequestUrl, curlCommand, extractRows, fetchSnippet, isLocalApi } from './request.ts';
@@ -48,6 +49,42 @@ describe('buildRequestUrl', () => {
       delay: '500',
       status: '503',
     });
+  });
+
+  it('names the page by offset, page number or cursor', () => {
+    const config = { ...base, offset: 20, limit: 10 };
+    expect(buildRequestUrl(config)).toBe('http://localhost:6800/names?limit=10&offset=20');
+    expect(buildRequestUrl({ ...config, paging: 'page' })).toBe('http://localhost:6800/names?page=3&pageSize=10');
+    expect(buildRequestUrl({ ...config, paging: 'cursor', offset: 0 })).toBe(
+      'http://localhost:6800/names?limit=10&cursor=',
+    );
+    const cursor = new URL(buildRequestUrl({ ...config, paging: 'cursor' })).searchParams.get('cursor');
+    expect(cursor).toMatch(/^[\w-]+$/);
+    expect(new URL(buildRequestUrl({ ...config, paging: 'cursor', q: 'ada' })).searchParams.get('cursor')).not.toBe(
+      cursor,
+    );
+  });
+
+  it('builds cursors the API accepts and would have issued itself', async () => {
+    const app = createApp();
+    const config = {
+      ...base,
+      paging: 'cursor' as const,
+      seed: 4,
+      q: 'e',
+      sortBy: 'age',
+      sortType: 'numeric' as const,
+      filters: [
+        { id: 1, field: 'gender', operator: 'eq' as const, value: 'female' },
+        { id: 2, field: 'province', operator: 'eq' as const, value: 'Ontario,British Columbia' },
+      ],
+    };
+    const first = await app.request(buildRequestUrl(config).replace('http://localhost:6800', ''));
+    const { metadata } = (await first.json()) as { metadata: { nextCursor: string | null } };
+    expect(metadata.nextCursor).toBeTruthy();
+    const second = buildRequestUrl({ ...config, offset: config.limit });
+    expect(new URL(second).searchParams.get('cursor')).toBe(metadata.nextCursor);
+    expect((await app.request(second.replace('http://localhost:6800', ''))).status).toBe(200);
   });
 
   it('asks countries for the envelope only when metadata is on, and drops the seed', () => {

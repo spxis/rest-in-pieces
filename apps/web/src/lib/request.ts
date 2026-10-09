@@ -1,3 +1,4 @@
+import { encodeCursor, queryFingerprint } from '@rest-in-pieces/api/cursor';
 import type { OutputFormat, PlaygroundConfig } from './config.ts';
 
 export const trimBase = (base: string) => base.trim().replace(/\/+$/, '');
@@ -11,11 +12,34 @@ export function mimeFor(format: OutputFormat): string {
   }[format];
 }
 
+/** The query the API reads: the first value of each parameter. */
+function firstValues(params: URLSearchParams): Record<string, string> {
+  const query: Record<string, string> = {};
+  for (const [key, value] of params) query[key] ??= value;
+  return query;
+}
+
+/** The parameters that name the page, in the setup's paging style. A cursor is built for the rest of the query. */
+function pagingParams({ paging, limit, offset }: PlaygroundConfig, rest: URLSearchParams): URLSearchParams {
+  const params = new URLSearchParams();
+  if (paging === 'page') {
+    params.set('page', String(limit > 0 ? Math.floor(offset / limit) + 1 : 1));
+    params.set('pageSize', String(limit));
+    return params;
+  }
+  params.set('limit', String(limit));
+  if (paging === 'cursor') {
+    // An empty cursor asks for the first page with cursor links; later pages carry the API's own cursor format.
+    params.set('cursor', offset > 0 ? encodeCursor(offset, queryFingerprint(firstValues(rest))) : '');
+  } else if (offset > 0) {
+    params.set('offset', String(offset));
+  }
+  return params;
+}
+
 /** Builds the request URL for a setup. Parameters at their API defaults are left out to keep URLs readable. */
 export function buildRequestUrl(config: PlaygroundConfig, seeded = true): string {
   const params = new URLSearchParams();
-  params.set('limit', String(config.limit));
-  if (config.offset > 0) params.set('offset', String(config.offset));
   if (seeded && config.seed !== 1) params.set('seed', String(config.seed));
   if (config.max < 1000) params.set('max', String(config.max));
   if (config.sortBy) {
@@ -39,7 +63,7 @@ export function buildRequestUrl(config: PlaygroundConfig, seeded = true): string
   if (config.delay > 0) params.set('delay', String(config.delay));
   if (config.status >= 400) params.set('status', String(config.status));
   else if (config.failRate > 0) params.set('fail', config.failRate >= 1 ? 'true' : String(config.failRate));
-  return `${trimBase(config.apiBase)}/${config.endpoint}?${params.toString()}`;
+  return `${trimBase(config.apiBase)}/${config.endpoint}?${pagingParams(config, params)}&${params}`.replace(/&$/, '');
 }
 
 const shellQuote = (value: string) => `'${value.replaceAll("'", "'\\''")}'`;

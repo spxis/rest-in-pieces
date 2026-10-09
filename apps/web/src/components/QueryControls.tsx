@@ -1,6 +1,13 @@
 import { ArrowUpDown, Filter as FilterIcon, Plus, Search, Trash2 } from 'lucide-react';
 import { useSpeaker } from '../i18n/LocaleProvider.tsx';
-import { DATA_LOCALES, type Filter, type FilterOperator, OPERATORS, type PlaygroundConfig } from '../lib/config.ts';
+import {
+  DATA_LOCALES,
+  type Filter,
+  type FilterOperator,
+  OPERATORS,
+  PAGING_STYLES,
+  type PlaygroundConfig,
+} from '../lib/config.ts';
 
 type Update = (patch: Partial<PlaygroundConfig>) => void;
 
@@ -47,27 +54,52 @@ export function PageAndSort({
   onChange: Update;
 }) {
   const { say } = useSpeaker();
+  const byPage = config.paging === 'page';
+  const pageNumber = config.limit > 0 ? Math.floor(config.offset / config.limit) + 1 : 1;
   return (
     <div className="form-section">
       <div className="section-label-row">
         <span className="section-caption">{say('page.heading')}</span>
         <ArrowUpDown size={15} />
       </div>
-      <div className="input-grid three-cols">
+      <div className="input-grid four-cols">
+        <label className="control">
+          <span>{say('page.style')}</span>
+          <select
+            value={config.paging}
+            onChange={(event) => onChange({ paging: event.target.value as PlaygroundConfig['paging'] })}
+          >
+            {PAGING_STYLES.map((style) => (
+              <option key={style.value} value={style.value}>
+                {say(style.label)}
+              </option>
+            ))}
+          </select>
+        </label>
         <NumberControl
-          label={say('page.limit')}
+          label={say(byPage ? 'page.size' : 'page.limit')}
           value={config.limit}
           min={0}
           max={1000}
           onChange={(limit) => onChange({ limit })}
         />
-        <NumberControl
-          label={say('page.offset')}
-          value={config.offset}
-          min={0}
-          max={1000}
-          onChange={(offset) => onChange({ offset })}
-        />
+        {byPage ? (
+          <NumberControl
+            label={say('page.number')}
+            value={pageNumber}
+            min={1}
+            max={1001}
+            onChange={(page) => onChange({ offset: Math.min(1000, (page - 1) * config.limit) })}
+          />
+        ) : (
+          <NumberControl
+            label={say('page.offset')}
+            value={config.offset}
+            min={0}
+            max={1000}
+            onChange={(offset) => onChange({ offset })}
+          />
+        )}
         <NumberControl
           label={say('page.max')}
           value={config.max}

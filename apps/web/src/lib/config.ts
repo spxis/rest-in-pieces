@@ -8,6 +8,9 @@ export type FilterOperator = 'eq' | 'ne' | 'gt' | 'gte' | 'lt' | 'lte';
 
 export type DataLocale = 'en-CA' | 'ja';
 
+/** How the request names its page: `offset`, `page` and `pageSize`, or an opaque `cursor`. */
+export type PagingStyle = 'offset' | 'page' | 'cursor';
+
 export interface Field {
   id: number;
   name: string;
@@ -27,7 +30,9 @@ export interface PlaygroundConfig {
   endpoint: string;
   apiBase: string;
   limit: number;
+  /** The first record of the page. Page and cursor requests are built from it. */
   offset: number;
+  paging: PagingStyle;
   max: number;
   seed: number;
   sortBy: string;
@@ -60,6 +65,11 @@ export const DATA_LOCALES = [
   { value: 'en-CA', label: 'data.localeEn' },
   { value: 'ja', label: 'data.localeJa' },
 ] as const satisfies ReadonlyArray<{ value: DataLocale; label: PhraseKey }>;
+export const PAGING_STYLES = [
+  { value: 'offset', label: 'page.styleOffset' },
+  { value: 'page', label: 'page.stylePage' },
+  { value: 'cursor', label: 'page.styleCursor' },
+] as const satisfies ReadonlyArray<{ value: PagingStyle; label: PhraseKey }>;
 export const MAX_FIELDS = 50;
 export const MAX_SEED = 4294967295;
 
@@ -85,6 +95,7 @@ export function defaultConfig(apiBase = defaultApiBase()): PlaygroundConfig {
     apiBase,
     limit: 10,
     offset: 0,
+    paging: 'offset',
     max: 1000,
     seed: 1,
     sortBy: '',
@@ -148,6 +159,7 @@ export function configFromHash(hash: string, fallback = defaultConfig()): Playgr
     apiBase: params.get('apiBase') || fallback.apiBase,
     limit: int('limit', fallback.limit, 0, 1000),
     offset: int('offset', fallback.offset, 0, 1_000_000),
+    paging: PAGING_STYLES.find((style) => style.value === params.get('paging'))?.value ?? fallback.paging,
     max: int('max', fallback.max, 0, 1000),
     seed: int('seed', fallback.seed, 0, MAX_SEED),
     sortBy: params.get('sortBy') ?? fallback.sortBy,

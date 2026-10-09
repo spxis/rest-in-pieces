@@ -9,6 +9,7 @@ describe('shared setups', () => {
       ...base,
       endpoint: 'generate',
       offset: 20,
+      paging: 'cursor' as const,
       seed: 42,
       q: 'ont',
       filters: [{ id: 1, field: 'age', operator: 'gte' as const, value: '30' }],
@@ -25,7 +26,7 @@ describe('shared setups', () => {
 
   it('ignores values that do not validate', () => {
     const config = configFromHash(
-      '#limit=5000&offset=-1&seed=abc&locale=fr&format=pdf&endpoint=../x&fields=[{"bad":true}]&filters=nope',
+      '#limit=5000&offset=-1&paging=keyset&seed=abc&locale=fr&format=pdf&endpoint=../x&fields=[{"bad":true}]&filters=nope',
       base,
     );
     expect(config).toEqual(base);

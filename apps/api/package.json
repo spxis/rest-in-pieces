@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     ".": "./index.ts",
-    "./core": "./src/core.ts"
+    "./core": "./src/core.ts",
+    "./cursor": "./src/lib/cursor.ts"
   },
   "scripts": {
     "dev": "node --watch src/server.ts",

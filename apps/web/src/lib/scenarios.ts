@@ -9,6 +9,14 @@ export interface Scenario {
 }
 
 const reset = { delay: 0, status: 0, failRate: 0 };
+const END_OF_RESULTS_MAX = 25;
+
+/** The page that reaches the end of a capped dataset. A page number can only land on a whole page. */
+function lastPageOffset({ limit, paging }: PlaygroundConfig): number {
+  const size = Math.max(1, limit);
+  if (paging === 'page') return Math.floor((END_OF_RESULTS_MAX - 1) / size) * size;
+  return Math.max(0, END_OF_RESULTS_MAX - size);
+}
 
 /** One-click setups for the states a client has to handle. */
 export const SCENARIOS: Scenario[] = [
@@ -22,7 +30,7 @@ export const SCENARIOS: Scenario[] = [
     id: 'end-of-results',
     label: 'scenario.endOfResults.label',
     hint: 'scenario.endOfResults.hint',
-    apply: (c) => ({ ...reset, max: 25, offset: Math.max(0, 25 - Math.max(1, c.limit)) }),
+    apply: (c) => ({ ...reset, max: END_OF_RESULTS_MAX, offset: lastPageOffset(c) }),
   },
   {
     id: 'empty',
