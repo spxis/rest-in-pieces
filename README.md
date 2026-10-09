@@ -14,6 +14,52 @@ Every dataset is generated from a seed. The same URL returns the same records on
 
 ![The REST in Pieces playground](docs/images/playground.png)
 
+## Run it
+
+**With npx**, with nothing to clone (Node.js 22.13 or later):
+
+```sh
+npx rest-in-pieces                  # API, playground and docs on http://localhost:6800
+npx rest-in-pieces --port 6900      # another port; PORT works too
+npx rest-in-pieces --host 0.0.0.0   # reachable from other machines and containers
+```
+
+**With Docker:**
+
+```sh
+docker run --rm -p 6800:6800 ghcr.io/spxis/rest-in-pieces
+```
+
+**In your browser:** the [live demo on GitHub Pages](https://spxis.github.io/rest-in-pieces/) runs the whole API inside the tab.
+
+**Inside your tests**, with no port and no server to start. `createApp()` builds the API and `app.request()` answers in-process, in Vitest, Jest, Playwright or any Node script:
+
+```ts
+import { createApp } from 'rest-in-pieces';
+import { expect, test } from 'vitest';
+
+test('lists five users', async () => {
+  const res = await createApp().request('/users?limit=5&seed=42');
+  expect(await res.json()).toHaveProperty('results.length', 5);
+});
+```
+
+`rest-in-pieces/core` exports `createApp` alone, with no Node imports, for workers and other fetch-style hosts.
+
+### A backend inside the tab
+
+`rest-in-pieces/browser` runs the API inside the page, so a frontend on StackBlitz, CodeSandbox or any static host gets a REST backend with no server:
+
+```js
+import { installInBrowserApi } from 'rest-in-pieces/browser';
+
+installInBrowserApi(); // answers fetch('/api/...') in this tab; every other request goes to the network
+
+const { results } = await (await fetch('/api/users?limit=10&seed=7')).json();
+```
+
+`installInBrowserApi({ base: '/mock' })` moves it, and the function it returns puts the original `fetch` back. The API loads on the first request, so the page pays nothing for it until then. Only `fetch` is answered; libraries built on `XMLHttpRequest` still go to the network.
+
 ## Why use it
 
 - **Repeatable data.** `?seed=42` always returns the same records. Screenshots, snapshot tests and bug reports stay stable.
