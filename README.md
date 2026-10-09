@@ -15,7 +15,7 @@ Seeded, realistic, localized data plus latency, error and messy-data drills, as 
 
 It plugs into [Vite, MSW, Storybook, Next.js, Playwright, Cypress and openapi-fetch](#use-with), and answers any origin.
 
-[![The REST in Pieces playground](docs/images/playground.png)](https://spxis.github.io/rest-in-pieces/)
+[![The REST in Pieces playground](https://raw.githubusercontent.com/spxis/rest-in-pieces/main/docs/images/playground.png)](https://spxis.github.io/rest-in-pieces/)
 
 Every dataset is generated from a seed. The same URL returns the same records on every machine and after every restart, so a bug can be reproduced from its URL instead of disappearing with a new random dataset.
 
