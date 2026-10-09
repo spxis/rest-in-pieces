@@ -39,7 +39,17 @@ Keep pull requests focused, add or update tests for behaviour changes, and updat
 
 ## Releasing
 
-Releases are cut from an up-to-date `main` with one command, after the changes are recorded under `## Unreleased` in `CHANGELOG.md`:
+Every feature or fix that lands on `main` takes its own version, in the same push. Record the change under `## Unreleased` in `CHANGELOG.md`, merge it, then run `pnpm release` with the next version by the kind of change:
+
+| Change | Version | Example from 2.2.0 |
+| ------ | ------- | ------------------ |
+| `feat` | next minor | 2.3.0 |
+| `fix` or `chore` | next patch | 2.2.1 |
+| breaking change | next major | 3.0.0 |
+
+Several changes may be pushed together, each with its own `pnpm release` and version, in the order they landed. The push of the tags publishes them. A change nothing a reader of the site or the package can see, such as a test, a CI step or a doc, takes no version and rides with the next release; `pnpm release` refuses an empty `## Unreleased` section anyway. The playground's top bar shows the version (and, on GitHub Pages, the commit), and `apps/api/test/versions.test.ts` fails when the three `package.json` files or the changelog's latest release disagree.
+
+Releases are cut from an up-to-date `main` with one command:
 
 ```sh
 pnpm release 2.2.0
