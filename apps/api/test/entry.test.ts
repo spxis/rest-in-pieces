@@ -12,7 +12,7 @@ describe('package entry', () => {
 
   it('points every export at built JavaScript with types, and the source condition at TypeScript', () => {
     for (const [path, target] of Object.entries(pkg.exports)) {
-      if (typeof target === 'string') continue;
+      if (typeof target === 'string' || path === './types') continue;
       const name = path === '.' ? 'index' : path.slice(2);
       expect(target).toEqual({
         'rest-in-pieces:source': `./src/${name}.ts`,
@@ -20,5 +20,10 @@ describe('package entry', () => {
         default: `./dist/${name}.js`,
       });
     }
+  });
+
+  it('ships the OpenAPI document and the types generated from it, built rather than committed', () => {
+    expect(pkg.exports['./types']).toEqual({ types: './dist/types.d.ts' });
+    expect(pkg.exports['./openapi.json']).toBe('./dist/openapi.json');
   });
 });

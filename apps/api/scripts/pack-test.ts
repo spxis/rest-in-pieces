@@ -101,7 +101,18 @@ try {
   }>;
   assert(report, 'npm pack printed no report.');
   const files = report.files.map((file) => file.path);
-  for (const required of ['bin/rest-in-pieces.js', 'dist/index.d.ts', 'dist/browser.js', 'web/index.html']) {
+  for (const required of [
+    'bin/rest-in-pieces.js',
+    'dist/index.d.ts',
+    'dist/browser.js',
+    'dist/msw.js',
+    'dist/msw.d.ts',
+    'dist/vite.js',
+    'dist/vite.d.ts',
+    'dist/types.d.ts',
+    'dist/openapi.json',
+    'web/index.html',
+  ]) {
     assert(files.includes(required), `The tarball is missing ${required}.`);
   }
   const stray = files.filter((path) => /^(src|test|scripts)\/|\.map$|\.test\./.test(path));
@@ -123,6 +134,10 @@ try {
 import defaultApp, { app, createApp } from '@johnmorrisdotca/rest-in-pieces';
 import { type InBrowserApiOptions, installInBrowserApi } from '@johnmorrisdotca/rest-in-pieces/browser';
 import { createApp as createCoreApp } from '@johnmorrisdotca/rest-in-pieces/core';
+import { restInPiecesHandlers } from '@johnmorrisdotca/rest-in-pieces/msw';
+import spec from '@johnmorrisdotca/rest-in-pieces/openapi.json' with { type: 'json' };
+import type { components, paths } from '@johnmorrisdotca/rest-in-pieces/types';
+import { restInPieces } from '@johnmorrisdotca/rest-in-pieces/vite';
 
 const fail = (message: string): never => {
   throw new Error(message);
@@ -137,6 +152,27 @@ const options: InBrowserApiOptions = { base: 'https://in-tab.test/api' };
 const uninstall: () => void = installInBrowserApi(options);
 if ((await results(await fetch('https://in-tab.test/api/users?limit=3'))).length !== 3) fail('The browser entry did not answer.');
 uninstall();
+
+// MSW's \`http.all\` stands in for MSW itself, which the package only names as an optional peer.
+type Resolver = (info: { request: Request }) => Promise<Response>;
+const [handler] = restInPiecesHandlers({
+  base: 'https://msw.test/api',
+  http: { all: (path: string, resolver: Resolver) => ({ path, resolver }) },
+});
+if (!handler) throw new Error('The MSW entry returned no handler.');
+if (handler.path !== 'https://msw.test/api/*') fail(\`The MSW handler matches \${handler.path}.\`);
+if ((await results(await handler.resolver({ request: new Request('https://msw.test/api/users?limit=2') }))).length !== 2) fail('The MSW entry did not answer.');
+
+// Vite is an optional peer and is not installed here; the plugin still loads without it.
+const plugin = restInPieces({ base: '/mock' });
+if (plugin.name !== 'rest-in-pieces' || plugin.apply !== 'serve' || typeof plugin.configureServer !== 'function') fail('The Vite entry did not return the plugin.');
+
+// The generated types describe the API: a person's postal code is a string, and /users is a path.
+type Person = components['schemas']['Person'];
+const postalIsString: [Person['postal']] extends [string] ? ([string] extends [Person['postal']] ? true : false) : false = true;
+const usersPath: keyof paths = '/users';
+if (!postalIsString || !usersPath) fail('The generated types are wrong.');
+if (spec.info.version !== pkg.version || !('/users' in spec.paths)) fail('openapi.json is not the API document.');
 
 // @ts-expect-error The options are typed, so a wrong one fails the type check.
 createApp({ log: 'yes' });
@@ -168,7 +204,7 @@ console.log(pkg.version);
   const printed = run('node', [join(consumer, 'out', 'check.js')], consumer).trim();
   assert(printed === version, `The in-process check printed ${printed}.`);
   step(
-    'imported the in-process app, @johnmorrisdotca/rest-in-pieces/core and @johnmorrisdotca/rest-in-pieces/browser from the install',
+    'imported the in-process app, @johnmorrisdotca/rest-in-pieces/core, /browser, /msw, /vite, /types and /openapi.json from the install',
   );
 
   step(`passed in ${((performance.now() - startedAt) / 1000).toFixed(1)} s`);

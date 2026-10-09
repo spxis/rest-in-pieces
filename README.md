@@ -7,9 +7,13 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-7-3178c6)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
+Seeded, realistic, localized data plus latency, error and messy-data drills, as a REST API, a function call or a patch on `fetch`.
+
 **Try it: [spxis.github.io/rest-in-pieces](https://spxis.github.io/rest-in-pieces/).** The live demo runs the whole API inside the page, so there is no server behind it and nothing to install.
 
 **A repeatable test backend for frontend development.** Build tables, pagination, sorting, filters, loading states, empty states and error handling against realistic data, before a real backend exists.
+
+It plugs into [Vite, MSW, Storybook, Next.js, Playwright, Cypress and openapi-fetch](#use-with), and answers any origin.
 
 [![The REST in Pieces playground](docs/images/playground.png)](https://spxis.github.io/rest-in-pieces/)
 
@@ -57,7 +61,184 @@ installInBrowserApi(); // answers fetch('/api/...') in this tab; every other req
 const { results } = await (await fetch('/api/users?limit=10&seed=7')).json();
 ```
 
-`installInBrowserApi({ base: '/mock' })` moves it, and the function it returns puts the original `fetch` back. The API loads on the first request, so the page pays nothing for it until then. Only `fetch` is answered; libraries built on `XMLHttpRequest` still go to the network.
+`installInBrowserApi({ base: '/mock' })` moves it, and the function it returns puts the original `fetch` back. The API loads on the first request, so the page pays nothing for it until then. Only `fetch` is answered; libraries built on `XMLHttpRequest` still go to the network. To answer those too, use the [Mock Service Worker handlers](#mock-service-worker).
+
+## Use with
+
+### Vite
+
+`@johnmorrisdotca/rest-in-pieces/vite` serves the whole API from the Vite dev server, under `/api` on the same origin as your app: one line, no second process, no proxy, no entry file. It applies to `vite dev` only, so nothing of it reaches a production build, and responses stream, so `?trickle=` arrives in pieces. `vite` is an optional peer dependency.
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite';
+import { restInPieces } from '@johnmorrisdotca/rest-in-pieces/vite';
+
+export default defineConfig({ plugins: [restInPieces()] }); // fetch('/api/users?limit=10') in the app
+```
+
+`restInPieces({ base: '/mock' })` moves it, and `app` passes options to `createApp()`. Every path outside the base stays Vite's. Because it runs in the dev server rather than the page, server-side rendering and any HTTP client work without a service worker.
+
+Two other ways, neither needing the plugin:
+
+- **[`@hono/vite-dev-server`](https://github.com/honojs/vite-plugins/tree/main/packages/dev-server)** runs a fetch-style app inside `vite dev` from an entry file. Prefer it when you are writing Hono routes of your own beside the fake ones, since it reloads the entry when it changes. Mount the API in the entry and leave every other path to Vite with `exclude`; its own `base` option moves Vite's base too, so it does not suit an app served at `/`.
+
+  ```ts
+  // src/api.ts
+  import { Hono } from 'hono';
+  import { createApp } from '@johnmorrisdotca/rest-in-pieces/core';
+  export default new Hono().route('/api', createApp());
+
+  // vite.config.ts: plugins: [devServer({ entry: 'src/api.ts', exclude: [/^\/(?!api(\/|\?|$))/] })]
+  ```
+
+- **Vite's `server.proxy`**, with no code at all: run `npx @johnmorrisdotca/rest-in-pieces` in another terminal and proxy to it. Prefer it when the same API should also answer curl, a phone on the network or another app.
+
+  ```ts
+  server: { proxy: { '/api': { target: 'http://localhost:6800', rewrite: (path) => path.replace(/^\/api/, '') } } }
+  ```
+
+### Mock Service Worker
+
+`@johnmorrisdotca/rest-in-pieces/msw` gives [MSW](https://mswjs.io/) one handler that answers everything under a base path from the whole API. MSW's service worker catches `fetch`, `XMLHttpRequest` and axios alike, and a handler placed before it still wins, so a test can override one endpoint and leave the rest to the API. Pass MSW's own `http`: the entry imports nothing from `msw`, so it works with MSW 2 (`from 'msw'`) and MSW 3 (`from 'msw'` or `from 'msw/http'`). `msw` is an optional peer dependency.
+
+**In the browser**, once the worker script is in place (`npx msw init public`):
+
+```ts
+import { http } from 'msw';
+import { setupWorker } from 'msw/browser';
+import { restInPiecesHandlers } from '@johnmorrisdotca/rest-in-pieces/msw';
+
+await setupWorker(...restInPiecesHandlers({ http })).start({ onUnhandledRequest: 'bypass' }); // MSW 3: onUnhandledFrame
+```
+
+**In Vitest or Jest.** MSW in Node matches absolute URLs only, so give the base as one and point the code under test at it:
+
+```ts
+import { http } from 'msw';
+import { setupServer } from 'msw/node';
+import { restInPiecesHandlers } from '@johnmorrisdotca/rest-in-pieces/msw';
+
+export const server = setupServer(...restInPiecesHandlers({ base: 'http://localhost/api', http }));
+// beforeAll(() => server.listen()); afterEach(() => server.resetHandlers()); afterAll(() => server.close());
+```
+
+`server.use(http.get('http://localhost/api/users', () => HttpResponse.json({ results: [] })))` overrides one endpoint for one test; every other request under the base still reaches the API.
+
+**With MSW 3's Vite plugin**, which serves the worker and leaves it out of production builds (`plugins: [msw()]` from `msw/vite` in `vite.config.ts`):
+
+```ts
+if (import.meta.env.DEV) {
+  const { network } = await import('virtual:msw');
+  const { http } = await import('msw/http');
+  const { restInPiecesHandlers } = await import('@johnmorrisdotca/rest-in-pieces/msw');
+  network.configure({ handlers: restInPiecesHandlers({ http }) });
+  await network.enable();
+}
+```
+
+`restInPiecesHandlers({ base, app, http })` takes the same `base` (default `/api`) and `app` options as `installInBrowserApi`, and loads the API on the first request it matches.
+
+### Storybook
+
+With [msw-storybook-addon](https://github.com/mswjs/msw-storybook-addon), start the worker with the handlers once in `.storybook/preview.ts`. Handlers given to `setupWorker` survive the addon's reset between stories:
+
+```ts
+import { http } from 'msw';
+import { setupWorker } from 'msw/browser';
+import { mswLoader } from 'msw-storybook-addon/csf3'; // CSF Next: addons: [addonMsw(start)]
+import { restInPiecesHandlers } from '@johnmorrisdotca/rest-in-pieces/msw';
+
+const start = async () => {
+  const worker = setupWorker(...restInPiecesHandlers({ http }));
+  await worker.start({ onUnhandledRequest: 'bypass' });
+  return worker;
+};
+export default { loaders: [mswLoader(start)] };
+```
+
+The loading, error and overflow stories then need no mocking code, only another URL:
+
+```ts
+export const Loading = { args: { src: '/api/users?delay=3000' } };
+export const Failed = { args: { src: '/api/users?status=500' } };
+export const Messy = { args: { src: '/api/users?messy=true&seed=3' } };
+```
+
+### Next.js
+
+A catch-all route handler hosts the whole API inside a Next.js app, on its own origin. Hono's `mount` takes the base off the path before the API sees it (`hono` is already a dependency of this package; add it to yours if your package manager is strict):
+
+```ts
+// app/api/[[...path]]/route.ts
+import { Hono } from 'hono';
+import { createApp } from '@johnmorrisdotca/rest-in-pieces/core';
+
+const app = new Hono().mount('/api', createApp().fetch);
+const handler = (request: Request) => app.fetch(request);
+export { handler as GET, handler as HEAD, handler as POST, handler as PUT, handler as PATCH, handler as DELETE, handler as OPTIONS };
+```
+
+The same `createApp().fetch` runs on any other fetch-style host: Cloudflare Workers, Deno, Bun or a Vercel function.
+
+### Playwright
+
+No server and no MSW: answer the page's API requests from the app in the test process with `page.route`, so each test gets the same data and can turn on a drill by URL:
+
+```ts
+import { createApp } from '@johnmorrisdotca/rest-in-pieces';
+
+const app = createApp();
+test.beforeEach(({ page }) => page.route('**/api/**', async (route) => {
+  const request = route.request();
+  const url = new URL(request.url());
+  const response = await app.request(url.pathname.replace(/^\/api/, '') + url.search, { method: request.method(), headers: request.headers(), body: request.postDataBuffer() });
+  await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: Buffer.from(await response.arrayBuffer()) });
+}));
+```
+
+Or start the API beside your app with Playwright's `webServer` (`command: 'npx @johnmorrisdotca/rest-in-pieces --port 6800'`, `url: 'http://localhost:6800/health'`).
+
+[`@msw/playwright`](https://github.com/mswjs/playwright) (MSW 3) does the same through MSW, so the [MSW handlers](#mock-service-worker) plug straight in. Give them the base at your app's origin:
+
+```ts
+import { defineNetworkFixture } from '@msw/playwright';
+
+const handlers = restInPiecesHandlers({ base: 'http://localhost:5173/api', http });
+// in test.extend: const network = defineNetworkFixture({ context, handlers }); await network.enable(); await use(network); await network.disable();
+```
+
+### Cypress
+
+Cypress runs its intercept handlers in the browser, so the API runs as a server beside your app. With [start-server-and-test](https://github.com/bahmutov/start-server-and-test) and the package installed as a dev dependency:
+
+```json
+"scripts": {
+  "api": "rest-in-pieces --port 6800",
+  "e2e": "start-test api http://localhost:6800/health dev http://localhost:5173 'cypress run'"
+}
+```
+
+Slow, failing and flaky answers come from the API's own `?delay=`, `?status=` and `?fail=`, with no mocking code in the test. Keep `cy.intercept` for the faults no server can make, such as a dropped connection: `cy.intercept('GET', '/api/users*', { forceNetworkError: true })`. Or call `installInBrowserApi()` in the app under test and need no server at all.
+
+### Typed clients
+
+The package ships the API's OpenAPI 3.1 document as `@johnmorrisdotca/rest-in-pieces/openapi.json`, and TypeScript types for every path and schema, generated from it by [openapi-typescript](https://openapi-ts.dev/), as `@johnmorrisdotca/rest-in-pieces/types`. They describe the version installed, with nothing running. With [openapi-fetch](https://openapi-ts.dev/openapi-fetch/):
+
+```ts
+import createClient from 'openapi-fetch';
+import type { paths } from '@johnmorrisdotca/rest-in-pieces/types';
+
+const api = createClient<paths, 'application/json'>({ baseUrl: 'http://localhost:6800' });
+const { data } = await api.GET('/users', { params: { query: { limit: '10', seed: '42' } } });
+if (data && !Array.isArray(data)) console.log(data.metadata.total, data.results[0]?.email); // metadata=false returns a bare array
+```
+
+`components['schemas']['User']`, `['Person']`, `['Product']` and the rest type single records, and `['UserInput']` and its siblings the write bodies. Query parameters are strings, as they are in a URL. To generate the types yourself, point openapi-typescript at the document: `npx openapi-typescript node_modules/@johnmorrisdotca/rest-in-pieces/dist/openapi.json -o rest-in-pieces.d.ts`, or at `/openapi.json` on any running instance.
+
+### Any origin
+
+CORS is on by default, so a frontend on any dev-server origin can call the API directly. Every response carries `Access-Control-Allow-Origin: *`; a preflight `OPTIONS` answers `204` with the methods allowed and the requested headers echoed back, so a write with an `Authorization` header preflights too; and `X-Total-Count`, `Link`, `ETag`, `X-Simulated`, `Retry-After` and `Location` are exposed to scripts.
 
 ## Why use it
 
@@ -70,6 +251,20 @@ const { results } = await (await fetch('/api/users?limit=10&seed=7')).json();
 - **Any format.** JSON, CSV, YAML or XML, chosen by `?format=` or the `Accept` header.
 - **Self-documenting.** An OpenAPI 3.1 spec generated from the same schemas that validate requests, with interactive docs at `/docs`.
 - **A playground in English and 日本語.** Build a request, inspect the table, body and headers, page through results, and share the exact setup as a link. The language follows the browser, `?lang=ja` or the toggle in the top bar.
+
+## How it compares
+
+Most tools in this space either intercept requests and leave you to write the data, or serve data you wrote by hand and leave you to write the realism. REST in Pieces ships the data and the unhappy paths, and runs behind most of the interception tools.
+
+| Tool | What it is | Verdict |
+| ---- | ---------- | ------- |
+| [json-server](https://github.com/typicode/json-server) | A REST API over a `db.json` you write | Closest in spirit. It has persisted writes and relations today, which REST in Pieces does not (its writes are stateless); REST in Pieces has generated, seeded, localized data, paging, formats and failure drills with nothing to write. |
+| [MSW](https://mswjs.io/) | Request interception in the browser and Node | Not a rival but a host: MSW intercepts, REST in Pieces answers. Use the [MSW handlers](#mock-service-worker). |
+| [Mirage JS](https://miragejs.com/) | A fake server in the tab, with models and factories you define | Mirage wants a schema and routes; REST in Pieces needs no setup, but has no in-memory database. |
+| [Prism](https://github.com/stoplightio/prism) | A mock server generated from your OpenAPI file | Use Prism when you have a contract to mock; use REST in Pieces when you do not, and want realistic data rather than examples. |
+| [Mockoon](https://mockoon.com/) | A desktop app and CLI for hand-templated mock routes | Better for people who prefer a GUI and per-route templates; REST in Pieces is code-first, with seeds and locales built in. |
+| [DummyJSON](https://dummyjson.com/), [JSONPlaceholder](https://jsonplaceholder.typicode.com/) | Hosted fake APIs at public URLs | Nothing to install, but fixed English data and no failure drills; DummyJSON also has login and tokens, which REST in Pieces does not. The [fixtures](#fixtures) and the live demo are the hosted side here. |
+| [Faker](https://fakerjs.dev/) | A library of generators you call in code | REST in Pieces is built on it, and serves it over HTTP with paging, filters, formats and seeds already done. |
 
 ## Quick start
 
@@ -122,7 +317,7 @@ curl 'http://localhost:6800/products?department=Books&price[lt]=100&format=csv'
 curl 'http://localhost:6800/names?locale=ja&province=東京都&limit=5'
 
 # An international user table: every row from its own country
-curl 'http://localhost:8080/users?locale=global&limit=20'
+curl 'http://localhost:6800/users?locale=global&limit=20'
 
 # Your own shape
 curl 'http://localhost:6800/generate?fields=name:person.fullName,email:internet.email,plan:commerce.productAdjective&seed=3'
