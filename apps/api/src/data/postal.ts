@@ -4,14 +4,19 @@
  * Faker draws a province and a postal code separately, so on its own a Newfoundland address came with a
  * Manitoba code (`R8M 8G0`), and most Canadian and US records named one region in `province` and another
  * in `postal`. A Canadian code's first letter, and a US ZIP code's first three digits, say which region
- * it belongs to; `@spxis/address-plus` holds those tables, and this lays the region's prefix over the
+ * it belongs to; `@johnmorrisdotca/address-plus` holds those tables, and this lays the region's prefix over the
  * code Faker drew.
  *
  * The prefix is chosen from the drawn code itself, not from Faker, so no extra random draw is taken:
  * every other field at a seed is what it was before, and only `postal` moves.
  */
 
-import { CA_PROVINCES, getPostalPrefixesForProvince, getZipPrefixesForState, US_STATES } from '@spxis/address-plus';
+import {
+  CA_PROVINCES,
+  getPostalPrefixesForProvince,
+  getZipPrefixesForState,
+  US_STATES,
+} from '@johnmorrisdotca/address-plus';
 import { hash } from './build.ts';
 
 /** Canada Post never uses D, F, I, O, Q or U; Faker's pattern does. Each becomes its neighbour. */

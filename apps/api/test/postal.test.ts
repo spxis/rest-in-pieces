@@ -1,4 +1,4 @@
-import { CA_PROVINCES, getProvinceFromPostalCode, getStateFromZip, US_STATES } from '@spxis/address-plus';
+import { CA_PROVINCES, getProvinceFromPostalCode, getStateFromZip, US_STATES } from '@johnmorrisdotca/address-plus';
 import { describe, expect, it } from 'vitest';
 import { postalFor } from '../src/data/postal.ts';
 import { type Envelope, request } from './helpers.ts';
