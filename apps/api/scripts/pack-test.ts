@@ -107,6 +107,8 @@ try {
     'dist/browser.js',
     'dist/msw.js',
     'dist/msw.d.ts',
+    'dist/types.d.ts',
+    'dist/openapi.json',
     'web/index.html',
   ]) {
     assert(files.includes(required), `The tarball is missing ${required}.`);
@@ -131,6 +133,8 @@ import defaultApp, { app, createApp } from '@johnmorrisdotca/rest-in-pieces';
 import { type InBrowserApiOptions, installInBrowserApi } from '@johnmorrisdotca/rest-in-pieces/browser';
 import { createApp as createCoreApp } from '@johnmorrisdotca/rest-in-pieces/core';
 import { restInPiecesHandlers } from '@johnmorrisdotca/rest-in-pieces/msw';
+import spec from '@johnmorrisdotca/rest-in-pieces/openapi.json' with { type: 'json' };
+import type { components, paths } from '@johnmorrisdotca/rest-in-pieces/types';
 
 const fail = (message: string): never => {
   throw new Error(message);
@@ -155,6 +159,13 @@ const [handler] = restInPiecesHandlers({
 if (!handler) throw new Error('The MSW entry returned no handler.');
 if (handler.path !== 'https://msw.test/api/*') fail(\`The MSW handler matches \${handler.path}.\`);
 if ((await results(await handler.resolver({ request: new Request('https://msw.test/api/users?limit=2') }))).length !== 2) fail('The MSW entry did not answer.');
+
+// The generated types describe the API: a person's postal code is a string, and /users is a path.
+type Person = components['schemas']['Person'];
+const postalIsString: [Person['postal']] extends [string] ? ([string] extends [Person['postal']] ? true : false) : false = true;
+const usersPath: keyof paths = '/users';
+if (!postalIsString || !usersPath) fail('The generated types are wrong.');
+if (spec.info.version !== pkg.version || !('/users' in spec.paths)) fail('openapi.json is not the API document.');
 
 // @ts-expect-error The options are typed, so a wrong one fails the type check.
 createApp({ log: 'yes' });
@@ -185,7 +196,9 @@ console.log(pkg.version);
   run('tsc', ['-p', consumer, '--noEmit', 'false', '--outDir', join(consumer, 'out')], consumer);
   const printed = run('node', [join(consumer, 'out', 'check.js')], consumer).trim();
   assert(printed === version, `The in-process check printed ${printed}.`);
-  step('imported the in-process app, @johnmorrisdotca/rest-in-pieces/core, /browser and /msw from the install');
+  step(
+    'imported the in-process app, @johnmorrisdotca/rest-in-pieces/core, /browser, /msw, /types and /openapi.json from the install',
+  );
 
   step(`passed in ${((performance.now() - startedAt) / 1000).toFixed(1)} s`);
 } finally {

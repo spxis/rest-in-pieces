@@ -139,6 +139,21 @@ const handlers = restInPiecesHandlers({ base: 'http://localhost:5173/api', http 
 // in test.extend: const network = defineNetworkFixture({ context, handlers }); await network.enable(); await use(network); await network.disable();
 ```
 
+### Typed clients
+
+The package ships the API's OpenAPI 3.1 document as `@johnmorrisdotca/rest-in-pieces/openapi.json`, and TypeScript types for every path and schema, generated from it by [openapi-typescript](https://openapi-ts.dev/), as `@johnmorrisdotca/rest-in-pieces/types`. They describe the version installed, with nothing running. With [openapi-fetch](https://openapi-ts.dev/openapi-fetch/):
+
+```ts
+import createClient from 'openapi-fetch';
+import type { paths } from '@johnmorrisdotca/rest-in-pieces/types';
+
+const api = createClient<paths, 'application/json'>({ baseUrl: 'http://localhost:6800' });
+const { data } = await api.GET('/users', { params: { query: { limit: '10', seed: '42' } } });
+if (data && !Array.isArray(data)) console.log(data.metadata.total, data.results[0]?.email); // metadata=false returns a bare array
+```
+
+`components['schemas']['User']`, `['Person']`, `['Product']` and the rest type single records, and `['UserInput']` and its siblings the write bodies. Query parameters are strings, as they are in a URL. To generate the types yourself, point openapi-typescript at the document: `npx openapi-typescript node_modules/@johnmorrisdotca/rest-in-pieces/dist/openapi.json -o rest-in-pieces.d.ts`, or at `/openapi.json` on any running instance.
+
 ## Why use it
 
 - **Repeatable data.** `?seed=42` always returns the same records. Screenshots, snapshot tests and bug reports stay stable.
