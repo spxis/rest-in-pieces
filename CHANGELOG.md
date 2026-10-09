@@ -4,6 +4,10 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Added
+
+- Static fixtures on GitHub Pages: every dataset at seed 1, in every locale and `global`, as JSON and CSV (all 1,000 records and the first page of 10) plus a few items, at plain URLs such as `https://spxis.github.io/rest-in-pieces/fixtures/users.json`, with `fixtures/index.json` listing them all. The playground's top bar links to them.
+
 ## 2.7.0 - 2026-10-08
 
 ### Added
