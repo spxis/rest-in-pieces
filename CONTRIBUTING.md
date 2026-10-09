@@ -8,10 +8,12 @@ Requirements: Node.js 22.18 or later (24 LTS recommended) and pnpm 10.
 
 ```sh
 pnpm install
-pnpm dev        # API on :8080, playground on :5173
+pnpm dev        # API on :6800, playground on :6801
 ```
 
 `PORT` moves the API. `VITE_API_BASE_URL` points the playground at another API.
+
+Local ports come from this project's block, 6800–6899; [AGENTS.md](AGENTS.md) says which is which and how to pick a free one for a worktree.
 
 ## Project layout
 

@@ -44,7 +44,7 @@ describe('inBrowserFetch', () => {
     const passThrough = vi.fn<typeof fetch>(async () => new Response('real'));
     const load = vi.fn(async () => createApp());
     const fetcher = inBrowserFetch(BASE, load, passThrough);
-    for (const url of ['http://localhost:8080/names', 'https://spxis.github.io/rest-in-pieces/apiary']) {
+    for (const url of ['http://localhost:6800/names', 'https://spxis.github.io/rest-in-pieces/apiary']) {
       expect(await (await fetcher(url)).text()).toBe('real');
     }
     expect(load).not.toHaveBeenCalled();

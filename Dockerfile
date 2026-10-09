@@ -17,14 +17,14 @@ RUN pnpm --filter @rest-in-pieces/web build \
 FROM node:24-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production \
-    PORT=8080 \
+    PORT=6800 \
     WEB_ROOT=/app/web
 
 COPY --from=build --chown=node:node /out/api ./
 COPY --from=build --chown=node:node /out/web ./web
 
 USER node
-EXPOSE 8080
+EXPOSE 6800
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
   CMD wget -qO- "http://127.0.0.1:${PORT}/health" > /dev/null || exit 1
 CMD ["node", "src/server.ts"]

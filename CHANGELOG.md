@@ -9,6 +9,10 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 - A live demo on GitHub Pages. The whole API runs inside the browser tab, with static copies of the OpenAPI document and the reference docs beside it.
 - `createApp()` builds the API from web standards alone, so it runs on Node, on any fetch-style host and in a browser.
 
+### Changed
+
+- Default ports are back in the project's 6800–6899 block: 6800 for the API (and the Docker image) and 6801 for the playground, which now refuses to start on another port. `AGENTS.md` records the block.
+
 ### Fixed
 
 - Sorting no longer depends on the server's locale: strings are compared in the dataset's `locale`, numbers inside text sort as numbers (`item 9` before `item 10`), and `sortDirection=desc` is the exact mirror of `asc`, with equal keys kept in dataset order both ways.

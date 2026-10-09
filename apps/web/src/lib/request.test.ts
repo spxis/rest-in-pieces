@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { defaultConfig } from './config.ts';
 import { buildRequestUrl, curlCommand, extractRows, fetchSnippet, isLocalApi } from './request.ts';
 
-const base = defaultConfig('http://localhost:8080/');
+const base = defaultConfig('http://localhost:6800/');
 
 describe('buildRequestUrl', () => {
   it('keeps the default request short', () => {
-    expect(buildRequestUrl(base)).toBe('http://localhost:8080/names?limit=10');
+    expect(buildRequestUrl(base)).toBe('http://localhost:6800/names?limit=10');
   });
 
   it('includes paging, sorting, search, filters, format and simulation', () => {
@@ -52,7 +52,7 @@ describe('buildRequestUrl', () => {
 
   it('asks countries for the envelope only when metadata is on, and drops the seed', () => {
     expect(buildRequestUrl({ ...base, endpoint: 'countries', seed: 9, metadata: true }, false)).toBe(
-      'http://localhost:8080/countries?limit=10&metadata=true',
+      'http://localhost:6800/countries?limit=10&metadata=true',
     );
   });
 
@@ -86,7 +86,7 @@ describe('snippets', () => {
 
 describe('helpers', () => {
   it('tells local APIs from remote ones', () => {
-    expect(isLocalApi('http://127.0.0.1:8080')).toBe(true);
+    expect(isLocalApi('http://127.0.0.1:6800')).toBe(true);
     expect(isLocalApi('https://api.example.com')).toBe(false);
     expect(isLocalApi('not a url')).toBeNull();
   });

@@ -36,43 +36,43 @@ pnpm dev
 
 | Service    | URL                                                  |
 | ---------- | ---------------------------------------------------- |
-| API        | [http://localhost:8080](http://localhost:8080)       |
-| API docs   | [http://localhost:8080/docs](http://localhost:8080/docs) |
-| Playground | [http://localhost:5173](http://localhost:5173)       |
+| API        | [http://localhost:6800](http://localhost:6800)       |
+| API docs   | [http://localhost:6800/docs](http://localhost:6800/docs) |
+| Playground | [http://localhost:6801](http://localhost:6801)       |
 
 Or run everything from one container:
 
 ```sh
 docker build -t rest-in-pieces .
-docker run --rm -p 8080:8080 rest-in-pieces   # playground, API and docs on :8080
+docker run --rm -p 6800:6800 rest-in-pieces   # playground, API and docs on :6800
 ```
 
 ## Using the API
 
 ```sh
 # First page of people, in the original envelope
-curl 'http://localhost:8080/names?limit=10'
+curl 'http://localhost:6800/names?limit=10'
 
 # Women in their thirties in Ontario, oldest first
-curl 'http://localhost:8080/names?gender=female&age[gte]=30&age[lt]=40&province=Ontario&sortBy=age:numeric&sortDirection=desc'
+curl 'http://localhost:6800/names?gender=female&age[gte]=30&age[lt]=40&province=Ontario&sortBy=age:numeric&sortDirection=desc'
 
 # One record
-curl 'http://localhost:8080/users/42?seed=7'
+curl 'http://localhost:6800/users/42?seed=7'
 
 # Books under $100 as CSV
-curl 'http://localhost:8080/products?department=Books&price[lt]=100&format=csv'
+curl 'http://localhost:6800/products?department=Books&price[lt]=100&format=csv'
 
 # The same people, for a Japanese audience
-curl 'http://localhost:8080/names?locale=ja&province=東京都&limit=5'
+curl 'http://localhost:6800/names?locale=ja&province=東京都&limit=5'
 
 # Your own shape
-curl 'http://localhost:8080/generate?fields=name:person.fullName,email:internet.email,plan:commerce.productAdjective&seed=3'
-curl -X POST 'http://localhost:8080/generate?limit=5' \
+curl 'http://localhost:6800/generate?fields=name:person.fullName,email:internet.email,plan:commerce.productAdjective&seed=3'
+curl -X POST 'http://localhost:6800/generate?limit=5' \
   -H 'Content-Type: application/json' \
   -d '{ "fields": { "sku": "string.uuid", "price": "commerce.price" }, "count": 200, "seed": 9 }'
 
 # A flaky backend: 30% of requests fail
-curl -i 'http://localhost:8080/users?fail=0.3'
+curl -i 'http://localhost:6800/users?fail=0.3'
 ```
 
 ### Endpoints
@@ -156,8 +156,8 @@ Filters and search work on Japanese text: `/names?locale=ja&province=東京都`.
 任意のエンドポイントに `locale=ja` を付けると、日本向けのデータを返します。氏名は姓・名の順で、フリガナ（`nameKana`）とローマ字（`nameRomaji`）付きです。住所は実在の都道府県・市区町村を使用し、郵便番号は `123-4567` 形式、電話番号は `090-1234-5678` 形式、商品の価格は円単位（`1980` や `2000` など）です。同じ `seed` なら、いつでも同じデータが返ります。
 
 ```sh
-curl 'http://localhost:8080/users?locale=ja&limit=5'
-curl 'http://localhost:8080/products?locale=ja&sortBy=price:numeric&format=csv'
+curl 'http://localhost:6800/users?locale=ja&limit=5'
+curl 'http://localhost:6800/products?locale=ja&sortBy=price:numeric&format=csv'
 ```
 
 ## Architecture
@@ -192,7 +192,7 @@ tests/e2e    Playwright tests that drive the playground against the real API
 
 | Script               | What it does |
 | -------------------- | ------------ |
-| `pnpm dev`           | API on :8080 and playground on :5173, both reloading |
+| `pnpm dev`           | API on :6800 and playground on :6801, both reloading |
 | `pnpm check`         | Lint, typecheck, unit tests and build |
 | `pnpm test`          | Unit and component tests (Vitest) |
 | `pnpm test:coverage` | API tests with coverage thresholds |
@@ -205,7 +205,7 @@ Set `PORT` to move the API, and `VITE_API_BASE_URL` to point the playground else
 
 **Vercel.** Create one project with **Root Directory** `apps/api`. `apps/api/vercel.json` builds the playground into `public/`, so the playground, API and docs share one origin with no extra configuration.
 
-**Docker.** The image above serves everything from port 8080, runs as a non-root user and includes a health check.
+**Docker.** The image above serves everything from port 6800, runs as a non-root user and includes a health check.
 
 **GitHub Pages.** `.github/workflows/pages.yml` publishes the in-browser playground on every push to `main`. `pnpm --filter @rest-in-pieces/web build:pages` builds it locally into `apps/web/dist-pages`: the playground, the API bundled as a chunk it loads on the first request, and static copies of `api/openapi.json` and `api/docs/`. Set `PAGES_BASE` to serve it from somewhere other than `/rest-in-pieces/`.
 

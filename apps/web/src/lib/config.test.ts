@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { configFromHash, configToHash, defaultConfig } from './config.ts';
 
-const base = defaultConfig('http://localhost:8080');
+const base = defaultConfig('http://localhost:6800');
 
 describe('shared setups', () => {
   it('round-trips a setup through the URL hash', () => {

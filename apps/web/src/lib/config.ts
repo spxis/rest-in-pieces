@@ -76,7 +76,7 @@ export function defaultApiBase(): string {
   if (IN_BROWSER) return inBrowserBase();
   const configured = import.meta.env.VITE_API_BASE_URL as string | undefined;
   if (configured) return configured;
-  return import.meta.env.DEV ? 'http://localhost:8080' : window.location.origin;
+  return import.meta.env.DEV ? 'http://localhost:6800' : window.location.origin;
 }
 
 export function defaultConfig(apiBase = defaultApiBase()): PlaygroundConfig {

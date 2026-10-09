@@ -41,7 +41,7 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App />);
     const snippet = screen.getByTestId('request-snippet');
-    expect(snippet.textContent).toBe('http://localhost:8080/names?limit=10');
+    expect(snippet.textContent).toBe('http://localhost:6800/names?limit=10');
 
     await user.click(screen.getByRole('button', { name: /503 error/ }));
     expect(snippet.textContent).toContain('status=503');
@@ -67,7 +67,7 @@ describe('App', () => {
     render(<App />);
     await user.click(await screen.findByRole('tab', { name: /Countries/ }));
     await waitFor(() =>
-      expect(screen.getByTestId('request-snippet').textContent).toBe('http://localhost:8080/countries?limit=10'),
+      expect(screen.getByTestId('request-snippet').textContent).toBe('http://localhost:6800/countries?limit=10'),
     );
   });
 
