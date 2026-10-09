@@ -1,4 +1,17 @@
-import { Activity, Boxes, Braces, Building2, Globe2, type LucideIcon, Users } from 'lucide-react';
+import {
+  Activity,
+  Boxes,
+  Braces,
+  Building2,
+  FileText,
+  Globe2,
+  ListTodo,
+  type LucideIcon,
+  MessageSquare,
+  ShoppingCart,
+  Star,
+  Users,
+} from 'lucide-react';
 import type { ResourceInfo } from '../hooks/useCatalog.ts';
 import { useSpeaker } from '../i18n/LocaleProvider.tsx';
 
@@ -8,6 +21,11 @@ const ICONS: Record<string, LucideIcon> = {
   products: Boxes,
   companies: Building2,
   countries: Globe2,
+  orders: ShoppingCart,
+  posts: FileText,
+  comments: MessageSquare,
+  todos: ListTodo,
+  reviews: Star,
   generate: Braces,
 };
 

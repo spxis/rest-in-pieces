@@ -11,6 +11,10 @@ export interface ResourceInfo {
   fields: string[];
   /** Fields per data locale; Japanese records add readings such as `nameKana`. */
   locales?: Record<string, { fields: string[] }>;
+  /** What `expand=` takes, such as `user` or `items.product`. Missing from an API that predates relations. */
+  expand?: string[];
+  /** Lists under one record, such as `orders` for `/users/{id}/orders`. */
+  nested?: string[];
 }
 
 /** One entry of `GET /locales`. */
@@ -26,6 +30,8 @@ export interface DataLocaleInfo {
 export interface Catalog {
   resources: ResourceInfo[];
   generators: Record<string, string[]>;
+  /** The arguments of each type that takes them, such as `number.int: 'min, max'`. */
+  parameters: Record<string, string>;
   locales: DataLocaleInfo[];
   state: 'loading' | 'ready' | 'offline';
 }
@@ -49,6 +55,7 @@ export const FALLBACK_CATALOG: Omit<Catalog, 'state'> = {
     },
   ],
   generators: { person: ['fullName', 'firstName', 'lastName'], internet: ['email', 'username', 'url'] },
+  parameters: {},
   // The two locales every version of the API has had, for an API that is offline or predates `/locales`.
   locales: [
     { code: 'en-CA', name: 'English (Canada)', nativeName: 'English (Canada)', tag: 'en-CA', default: true },
@@ -81,6 +88,7 @@ export function useCatalog(apiBase: string): Catalog {
         setCatalog({
           resources,
           generators: generators.modules,
+          parameters: typeof generators.parameters === 'object' && generators.parameters ? generators.parameters : {},
           locales: Array.isArray(locales) && locales.length > 0 ? locales : FALLBACK_CATALOG.locales,
           state: 'ready',
         });

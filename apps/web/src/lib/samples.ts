@@ -49,6 +49,12 @@ const RECORDS: Record<string, Record<string, unknown>> = {
     province: 'Ontario',
     country: 'CA',
   },
+  // The server works out each item's name and price, the totals and the tax from these.
+  orders: { userId: 3, items: [{ productId: 5, quantity: 2 }], orderStatus: 'paid' },
+  posts: { userId: 1, title: 'On the analytical engine', body: 'It weaves algebraic patterns.' },
+  comments: { postId: 1, userId: 3, name: 'Charles Babbage', email: 'charles@example.com', body: 'Splendid.' },
+  todos: { userId: 1, title: 'Write the notes', completed: false, dueOn: '2026-02-01' },
+  reviews: { productId: 1, userId: 3, rating: 5, title: 'Splendid', body: 'Tabulates beautifully.' },
 };
 
 /** A PATCH changes a field or two. */
@@ -57,6 +63,11 @@ const CHANGES: Record<string, Record<string, unknown>> = {
   users: { email: 'ada@example.com', active: false },
   products: { price: 1499.99, stock: 0, inStock: false },
   companies: { employees: 40 },
+  orders: { orderStatus: 'shipped' },
+  posts: { title: 'On the engine, revised' },
+  comments: { body: 'Splendid, truly.' },
+  todos: { completed: true },
+  reviews: { rating: 4 },
 };
 
 /** The starting body for a write to `endpoint`, pretty-printed; `''` for a method that sends none. */

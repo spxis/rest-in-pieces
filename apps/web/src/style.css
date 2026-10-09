@@ -1604,16 +1604,6 @@ kbd {
   border-radius: 7px;
   background: light-dark(#fff, #1b231e);
 }
-.preview-initials {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  color: light-dark(#183626, #d6f0de);
-  background: light-dark(#e3efe5, #24402f);
-  font: 600 11px var(--mono);
-}
 .preview-text {
   display: grid;
   min-width: 0;
@@ -1783,4 +1773,76 @@ kbd {
 .preview-heading > span:last-child {
   margin-left: auto;
   white-space: nowrap;
+}
+
+/* Eleven datasets: four tabs a row, three on a phone. */
+.endpoint-tabs {
+  grid-template-columns: repeat(4, 1fr);
+}
+.format-options {
+  flex-wrap: wrap;
+}
+.relations-grid {
+  grid-template-columns: 1.5fr 0.5fr;
+}
+.expand-fieldset {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  margin: 12px 0 0;
+  padding: 0;
+  border: 0;
+}
+.expand-fieldset > legend {
+  margin-bottom: 6px;
+  padding: 0;
+  color: light-dark(#657269, #a3ada6);
+  font-size: 10px;
+}
+.expand-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 5px;
+  background: light-dark(#eff2ed, #1d2319);
+}
+.expand-options .format-option {
+  min-width: 0;
+}
+.table-control {
+  max-width: 240px;
+  margin-top: 12px;
+}
+.table-control input[aria-invalid="true"] {
+  border-color: light-dark(#a25a41, #ca8f7a);
+}
+.fields-section .field-row {
+  grid-template-columns: 0.6fr 1fr 0.8fr 28px;
+}
+.fields-section .field-args {
+  font-family: var(--mono);
+}
+.preview-picture {
+  flex: none;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.preview-picture.square {
+  border-radius: 6px;
+}
+@media (max-width: 560px) {
+  .endpoint-tabs {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .relations-grid {
+    grid-template-columns: 1fr;
+  }
+  .fields-section .field-row {
+    grid-template-columns: 1fr 1fr 27px;
+  }
+  .fields-section .field-args {
+    grid-column: 1 / 3;
+    grid-row: 2;
+  }
 }

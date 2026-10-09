@@ -1,10 +1,26 @@
 import { useSpeaker } from '../i18n/LocaleProvider.tsx';
 import type { PhraseKey } from '../i18n/phrases.ts';
-import { FORMATS, MAX_DELAY_MS, MESSY_SHARES, normalizeDelay, type PlaygroundConfig } from '../lib/config.ts';
+import {
+  FORMATS,
+  MAX_DELAY_MS,
+  MESSY_SHARES,
+  normalizeDelay,
+  type PlaygroundConfig,
+  SQL_TABLE,
+} from '../lib/config.ts';
 
 type Update = (patch: Partial<PlaygroundConfig>) => void;
 
-export function FormatPicker({ value, onChange }: { value: PlaygroundConfig['format']; onChange: Update }) {
+export function FormatPicker({
+  value,
+  table = '',
+  onChange,
+}: {
+  value: PlaygroundConfig['format'];
+  /** The table `format=sql` inserts into. */
+  table?: string;
+  onChange: Update;
+}) {
   const { say } = useSpeaker();
   return (
     <div className="form-section output-section">
@@ -28,6 +44,18 @@ export function FormatPicker({ value, onChange }: { value: PlaygroundConfig['for
           ))}
         </div>
       </fieldset>
+      {value === 'sql' && (
+        <label className="control table-control">
+          <span>{say('format.table')}</span>
+          <input
+            value={table}
+            placeholder={say('format.tableHint')}
+            spellCheck={false}
+            aria-invalid={(table !== '' && !SQL_TABLE.test(table)) || undefined}
+            onChange={(event) => onChange({ table: event.target.value.trim() })}
+          />
+        </label>
+      )}
     </div>
   );
 }

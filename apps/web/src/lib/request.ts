@@ -17,6 +17,8 @@ export function mimeFor(format: OutputFormat): string {
     csv: 'text/csv',
     yaml: 'application/yaml',
     xml: 'application/xml',
+    ndjson: 'application/x-ndjson',
+    sql: 'application/sql',
   }[format];
 }
 
@@ -71,6 +73,12 @@ function buildWriteUrl(config: PlaygroundConfig, seeded: boolean): string {
   return `${trimBase(config.apiBase)}/${config.endpoint}${path}${query ? `?${query}` : ''}`;
 }
 
+/** The path a read asks for: the dataset, or a list under one of its records (`/users/7/orders`). */
+export function readPath(config: Pick<PlaygroundConfig, 'endpoint' | 'nested' | 'parentId'>): string {
+  if (!config.nested || config.endpoint === 'generate') return `/${config.endpoint}`;
+  return `/${config.endpoint}/${encodeURIComponent(config.parentId.trim() || '1')}/${config.nested}`;
+}
+
 /** Builds the request URL for a setup. Parameters at their API defaults are left out to keep URLs readable. */
 export function buildRequestUrl(config: PlaygroundConfig, seeded = true): string {
   if (config.method !== 'GET') return buildWriteUrl(config, seeded);
@@ -91,13 +99,16 @@ export function buildRequestUrl(config: PlaygroundConfig, seeded = true): string
     params.set('metadata', String(config.metadata));
   }
   if (config.endpoint === 'generate') {
-    params.set('fields', config.fields.map((field) => `${field.name.trim()}:${field.type}`).join(','));
+    params.set('fields', config.fields.map((field) => `${field.name.trim()}:${field.type.trim()}`).join(','));
   }
+  if (config.expand.length > 0 && config.endpoint !== 'generate') params.set('expand', config.expand.join(','));
+  if (config.safe) params.set('safe', 'true');
   if (config.locale !== 'en-CA') params.set('locale', config.locale);
   if (config.messy > 0) params.set('messy', config.messy === DEFAULT_MESSY_SHARE ? 'true' : String(config.messy));
   if (config.format !== 'json') params.set('format', config.format);
+  if (config.format === 'sql' && config.table.trim()) params.set('table', config.table.trim());
   simulationParams(config, params);
-  return `${trimBase(config.apiBase)}/${config.endpoint}?${pagingParams(config, params)}&${params}`.replace(/&$/, '');
+  return `${trimBase(config.apiBase)}${readPath(config)}?${pagingParams(config, params)}&${params}`.replace(/&$/, '');
 }
 
 const shellQuote = (value: string) => `'${value.replaceAll("'", "'\\''")}'`;

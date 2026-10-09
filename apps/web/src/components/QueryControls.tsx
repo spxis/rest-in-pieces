@@ -194,6 +194,10 @@ export function PageAndSort({
           />
           <span>{say('metadata.include')}</span>
         </label>
+        <label className="check-control" title={say('data.safeHint')}>
+          <input type="checkbox" checked={config.safe} onChange={(event) => onChange({ safe: event.target.checked })} />
+          <span>{say('data.safe')}</span>
+        </label>
       </div>
     </div>
   );

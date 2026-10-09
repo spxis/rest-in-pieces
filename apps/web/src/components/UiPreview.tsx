@@ -1,3 +1,4 @@
+import { avatarSvg, placeholderSvg, svgDataUrl } from '@johnmorrisdotca/rest-in-pieces/images';
 import {
   CircleAlert,
   Clock,
@@ -23,9 +24,71 @@ type Row = Record<string, unknown>;
 
 const SHOWN = 6;
 
+const STARS = (rating: number) => '★'.repeat(rating) + '☆'.repeat(Math.max(0, 5 - rating));
+
 /** What a card shows of a record: a title, a line under it, a figure at the side and a picture. */
-export function cardOf(row: Row): { title: string; subtitle: string; aside: string; avatar: string | null } {
+export function cardOf(row: Row): {
+  title: string;
+  subtitle: string;
+  aside: string;
+  avatar: string | null;
+  /** A thing rather than a person: drawn as a square placeholder, not a round avatar. */
+  thing: boolean;
+  /** Whose initials the avatar shows, when that is not the title: a comment's author, an embedded user. */
+  person?: string;
+} {
   const text = (key: string) => (row[key] === null || row[key] === undefined ? '' : cellText(row[key]));
+  const firstLine = (key: string) => text(key).split('\n')[0] ?? '';
+  const picture = (value: unknown) => (typeof value === 'string' && /^https?:/.test(value) ? value : null);
+  const avatar = picture(row.avatar);
+  // An embedded user (`expand=user`) is who a review, comment, post or todo is by.
+  const by = row.user && typeof row.user === 'object' ? (row.user as Row) : null;
+  const byName = by ? [by.firstName, by.lastName].filter((part) => typeof part === 'string').join(' ') : '';
+  const author = by ? { avatar: picture(by.avatar), ...(byName ? { person: byName } : {}) } : null;
+  // Orders, posts, comments, todos and reviews say what they are about rather than who they are.
+  if (Array.isArray(row.items) && 'orderStatus' in row) {
+    const count = Number(row.itemCount ?? row.items.length);
+    return {
+      title: `#${text('id')} · ${text('orderStatus')}`,
+      subtitle: `${count} × ${row.items.map((item) => cellText((item as Row)?.name)).join(', ')}`,
+      aside: [text('total'), text('currency')].filter(Boolean).join(' '),
+      avatar: null,
+      thing: true,
+    };
+  }
+  if ('rating' in row && 'productId' in row) {
+    return {
+      title: text('title'),
+      subtitle: firstLine('body'),
+      aside: STARS(Number(row.rating) || 0),
+      avatar: null,
+      thing: !author,
+      ...author,
+    };
+  }
+  if ('postId' in row && 'email' in row) {
+    return { title: text('name'), subtitle: firstLine('body'), aside: '', avatar: null, thing: false, ...author };
+  }
+  if ('completed' in row && 'title' in row) {
+    return {
+      title: text('title'),
+      subtitle: text('dueOn'),
+      aside: row.completed === true ? '✓' : '—',
+      avatar: null,
+      thing: !author,
+      ...author,
+    };
+  }
+  if ('title' in row && 'body' in row) {
+    return {
+      title: text('title'),
+      subtitle: firstLine('body'),
+      aside: `#${text('id')}`,
+      avatar: null,
+      thing: !author,
+      ...author,
+    };
+  }
   const title =
     text('name') || [text('firstName'), text('lastName')].filter(Boolean).join(' ') || text('username') || text('sku');
   const subtitle =
@@ -34,33 +97,61 @@ export function cardOf(row: Row): { title: string; subtitle: string; aside: stri
     row.price !== undefined && row.price !== null
       ? [text('price'), text('currency')].filter(Boolean).join(' ')
       : text('age') || text('role') || text('employees') || text('alpha2');
-  const avatar = typeof row.avatar === 'string' && /^https?:/.test(row.avatar) ? row.avatar : null;
   const fallback = Object.entries(row).find(([key, value]) => key !== 'index' && typeof value === 'string');
-  return { title: title || (fallback ? String(fallback[1]) : '—'), subtitle, aside, avatar };
+  const thing = 'sku' in row || 'alpha2' in row || 'industry' in row;
+  return { title: title || (fallback ? String(fallback[1]) : '—'), subtitle, aside, avatar, thing };
 }
 
-const initials = (title: string) =>
-  title
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => [...word][0] ?? '')
-    .join('')
-    .toUpperCase();
+/**
+ * An avatar this API serves (`…/avatars/{seed}.svg?name=…`), drawn here by the same function instead of fetched,
+ * so it shows on GitHub Pages, where the API lives in the tab and an `<img>` cannot reach it, and offline.
+ */
+export function localAvatar(src: string | null): string | null {
+  if (!src) return null;
+  try {
+    const url = new URL(src);
+    const match = /\/avatars\/([^/]+)\.svg$/.exec(url.pathname);
+    if (!match) return null;
+    return svgDataUrl(avatarSvg(decodeURIComponent(match[1] ?? ''), url.searchParams.get('name') ?? undefined));
+  } catch {
+    return null;
+  }
+}
 
-/** A record's picture, or its initials when it has none or the picture does not load (offline, blocked, gone). */
-export function Avatar({ src, title, size = 34 }: { src: string | null; title: string; size?: number }) {
+/**
+ * A record's picture: an avatar this API serves, drawn in the page; any other picture, when it loads; and
+ * otherwise a generated avatar with the title's initials, or a placeholder for a thing.
+ */
+export function Avatar({
+  src,
+  title,
+  size = 34,
+  thing = false,
+}: {
+  src: string | null;
+  title: string;
+  size?: number;
+  thing?: boolean;
+}) {
   const [failed, setFailed] = useState(false);
   // biome-ignore lint/correctness/useExhaustiveDependencies: a new picture deserves a new try
   useEffect(() => setFailed(false), [src]);
-  if (!src || failed) {
-    return (
-      <span className="preview-initials" style={{ width: size, height: size }} aria-hidden="true">
-        {initials(title)}
-      </span>
-    );
-  }
-  return <img src={src} alt="" width={size} height={size} loading="lazy" onError={() => setFailed(true)} />;
+  const local = localAvatar(src);
+  const drawn = thing
+    ? svgDataUrl(placeholderSvg(64, 64, { text: [...title.trim()].slice(0, 2).join('') || '?' }))
+    : svgDataUrl(avatarSvg(title || '?', title));
+  const picture = local ?? (src && !failed ? src : drawn);
+  return (
+    <img
+      className={thing ? 'preview-picture square' : 'preview-picture'}
+      src={picture}
+      alt=""
+      width={size}
+      height={size}
+      loading="lazy"
+      onError={() => setFailed(true)}
+    />
+  );
 }
 
 function State({
@@ -239,7 +330,7 @@ export function UiPreview({
             return (
               // biome-ignore lint/suspicious/noArrayIndexKey: rows may share every field, messy ones even the id
               <li key={i}>
-                <Avatar src={card.avatar} title={card.title} />
+                <Avatar src={card.avatar} title={card.person ?? card.title} thing={card.thing} />
                 <span className="preview-text">
                   <strong className="preview-title">{card.title}</strong>
                   {card.subtitle && <span className="preview-subtitle">{card.subtitle}</span>}

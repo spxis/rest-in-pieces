@@ -1,7 +1,7 @@
 import type { PhraseKey } from '../i18n/phrases.ts';
 import { IN_BROWSER, inBrowserBase } from './inBrowserApi.ts';
 
-export type OutputFormat = 'json' | 'csv' | 'yaml' | 'xml';
+export type OutputFormat = 'json' | 'csv' | 'yaml' | 'xml' | 'ndjson' | 'sql';
 export type SortType = 'string' | 'numeric';
 export type SortDirection = 'asc' | 'desc';
 export type FilterOperator = 'eq' | 'ne' | 'gt' | 'gte' | 'lt' | 'lte';
@@ -22,6 +22,12 @@ export const takesBody = (method: HttpMethod) => method === 'POST' || method ===
 /** The API refuses a larger body, so a shared link cannot carry one. */
 export const MAX_BODY_LENGTH = 64 * 1024;
 const RECORD_ID = /^[\w-]{1,40}$/;
+/** What `expand=` takes: a relation, or two joined by a dot. */
+const EXPAND_PATH = /^[A-Za-z]+(\.[A-Za-z]+)?$/;
+/** A table name `format=sql` accepts. */
+export const SQL_TABLE = /^[A-Za-z_][A-Za-z0-9_]{0,62}$/;
+/** The most paths `expand=` takes in one request. */
+export const MAX_EXPAND_PATHS = 6;
 
 /** What `?auth=` asks of the request: nothing, any signed-in account, or a role. */
 export type AuthRequirement = '' | 'required' | 'editor' | 'admin';
@@ -83,9 +89,19 @@ export interface PlaygroundConfig {
   conflict: boolean;
   /** Makes the request a protected route with `?auth=`, so it needs a token from the sign-in panel. */
   auth: AuthRequirement;
+  /** A list under one record, such as `orders` for `/users/{parentId}/orders`; empty for the dataset itself. */
+  nested: string;
+  /** The record whose `nested` list is asked for. */
+  parentId: string;
+  /** Relations to embed with `expand=`, such as `user` or `items.product`. */
+  expand: string[];
+  /** Asks for safe values: example-domain emails, fiction-range phones, test cards, self-hosted avatars. */
+  safe: boolean;
+  /** The table `format=sql` inserts into; empty for the dataset's own name. */
+  table: string;
 }
 
-export const FORMATS: readonly OutputFormat[] = ['json', 'csv', 'yaml', 'xml'];
+export const FORMATS: readonly OutputFormat[] = ['json', 'csv', 'yaml', 'xml', 'ndjson', 'sql'];
 export const OPERATORS: ReadonlyArray<{ value: FilterOperator; label: string }> = [
   { value: 'eq', label: '=' },
   { value: 'ne', label: '≠' },
@@ -165,6 +181,11 @@ export function defaultConfig(apiBase = defaultApiBase()): PlaygroundConfig {
     body: '',
     conflict: false,
     auth: '',
+    nested: '',
+    parentId: '1',
+    expand: [],
+    safe: false,
+    table: '',
   };
 }
 
@@ -183,6 +204,8 @@ function isFilter(value: unknown): value is Filter {
     OPERATORS.some((op) => op.value === v.operator)
   );
 }
+
+const isExpandPath = (value: unknown): value is string => typeof value === 'string' && EXPAND_PATH.test(value);
 
 function parseList<T>(raw: string | null, guard: (value: unknown) => value is T, limit: number): T[] | null {
   if (!raw) return null;
@@ -213,6 +236,9 @@ export function configFromHash(hash: string, fallback = defaultConfig()): Playgr
   const method = METHODS.find((value) => value === params.get('method'));
   const recordId = params.get('recordId');
   const body = params.get('body');
+  const nested = params.get('nested');
+  const parentId = params.get('parentId');
+  const table = params.get('table');
 
   return {
     endpoint: endpoint && /^[a-z-]+$/.test(endpoint) ? endpoint : fallback.endpoint,
@@ -241,6 +267,11 @@ export function configFromHash(hash: string, fallback = defaultConfig()): Playgr
     body: body !== null && body.length <= MAX_BODY_LENGTH ? body : fallback.body,
     conflict: params.get('conflict') === 'true',
     auth: AUTH_REQUIREMENTS.find((value) => value !== '' && value === params.get('auth')) ?? fallback.auth,
+    nested: nested !== null && /^[a-z]{0,20}$/.test(nested) ? nested : fallback.nested,
+    parentId: parentId !== null && RECORD_ID.test(parentId) ? parentId : fallback.parentId,
+    expand: parseList(params.get('expand'), isExpandPath, MAX_EXPAND_PATHS) ?? fallback.expand,
+    safe: params.has('safe') ? params.get('safe') === 'true' : fallback.safe,
+    table: table !== null && (table === '' || SQL_TABLE.test(table)) ? table : fallback.table,
   };
 }
 

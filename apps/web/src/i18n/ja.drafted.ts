@@ -59,6 +59,23 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
     text: '業種・ウェブサイト・連絡先・規模・設立年を持つ企業。',
     back: 'Companies with industry, website, contact details, size and founding year.',
   },
+  'dataset.orders': {
+    text: '明細付きの注文。ユーザーと商品にひも付きます。合計は購入者の国の税込みで、現地の通貨で計算が合います。',
+    back: "Orders with line items, linked to users and products. Totals include the buyer's country's tax and add up, in the local currency.",
+  },
+  'dataset.posts': {
+    text: 'ユーザーのブログ投稿。JSONPlaceholder と同じ形です。',
+    back: "Users' blog posts, in the same shape as JSONPlaceholder.",
+  },
+  'dataset.comments': {
+    text: '投稿へのコメント。投稿者本人以外のユーザーが書いています。',
+    back: 'Comments on posts, written by users other than the post author.',
+  },
+  'dataset.todos': { text: 'ユーザーごとの ToDo。', back: 'To-dos for each user.' },
+  'dataset.reviews': {
+    text: 'ユーザーによる商品レビュー。評価は商品自体の評価に近い値になります。',
+    back: "Product reviews by users. Ratings come out close to the product's own rating.",
+  },
   'dataset.countries': {
     text: 'ISO コード・通貨・言語・国番号（国際電話）を持つ、すべての国と地域。実在のデータなので `seed` は影響しません。互換性のため、`metadata=true` を指定しない限り全件を配列のまま返します。',
     back: 'Every country and region with ISO codes, currencies, languages and international calling country codes. It is real data, so `seed` has no effect. For compatibility it returns everything as a plain array unless `metadata=true` is given.',
@@ -110,6 +127,12 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
     text: 'API のカタログに接続できないため、基本の種類を表示しています。',
     back: 'The API catalogue cannot be reached, so the basic kinds are shown.',
   },
+  'fields.args': { text: '引数・選択肢・空欄の割合', back: 'Arguments, choices, blank rate' },
+  'fields.syntax': {
+    text: '引数・選択肢・空欄の割合も指定できます: number.int(18,65)、pick(a,b|70,30)、person.firstName?blank=15',
+    back: 'You can also give arguments, choices and a blank rate: number.int(18,65), pick(a,b|70,30), person.firstName?blank=15',
+  },
+  'fields.takes': { text: '{type} の引数: ({args})', back: 'Arguments of {type}: ({args})' },
 
   'page.heading': { text: 'ページと並べ替え', back: 'Pages and sorting' },
   'page.limit': { text: '件数（limit）', back: 'Count (limit)' },
@@ -134,6 +157,20 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
   'data.locale': { text: 'データのロケール', back: 'Data locale' },
   'data.localeGlobal': { text: 'グローバル（全ロケール混在）', back: 'Global (all locales mixed)' },
   'metadata.include': { text: 'レスポンスにメタデータを含める', back: 'Include metadata in the response' },
+  'data.safe': { text: '安全な値', back: 'Safe values' },
+  'data.safeHint': {
+    text: 'メールアドレスと URL は例示用ドメイン、電話番号は架空用の番号帯、カード番号はテスト用番号、IP アドレスは文書用の範囲、アバターはこの API のものを使います',
+    back: 'Emails and URLs use example domains, phone numbers the fiction ranges, card numbers test numbers, IP addresses the documentation ranges, and avatars this API’s own',
+  },
+  'relations.heading': { text: 'リレーション', back: 'Relations' },
+  'relations.nested': { text: '一覧', back: 'List' },
+  'relations.whole': { text: 'すべてのレコード', back: 'All records' },
+  'relations.parent': { text: 'レコード ID', back: 'Record ID' },
+  'relations.expand': { text: '関連レコードを埋め込む', back: 'Embed related records' },
+  'relations.expandHint': {
+    text: 'このページのレコードに対して、最大 2 階層まで',
+    back: 'For the records on this page, up to 2 levels',
+  },
 
   'search.heading': { text: '検索とフィルター', back: 'Search and filter' },
   'search.label': { text: '検索', back: 'Search' },
@@ -149,6 +186,8 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
   'format.heading': { text: 'レスポンス', back: 'Response' },
   'format.negotiation': { text: 'コンテンツネゴシエーション', back: 'Content negotiation' },
   'format.legend': { text: 'レスポンスの形式', back: 'Response format' },
+  'format.table': { text: 'SQL のテーブル名', back: 'SQL table name' },
+  'format.tableHint': { text: '空欄ならデータセット名', back: 'Dataset name if blank' },
   'simulate.heading': { text: 'レスポンスをシミュレート', back: 'Simulate the response' },
   'simulate.active': { text: '有効', back: 'Enabled' },
   'simulate.optional': { text: '任意', back: 'Optional' },

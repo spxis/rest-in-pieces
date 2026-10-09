@@ -1,10 +1,16 @@
 /**
- * Downloads of a response: JSON, CSV and plain text. They are built in the browser from what the API
- * already answered, so a download costs no second request and matches the table exactly.
+ * Downloads of a response: JSON, CSV, plain text, NDJSON and SQL. They are built in the browser from what the API
+ * already answered, so a download costs no second request and matches the table exactly. NDJSON and SQL are
+ * written by the same functions the API uses for `format=ndjson` and `format=sql`.
  */
+import { SQL_TABLE, toNdjson, toSql } from '@johnmorrisdotca/rest-in-pieces/serialize';
 
-export type DownloadFormat = 'json' | 'csv' | 'txt';
-export const DOWNLOAD_FORMATS: readonly DownloadFormat[] = ['json', 'csv', 'txt'];
+export type DownloadFormat = 'json' | 'csv' | 'txt' | 'ndjson' | 'sql';
+export const DOWNLOAD_FORMATS: readonly DownloadFormat[] = ['json', 'csv', 'txt', 'ndjson', 'sql'];
+
+/** The datasets a URL's path may name, so a file and a table are named after what was asked for. */
+const DATASETS =
+  /^(names|users|products|companies|countries|orders|posts|comments|todos|reviews|random-names|generate|auth)$/;
 
 type Row = Record<string, unknown>;
 
@@ -97,17 +103,40 @@ export function fileStem(url: string): string {
     // Keep the text as given.
   }
   const parts = path.split('/').filter(Boolean).slice(-2);
-  const tail =
-    parts.length === 2 && /^(names|users|products|companies|countries|random-names|generate|auth)$/.test(parts[0] ?? '')
-      ? parts
-      : parts.slice(-1);
+  const tail = parts.length === 2 && DATASETS.test(parts[0] ?? '') ? parts : parts.slice(-1);
   return tail.join('-').replace(/[^\w.-]+/g, '-') || 'response';
+}
+
+/** The table a SQL download inserts into: the URL's `table=`, else the last dataset its path names, else `records`. */
+export function tableOf(url: string): string {
+  try {
+    const parsed = new URL(url, 'http://base.invalid');
+    const asked = parsed.searchParams.get('table');
+    if (asked && SQL_TABLE.test(asked)) return asked;
+    const named = parsed.pathname
+      .split('/')
+      .filter((part) => DATASETS.test(part))
+      .pop();
+    if (named === 'generate') return 'generated';
+    if (named && SQL_TABLE.test(named)) return named;
+  } catch {
+    // Fall through to the default.
+  }
+  return 'records';
 }
 
 /** The download in a format, or null when the response has nothing to give in it. */
 export function downloadOf(source: DownloadSource, format: DownloadFormat): Download | null {
   const filename = `${fileStem(source.url)}.${format}`;
   const { rows, json, raw, contentType } = source;
+  if (format === 'ndjson') {
+    if (rows && rows.length > 0) return { filename, mime: 'application/x-ndjson', text: toNdjson(rows) };
+    return contentType.includes('ndjson') && raw ? { filename, mime: 'application/x-ndjson', text: raw } : null;
+  }
+  if (format === 'sql') {
+    if (rows && rows.length > 0) return { filename, mime: 'application/sql', text: toSql(rows, tableOf(source.url)) };
+    return contentType.includes('sql') && raw ? { filename, mime: 'application/sql', text: raw } : null;
+  }
   if (format === 'json') {
     if (json !== null && json !== undefined)
       return { filename, mime: 'application/json', text: `${JSON.stringify(json, null, 2)}\n` };

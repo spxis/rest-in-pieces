@@ -18,14 +18,23 @@ export function fieldProblem(fields: Field[]): FieldProblem | null {
   return duplicate ? { key: 'fields.duplicate', name: duplicate } : null;
 }
 
+/** A type expression as its generator and the rest: `number.int(18,65)?blank=10` is `number.int` and `(18,65)?blank=10`. */
+export function splitType(type: string): { base: string; rest: string } {
+  const base = /^[A-Za-z]\w*(?:\.[A-Za-z]\w*)?/.exec(type.trim())?.[0] ?? '';
+  return { base, rest: type.trim().slice(base.length) };
+}
+
 export function FieldsEditor({
   fields,
   generators,
+  parameters = {},
   state,
   onChange,
 }: {
   fields: Field[];
   generators: Record<string, string[]>;
+  /** Each type that takes arguments, with them in order, from `GET /generators`. */
+  parameters?: Record<string, string>;
   state: 'loading' | 'ready' | 'offline';
   onChange: (fields: Field[]) => void;
 }) {
@@ -37,9 +46,17 @@ export function FieldsEditor({
     onChange([...fields, { id, name: `field${id}`, type: 'lorem.word' }]);
   };
   const problem = fieldProblem(fields);
-  const known = new Set(
-    Object.entries(generators).flatMap(([module, methods]) => methods.map((m) => `${module}.${m}`)),
-  );
+  // Types that work only with arguments (`date.between`) are listed under their module too, and `pick` on its own.
+  const modules: Record<string, string[]> = { ...generators };
+  for (const type of Object.keys(parameters)) {
+    const [module, method] = type.split('.');
+    if (!module || !method || modules[module]?.includes(method)) continue;
+    modules[module] = [...(modules[module] ?? []), method].sort();
+  }
+  const known = new Set([
+    'pick',
+    ...Object.entries(modules).flatMap(([module, methods]) => methods.map((m) => `${module}.${m}`)),
+  ]);
 
   return (
     <div className="form-section fields-section">
@@ -63,22 +80,44 @@ export function FieldsEditor({
               spellCheck={false}
               onChange={(event) => update(field.id, { name: event.target.value })}
             />
-            <select
-              aria-label={say('fields.type')}
-              value={field.type}
-              onChange={(event) => update(field.id, { type: event.target.value })}
-            >
-              {!known.has(field.type) && <option value={field.type}>{field.type}</option>}
-              {Object.entries(generators).map(([module, methods]) => (
-                <optgroup label={module} key={module}>
-                  {methods.map((method) => (
-                    <option key={method} value={`${module}.${method}`}>
-                      {module}.{method}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
+            {(() => {
+              const { base, rest } = splitType(field.type);
+              const takes = parameters[base];
+              return (
+                <>
+                  <select
+                    aria-label={say('fields.type')}
+                    value={base}
+                    onChange={(event) => update(field.id, { type: event.target.value })}
+                  >
+                    {!known.has(base) && <option value={base}>{base}</option>}
+                    {Object.keys(parameters).includes('pick') && (
+                      <optgroup label="pick">
+                        <option value="pick">pick</option>
+                      </optgroup>
+                    )}
+                    {Object.entries(modules).map(([module, methods]) => (
+                      <optgroup label={module} key={module}>
+                        {methods.map((method) => (
+                          <option key={method} value={`${module}.${method}`}>
+                            {module}.{method}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                  <input
+                    className="field-args"
+                    aria-label={say('fields.args')}
+                    title={takes ? say('fields.takes', { type: base, args: takes }) : say('fields.syntax')}
+                    placeholder={takes ? `(${takes})` : '?blank=15'}
+                    value={rest}
+                    spellCheck={false}
+                    onChange={(event) => update(field.id, { type: `${base}${event.target.value.trim()}` })}
+                  />
+                </>
+              );
+            })()}
             <button
               type="button"
               className="icon-button remove-field"
@@ -97,6 +136,7 @@ export function FieldsEditor({
           {say(problem.key, { name: problem.name })}
         </span>
       )}
+      <span className="inline-note">{say('fields.syntax')}</span>
       {state === 'loading' && <span className="inline-note">{say('fields.loading')}</span>}
       {state === 'offline' && <span className="inline-note warning">{say('fields.offline')}</span>}
     </div>

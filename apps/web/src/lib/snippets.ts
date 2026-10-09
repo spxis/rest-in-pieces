@@ -100,7 +100,9 @@ export function openapiFetchSnippet({ url, apiBase, format, method, body, bearer
   const relative = new URL(relativePath(url, apiBase), 'http://base.invalid');
   const segments = relative.pathname.split('/').filter(Boolean);
   const named = takesId(method) || (method === 'GET' && segments.length > 1);
-  const template = named ? `/${segments[0]}/{id}` : `/${segments[0] ?? ''}`;
+  // `/users/7/orders` is the path `/users/{id}/orders` with id 7.
+  const tail = method === 'GET' && segments[2] ? `/${segments[2]}` : '';
+  const template = named ? `/${segments[0]}/{id}${tail}` : `/${segments[0] ?? ''}`;
   const query = queryObject(relative.searchParams);
   const params: string[] = [];
   if (named) params.push(`path: { id: ${quote(decodeURIComponent(segments[1] ?? ''))} }`);

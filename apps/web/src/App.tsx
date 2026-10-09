@@ -4,6 +4,7 @@ import { EndpointTabs } from './components/EndpointTabs.tsx';
 import { FieldsEditor, fieldProblem } from './components/FieldsEditor.tsx';
 import { FormatPicker, SimulationPanel } from './components/OutputAndSimulation.tsx';
 import { PageAndSort, SearchAndFilters } from './components/QueryControls.tsx';
+import { RelationsControls } from './components/RelationsControls.tsx';
 import { RequestPreview } from './components/RequestPreview.tsx';
 import { ResponsePanel } from './components/ResponsePanel.tsx';
 import { SCENARIO_SHARE, ScenarioPresets } from './components/ScenarioPresets.tsx';
@@ -48,6 +49,11 @@ const DATASET_PHRASES: Record<string, PhraseKey> = {
   products: 'dataset.products',
   companies: 'dataset.companies',
   countries: 'dataset.countries',
+  orders: 'dataset.orders',
+  posts: 'dataset.posts',
+  comments: 'dataset.comments',
+  todos: 'dataset.todos',
+  reviews: 'dataset.reviews',
 };
 
 export default function App() {
@@ -67,16 +73,29 @@ export default function App() {
   const session = useSession(config.apiBase);
 
   const resource = catalog.resources.find((r) => r.name === config.endpoint);
+  // A list under one record (`/users/7/orders`) lists another dataset, whose fields sort and filter it.
+  const nested = config.nested && resource?.nested?.includes(config.nested) ? config.nested : '';
+  const listed = nested ? catalog.resources.find((r) => r.name === nested) : resource;
   const isGenerate = config.endpoint === 'generate';
   const fields = isGenerate
     ? ['index', ...config.fields.map((field) => field.name)]
-    : (resource?.locales?.[config.locale]?.fields ?? resource?.fields ?? []);
+    : (listed?.locales?.[config.locale]?.fields ?? listed?.fields ?? []);
   const seeded = isGenerate || (resource?.seeded ?? true);
   // A dataset the API does not mark writable takes GET, whatever a shared link asked for.
   const methods = resource?.writable ? METHODS : (['GET'] as const);
   const method: HttpMethod = methods.includes(config.method) ? config.method : 'GET';
   const writing = method !== 'GET';
-  const url = useMemo(() => buildRequestUrl({ ...config, method }, seeded), [config, method, seeded]);
+  /** The setup as sent: embeds only the listed dataset has, so a shared link or an older API never breaks it. */
+  const asSent = useCallback(
+    (next: PlaygroundConfig): PlaygroundConfig => ({
+      ...next,
+      method,
+      nested,
+      expand: next.expand.filter((path) => listed?.expand?.includes(path)),
+    }),
+    [method, nested, listed],
+  );
+  const url = useMemo(() => buildRequestUrl(asSent(config), seeded), [asSent, config, seeded]);
   const problem = isGenerate ? fieldProblem(config.fields) : null;
 
   const { token } = auth;
@@ -85,14 +104,13 @@ export default function App() {
   const sendConfig = useCallback(
     (next: PlaygroundConfig, withToken: string | null = token) => {
       if (isGenerate && fieldProblem(next.fields)) return;
-      const request = { ...next, method };
-      void send(buildRequestUrl(request, seeded), next.format, { method, body: next.body, token: withToken }).then(
+      void send(buildRequestUrl(asSent(next), seeded), next.format, { method, body: next.body, token: withToken }).then(
         () => {
           if (method !== 'GET') void reloadSession();
         },
       );
     },
-    [isGenerate, method, seeded, send, token, reloadSession],
+    [isGenerate, method, asSent, seeded, send, token, reloadSession],
   );
 
   /** A body the reader has not touched follows the dataset and method; one they edited stays. */
@@ -107,6 +125,8 @@ export default function App() {
       offset: 0,
       sortBy: '',
       filters: [],
+      nested: '',
+      expand: [],
       metadata: endpoint !== 'countries',
       ...(untouched ? { body: sampleBody(endpoint, config.method) } : {}),
     });
@@ -191,6 +211,7 @@ export default function App() {
               <FieldsEditor
                 fields={config.fields}
                 generators={catalog.generators}
+                parameters={catalog.parameters}
                 state={catalog.state}
                 onChange={(next) => update({ fields: next })}
               />
@@ -212,8 +233,14 @@ export default function App() {
                   locales={catalog.locales}
                   onChange={update}
                 />
+                <RelationsControls
+                  config={{ ...config, nested }}
+                  resource={resource}
+                  target={listed}
+                  onChange={update}
+                />
                 <SearchAndFilters config={config} fields={fields} onChange={update} />
-                <FormatPicker value={config.format} onChange={update} />
+                <FormatPicker value={config.format} table={config.table} onChange={update} />
               </>
             )}
             <SimulationPanel config={config} onChange={update} />

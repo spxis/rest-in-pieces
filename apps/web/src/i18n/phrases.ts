@@ -36,6 +36,12 @@ export const PHRASES = {
   'dataset.users': 'Application users with profile, contact details, avatar and account status.',
   'dataset.products': 'Catalogue products with SKU, department, price in the local currency, rating and stock.',
   'dataset.companies': 'Companies with industry, website, contact details, size and founding year.',
+  'dataset.orders':
+    "Orders with their line items, joined to users and products. Totals add up, with the buyer's local tax, in the local currency.",
+  'dataset.posts': 'Blog posts by users, in the shape JSONPlaceholder uses.',
+  'dataset.comments': 'Comments on posts, each by a user who is not the author.',
+  'dataset.todos': 'To-do items, each owned by a user.',
+  'dataset.reviews': "Product reviews by users, with ratings close to the product's own.",
   'dataset.countries':
     'Every country and territory with ISO codes, currencies, languages and calling codes. Real data, so `seed` has no effect. For compatibility it returns every country as a bare array unless `metadata=true` is given.',
 
@@ -76,6 +82,9 @@ export const PHRASES = {
   'fields.duplicate': '"{name}" is used twice.',
   'fields.loading': 'Loading generator types…',
   'fields.offline': 'Showing starter types; the API catalog could not be reached.',
+  'fields.args': 'Arguments, choices or blank rate',
+  'fields.syntax': 'Add arguments, choices or blanks: number.int(18,65), pick(a,b|70,30), person.firstName?blank=15',
+  'fields.takes': '{type} takes ({args})',
 
   'page.heading': 'PAGE & SORT',
   'page.limit': 'Limit',
@@ -100,6 +109,16 @@ export const PHRASES = {
   'data.locale': 'Data locale',
   'data.localeGlobal': 'Global mix',
   'metadata.include': 'Include response metadata',
+  'data.safe': 'Safe values',
+  'data.safeHint':
+    'Emails and URLs on example domains, phone numbers kept for fiction, test card numbers, documentation IP addresses and avatars from this API',
+
+  'relations.heading': 'RELATIONS',
+  'relations.nested': 'List',
+  'relations.whole': 'Every record',
+  'relations.parent': 'Record id',
+  'relations.expand': 'Embed related records',
+  'relations.expandHint': 'Applies to the records on this page, two levels deep at most',
 
   'search.heading': 'SEARCH & FILTER',
   'search.label': 'Search',
@@ -115,6 +134,8 @@ export const PHRASES = {
   'format.heading': 'RESPONSE',
   'format.negotiation': 'Content negotiation',
   'format.legend': 'Response format',
+  'format.table': 'SQL table',
+  'format.tableHint': 'The dataset’s name when empty',
   'simulate.heading': 'SIMULATE A RESPONSE',
   'simulate.active': 'Active',
   'simulate.optional': 'Optional',

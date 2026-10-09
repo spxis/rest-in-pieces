@@ -59,7 +59,17 @@ export function useRequest() {
         const contentType = response.headers.get('content-type') ?? 'unknown';
         let json: unknown = null;
         let body = raw;
-        if (contentType.includes('json') && raw) {
+        if (contentType.includes('ndjson') && raw) {
+          // One record a line: the table and the preview read them as a list; the body stays as sent.
+          try {
+            json = raw
+              .split('\n')
+              .filter((line) => line.trim() !== '')
+              .map((line) => JSON.parse(line) as unknown);
+          } catch {
+            json = null;
+          }
+        } else if (contentType.includes('json') && raw) {
           try {
             json = JSON.parse(raw);
             body = JSON.stringify(json, null, 2);
