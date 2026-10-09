@@ -36,8 +36,10 @@ const MAC = /Mac|iPhone|iPad/.test(navigator.userAgent);
 function Description({ text }: { text: string }) {
   return (
     <p className="endpoint-description">
-      {/* A description may name the same field twice (`userId`), so the key is the piece's place as well. */}
-      {text.split('`').map((part, i) => (i % 2 ? <code key={`${i}:${part}`}>{part}</code> : part))}
+      {text.split('`').map((part, i) =>
+        // biome-ignore lint/suspicious/noArrayIndexKey: a description may name the same field twice (`userId`), and its pieces never move
+        i % 2 ? <code key={i}>{part}</code> : part,
+      )}
     </p>
   );
 }

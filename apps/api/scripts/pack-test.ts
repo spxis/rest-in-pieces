@@ -56,7 +56,9 @@ async function waitUntilUp(url: string, cli: ChildProcess): Promise<void> {
 }
 
 async function checkCli(): Promise<void> {
-  const port = await freePort(6830, 6839);
+  // 6830–6839 by default; PACK_TEST_PORT moves the range of ten, e.g. for a second worktree.
+  const first = Number(process.env.PACK_TEST_PORT ?? 6830);
+  const port = await freePort(first, first + 9);
   const cli = spawn(
     join(consumer, 'node_modules', '.bin', 'rest-in-pieces'),
     ['--port', `${port}`, '--host', '127.0.0.1'],
@@ -167,7 +169,7 @@ if ((await kept.request('/users?auth=admin', { headers: { Authorization: 'Bearer
 const orders = await (await createApp({ safe: true }).request('/users/2/orders?expand=user,items.product')).json() as { results: Array<{ user: { email: string } }> };
 if (!orders.results.every((order) => /@example\\.(com|org|net)$/.test(order.user.email))) fail('Safe values did not reach an embedded user.');
 if (!avatarSvg('ada', 'Ada Lovelace').includes('>AL<') || !placeholderSvg(64, 32).includes('64×32')) fail('The images entry did not draw.');
-if (toNdjson([{ a: 1 }]) !== '{"a":1}\n' || !toSql([{ a: "it's" }], 't').includes("'it''s'")) fail('The serialize entry did not write.');
+if (toNdjson([{ a: 1 }]) !== '{"a":1}\\n' || !toSql([{ a: "it's" }], 't').includes("'it''s'")) fail('The serialize entry did not write.');
 
 const options: InBrowserApiOptions = { base: 'https://in-tab.test/api' };
 const uninstall: () => void = installInBrowserApi(options);
@@ -225,7 +227,7 @@ console.log(pkg.version);
   const printed = run('node', [join(consumer, 'out', 'check.js')], consumer).trim();
   assert(printed === version, `The in-process check printed ${printed}.`);
   step(
-    'imported the in-process app, @johnmorrisdotca/rest-in-pieces/core, /browser, /msw, /vite, /types and /openapi.json from the install, and kept, reset and signed in',
+    'imported the in-process app, @johnmorrisdotca/rest-in-pieces/core, /browser, /msw, /vite, /images, /serialize, /types and /openapi.json from the install, kept, reset and signed in, and served safe values through a relation',
   );
 
   step(`passed in ${((performance.now() - startedAt) / 1000).toFixed(1)} s`);
