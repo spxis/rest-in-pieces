@@ -31,6 +31,8 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
+          # This job installs nothing, so there is no pnpm for setup-node to find; v5 fails without this.
+          package-manager-cache: false
       - name: Compare the tag with package.json and CHANGELOG.md
         run: |
           version="${GITHUB_REF_NAME#v}"
@@ -133,6 +135,8 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
+          # This job installs nothing, so there is no pnpm for setup-node to find; v5 fails without this.
+          package-manager-cache: false
       - name: Create the release from CHANGELOG.md
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
