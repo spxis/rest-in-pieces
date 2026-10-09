@@ -50,7 +50,8 @@ describe('/names (legacy contract)', () => {
 
     const byName = (await request<Envelope<Person>>('/names?limit=1000&sortBy=name&sortDirection=desc')).body.results;
     const names = byName.map((p) => p.name);
-    expect(names).toEqual(names.toSorted((a, b) => b.localeCompare(a)));
+    const collator = new Intl.Collator('en-CA', { numeric: true, sensitivity: 'variant' });
+    expect(names).toEqual(names.toSorted((a, b) => collator.compare(b, a)));
 
     const reversed = (await request<Envelope<Person>>('/names?limit=2&sortDirection=reverse')).body.results;
     expect(reversed.map((p) => p.index)).toEqual([999, 998]);

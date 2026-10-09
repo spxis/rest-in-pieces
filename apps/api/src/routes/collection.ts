@@ -60,7 +60,7 @@ export function collectionRoutes(resource: Resource, { deprecated = false, path 
       const locale = parseLocale(pick(query, 'locale'));
       const { records, generatedAt } = resource.load(seed ?? DEFAULT_SEED, locale);
       c.header('Content-Language', locale);
-      const page = queryCollection(records, query, resource.defaults);
+      const page = queryCollection(records, query, resource.defaults, locale);
       const links = pageLinks(c, page);
       setPaginationHeaders(c, links, page.total);
       return respond(c, buildBody(page, links, { generatedAt, seed, locale }), page.records) as never;

@@ -95,7 +95,7 @@ function send(c: Context, fields: FieldSpec[], count: number, seed: number) {
   const query = c.req.query();
   const locale = parseLocale(pick(query, 'locale'));
   c.header('Content-Language', locale);
-  const page = queryCollection(generateRecords(fields, count, seed, locale), query, DEFAULTS);
+  const page = queryCollection(generateRecords(fields, count, seed, locale), query, DEFAULTS, locale);
   const links = pageLinks(c, page);
   setPaginationHeaders(c, links, page.total);
   return respond(c, buildBody(page, links, { generatedAt: new Date(), seed, locale }), page.records);

@@ -1,6 +1,7 @@
 import type { Context } from 'hono';
 import pkg from '../../package.json' with { type: 'json' };
 import { filterRecords, parseFilters } from './filter.ts';
+import { DEFAULT_LOCALE, type Locale } from './locale.ts';
 import { flagParam, intParam, paginate, pick, type Query } from './query.ts';
 import { parseSort, type SortOptions, sortRecords } from './sort.ts';
 
@@ -46,13 +47,19 @@ export interface Page<T> {
 
 /**
  * The pipeline every collection shares: filter, sort, cap to `max`, then page.
+ * Strings sort in the order of the dataset's `locale`.
  * `max` shrinks the dataset itself so clients can exercise their end-of-data handling.
  */
-export function queryCollection<T extends object>(source: readonly T[], query: Query, defaults: CollectionDefaults) {
+export function queryCollection<T extends object>(
+  source: readonly T[],
+  query: Query,
+  defaults: CollectionDefaults,
+  locale: Locale = DEFAULT_LOCALE,
+) {
   const options = parseListOptions(query, defaults);
   const fields = new Set(source.length > 0 ? Object.keys(source[0] as object) : []);
   const filtered = filterRecords(source, parseFilters(query, fields), options.q);
-  const dataset = sortRecords(filtered, options.sort).slice(0, options.max);
+  const dataset = sortRecords(filtered, options.sort, locale).slice(0, options.max);
   return { records: paginate(dataset, options.offset, options.limit), total: dataset.length, options };
 }
 

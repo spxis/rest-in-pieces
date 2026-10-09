@@ -29,7 +29,8 @@ describe('sorting', () => {
   const rows = [{ v: '10' }, { v: '9' }, { v: '100' }];
 
   it('compares as text by default and as numbers when asked', () => {
-    expect(sortRecords(rows, parseSort('v', undefined)).map((r) => r.v)).toEqual(['10', '100', '9']);
+    const words = [{ v: 'b10' }, { v: 'a' }, { v: 'b9' }];
+    expect(sortRecords(words, parseSort('v', undefined)).map((r) => r.v)).toEqual(['a', 'b9', 'b10']);
     expect(sortRecords(rows, parseSort('v:numeric', undefined)).map((r) => r.v)).toEqual(['9', '10', '100']);
   });
 

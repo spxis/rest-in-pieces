@@ -9,6 +9,10 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 - A live demo on GitHub Pages. The whole API runs inside the browser tab, with static copies of the OpenAPI document and the reference docs beside it.
 - `createApp()` builds the API from web standards alone, so it runs on Node, on any fetch-style host and in a browser.
 
+### Fixed
+
+- Sorting no longer depends on the server's locale: strings are compared in the dataset's `locale`, numbers inside text sort as numbers (`item 9` before `item 10`), and `sortDirection=desc` is the exact mirror of `asc`, with equal keys kept in dataset order both ways.
+
 ## 2.1.0 - 2026-09-28
 
 ### Added
