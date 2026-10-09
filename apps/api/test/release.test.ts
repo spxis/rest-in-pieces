@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -124,10 +124,12 @@ describe('applyRelease on a copy of the repository files', () => {
 
   beforeEach(() => {
     dir = mkdtempSync(join(tmpdir(), 'release-test-'));
-    for (const file of [...PACKAGE_FILES, CHANGELOG_FILE]) {
+    for (const file of PACKAGE_FILES) {
       mkdirSync(dirname(join(dir, file)), { recursive: true });
       copyFileSync(join(repoRoot, file), join(dir, file));
     }
+    // The fixture, not the live changelog: right after a release its Unreleased section is empty.
+    writeFileSync(join(dir, CHANGELOG_FILE), changelog);
   });
 
   afterEach(() => rmSync(dir, { recursive: true, force: true }));
