@@ -4,6 +4,26 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Added
+
+- Related datasets: `/orders` (with line items), `/posts`, `/comments`, `/todos` and `/reviews`, joined to `/users` and `/products`, and to each other, by ids that always resolve. Who owns what depends on the seed alone, so a relation reads the same in every locale, and one prefix sum per seed turns each parent's seeded count of children into an id range: `/users/{id}/orders`, `/users/{id}/posts`, `/users/{id}/todos`, `/posts/{id}/comments` and `/products/{id}/reviews` cost what a page costs, return exactly what the filter does, and keep paging, sorting, filters, search, formats, `messy`, locales, ETags and the simulation. Order totals add up (each line `quantity × unitPrice`, tax at the buyer's locale's headline rate, in the locale's currency, exact in the currency's smallest unit); dates follow one another (joined, ordered, shipped, delivered; posted, commented; listed, reviewed); review ratings gather around the product's own and their words match their stars; nobody comments on their own post. Japanese posts, comments, todos and reviews are hand-written. The first ten users, posts and products always own at least one child.
+- `expand=` embeds related records on lists, items and nested lists (`/orders?expand=user,items.product`, `/comments?expand=post.user`): the page only, two levels deep, six paths and 5,000 embedded records at most, each read exactly as its own route shows it.
+- Writes keep relations whole: references must name records that exist (`422` naming the field), and `POST /orders` works out each item's name and price, the totals, the tax and the dates; a `PATCH` of `orderStatus` sets `shippedAt` and `deliveredAt`. With the session on, a delete takes along what points at it: a user's orders, posts and their comments, todos, comments and reviews; a post's comments; a product's reviews. Orders keep what they charged when a product goes, and `expand=items.product` gives `null` there. A delete makes room for every dataset it changes first, or answers `507` and changes nothing.
+- `/jsonplaceholder`: the same data with JSONPlaceholder's defaults (bare arrays of 100 posts, 500 comments, 200 todos and 10 users; users with `name`, `address`, `website` and `company`), so a JSONPlaceholder tutorial works by changing its base URL.
+- Safe values, opt-in in 2.x with `safe=true`, `--safe`, `REST_IN_PIECES_SAFE=true` or `createApp({ safe: true })`: emails at `example.com`, `example.org` and `example.net`, URLs on those domains, phone numbers from the ranges kept for fiction (555-0100 to 555-0199 in Canada and the US; Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France; `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from the documentation ranges, and avatars from this API's own `/avatars`. It becomes the default in 3.0.
+- `/avatars/{seed}.svg` (initials from `?name=`, Japanese family names handled, or a pattern from the seed) and `/images/{w}x{h}.svg` (`?text=`, `?bg=`, `?fg=`): deterministic SVGs drawn from the URL alone, with immutable cache headers. `@johnmorrisdotca/rest-in-pieces/images` exports the functions that draw them.
+- `format=ndjson` and `format=sql` (one dialect-neutral `INSERT` per record, into `table=`), also by `Accept`. `@johnmorrisdotca/rest-in-pieces/serialize` exports `toNdjson` and `toSql`.
+- `/generate` takes arguments (`age:number.int(18,65)`, `price:commerce.price(5,500,2)`, `date.between(2020-01-01,2025-12-31)`), choices with weights (`status:pick(active,paused,closed|70,20,10)`) and a blank rate (`nickname:person.firstName?blank=15`), bounded, with `422` errors that name the field. `/generators` lists each type's arguments under `parameters`.
+- `/locales` gives each locale's `taxRate`; `/resources` says what each dataset can `expand` and list under a record (`nested`).
+- The OpenAPI document, the generated types and `/docs` describe all of it: the new datasets and their inputs, the nested routes, `expand`, `safe`, `table`, the `Images` and `Compatibility` tags and the `FieldError` answer.
+- Playground: tabs for the new datasets; a Relations section to list one record's children and pick what to embed; Safe values beside the locale; NDJSON and SQL among the formats, with a table name, and among the downloads; an argument box beside each generated field's type; the UI preview draws this API's avatars in the page, so they show on GitHub Pages and offline, gives every card a picture, and has cards of its own for orders, posts, comments, todos and reviews. In English and Japanese.
+
+### Changed
+
+- The session keeps changes to 64 datasets by default (was 16), since one delete can change six, and a dataset seeded with more than 1,000 records may grow in proportion to its size.
+- The Vite plugin, the MSW handlers and `installInBrowserApi` send `X-Forwarded-Prefix`, so links the API writes to itself keep the base it is mounted under.
+- The live demo's fixtures cover the new datasets: about 1,120 files and 76 MB.
+
 ## 2.13.0 - 2026-10-09
 
 ### Added

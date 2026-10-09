@@ -36,8 +36,8 @@ export default defineConfig(({ mode }) => ({
     target: 'es2022',
     sourcemap: true,
     // The Pages build carries the whole API, fifteen Faker locales included, in a chunk loaded on first request,
-    // so it is large by design: about 1.7 MB, 560 KB gzipped. The limit still warns if it grows much further.
-    ...(mode === 'pages' ? { outDir: 'dist-pages', chunkSizeWarningLimit: 1800 } : {}),
+    // so it is large by design: about 2 MB, 610 KB gzipped. The limit still warns if it grows much further.
+    ...(mode === 'pages' ? { outDir: 'dist-pages', chunkSizeWarningLimit: 2100 } : {}),
   },
   test: {
     environment: 'jsdom',

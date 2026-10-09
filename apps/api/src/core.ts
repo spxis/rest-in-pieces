@@ -37,7 +37,7 @@ export interface AppOptions {
   mount?: ((app: OpenAPIHono) => void) | undefined;
   /**
    * Keeps writes in memory, so later reads see them until `POST /reset`. Off by default. `true` uses the
-   * default limits (2000 records a dataset, 16 changed datasets, 8 MB written); an object changes some of them.
+   * default limits (2000 records a dataset of 1000, proportionally more for a larger one, 64 changed datasets, 8 MB written); an object changes some of them.
    * The store belongs to this app and lasts as long as it does: nothing is written anywhere else.
    */
   session?: SessionOption | undefined;
