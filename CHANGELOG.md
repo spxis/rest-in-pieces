@@ -8,6 +8,7 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 - A live demo on GitHub Pages. The whole API runs inside the browser tab, with static copies of the OpenAPI document and the reference docs beside it.
 - `createApp()` builds the API from web standards alone, so it runs on Node, on any fetch-style host and in a browser.
+- Releases publish themselves. `pnpm release <version>` updates the versions and the changelog and tags the release; pushing the tag runs the checks, pushes a multi-architecture image to `ghcr.io/spxis/rest-in-pieces`, publishes to npm and creates the GitHub release from the changelog.
 
 ### Changed
 

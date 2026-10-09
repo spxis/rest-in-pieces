@@ -36,3 +36,25 @@ pnpm test:e2e
 ```
 
 Keep pull requests focused, add or update tests for behaviour changes, and update the README and changelog when user-facing behaviour changes.
+
+## Releasing
+
+Releases are cut from an up-to-date `main` with one command, after the changes are recorded under `## Unreleased` in `CHANGELOG.md`:
+
+```sh
+pnpm release 2.2.0
+git push origin main
+git push origin v2.2.0
+```
+
+`pnpm release` refuses a dirty tree, a branch other than `main`, and a version that is not valid semver or not greater than the current one. It sets the version in the three `package.json` files, moves the Unreleased entries under `## 2.2.0 - <today>`, commits `chore(release): 2.2.0` and creates the tag `v2.2.0`. It pushes nothing; it prints the two commands above.
+
+Pushing the tag starts `.github/workflows/release.yml`, which:
+
+1. checks that the tag matches `package.json` and that `CHANGELOG.md` has a section for it;
+2. runs the same checks as CI;
+3. pushes the Docker image to `ghcr.io/spxis/rest-in-pieces` for amd64 and arm64, tagged with the version and, unless it is a prerelease such as `2.2.0-rc.1`, `latest`;
+4. publishes the npm package with provenance;
+5. creates the GitHub release, with that version's changelog section as its notes.
+
+Publishing to npm needs an `NPM_TOKEN` repository secret, which only the owner can add. Without it the workflow skips the npm step with a notice and the rest of the release goes ahead.

@@ -40,7 +40,13 @@ pnpm dev
 | API docs   | [http://localhost:6800/docs](http://localhost:6800/docs) |
 | Playground | [http://localhost:6801](http://localhost:6801)       |
 
-Or run everything from one container:
+Or run everything from one container, with nothing to install but Docker:
+
+```sh
+docker run --rm -p 6800:6800 ghcr.io/spxis/rest-in-pieces   # playground, API and docs on :6800
+```
+
+To build the image from your checkout instead:
 
 ```sh
 docker build -t rest-in-pieces .
@@ -198,6 +204,7 @@ tests/e2e    Playwright tests that drive the playground against the real API
 | `pnpm test:coverage` | API tests with coverage thresholds |
 | `pnpm test:e2e`      | Playwright end-to-end tests |
 | `pnpm format`        | Apply formatting and safe lint fixes (Biome) |
+| `pnpm release <version>` | Set the version, date the changelog, commit and tag; see [Releasing](CONTRIBUTING.md#releasing) |
 
 Set `PORT` to move the API, and `VITE_API_BASE_URL` to point the playground elsewhere. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
 
@@ -205,7 +212,7 @@ Set `PORT` to move the API, and `VITE_API_BASE_URL` to point the playground else
 
 **Vercel.** Create one project with **Root Directory** `apps/api`. `apps/api/vercel.json` builds the playground into `public/`, so the playground, API and docs share one origin with no extra configuration.
 
-**Docker.** The image above serves everything from port 6800, runs as a non-root user and includes a health check.
+**Docker.** Every release publishes `ghcr.io/spxis/rest-in-pieces` for amd64 and arm64, tagged with its version (such as `:2.2.0`) and `latest`. The image serves everything from port 6800, runs as a non-root user and includes a health check.
 
 **GitHub Pages.** `.github/workflows/pages.yml` publishes the in-browser playground on every push to `main`. `pnpm --filter @rest-in-pieces/web build:pages` builds it locally into `apps/web/dist-pages`: the playground, the API bundled as a chunk it loads on the first request, and static copies of `api/openapi.json` and `api/docs/`. Set `PAGES_BASE` to serve it from somewhere other than `/rest-in-pieces/`.
 
