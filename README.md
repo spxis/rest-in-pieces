@@ -372,4 +372,4 @@ Set `PORT` to move the API, and `VITE_API_BASE_URL` to point the playground else
 
 ## License
 
-MIT © 2014–2026 SPX Interactive Software. Security issues: see [SECURITY.md](SECURITY.md).
+MIT © 2014–2026 John Morris. Security issues: see [SECURITY.md](SECURITY.md).
