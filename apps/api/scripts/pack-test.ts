@@ -148,6 +148,17 @@ if (defaultApp !== app) fail('The default export is not the app.');
 if ((await results(await createApp().request('/users?limit=5'))).length !== 5) fail('createApp() did not answer in-process.');
 if ((await results(await createCoreApp().request('/names?limit=2'))).length !== 2) fail('@johnmorrisdotca/rest-in-pieces/core did not answer.');
 
+// The session keeps writes until /reset, and sign-in answers a token that opens a protected route.
+const kept = createApp({ session: true });
+if ((await kept.request('/users/1', { method: 'DELETE' })).status !== 204) fail('The session did not take a delete.');
+if ((await kept.request('/users/1')).status !== 404) fail('The session did not keep the delete.');
+await kept.request('/reset', { method: 'POST' });
+if ((await kept.request('/users/1')).status !== 200) fail('/reset did not put the seed back.');
+const login = await kept.request('/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'admin', password: 'password' }) });
+const { accessToken } = (await login.json()) as components['schemas']['AuthTokens'];
+if ((await kept.request('/users?auth=admin')).status !== 401) fail('?auth=admin let a request without a token through.');
+if ((await kept.request('/users?auth=admin', { headers: { Authorization: 'Bearer ' + accessToken } })).status !== 200) fail('The admin token was refused.');
+
 const options: InBrowserApiOptions = { base: 'https://in-tab.test/api' };
 const uninstall: () => void = installInBrowserApi(options);
 if ((await results(await fetch('https://in-tab.test/api/users?limit=3'))).length !== 3) fail('The browser entry did not answer.');
@@ -204,7 +215,7 @@ console.log(pkg.version);
   const printed = run('node', [join(consumer, 'out', 'check.js')], consumer).trim();
   assert(printed === version, `The in-process check printed ${printed}.`);
   step(
-    'imported the in-process app, @johnmorrisdotca/rest-in-pieces/core, /browser, /msw, /vite, /types and /openapi.json from the install',
+    'imported the in-process app, @johnmorrisdotca/rest-in-pieces/core, /browser, /msw, /vite, /types and /openapi.json from the install, and kept, reset and signed in',
   );
 
   step(`passed in ${((performance.now() - startedAt) / 1000).toFixed(1)} s`);
