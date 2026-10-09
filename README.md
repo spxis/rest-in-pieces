@@ -131,6 +131,9 @@ curl -X POST 'http://localhost:6800/generate?limit=5' \
   -H 'Content-Type: application/json' \
   -d '{ "fields": { "sku": "string.uuid", "price": "commerce.price" }, "count": 200, "seed": 9 }'
 
+# Data that breaks layouts: nulls, 2,000-character descriptions, emoji, Arabic, edge numbers and dates
+curl 'http://localhost:6800/products?messy=true&seed=1'
+
 # A flaky backend: 30% of requests fail
 curl -i 'http://localhost:6800/users?fail=0.3'
 
@@ -165,7 +168,7 @@ These work on every collection, including `/generate`.
 | `limit`         | `10`      | Records per page, up to 1000. Aliases: `size`, `length`, `pageSize`. |
 | `offset`        | `0`       | Records to skip. |
 | `page`          | none      | One-based page number in pages of `limit`: `page=3&pageSize=20` is `offset=40&limit=20`. |
-| `cursor`        | none      | An opaque cursor from `metadata.nextCursor` or `prevCursor`. Takes precedence over `page` and `offset`; an empty `cursor=` starts on the first page. A cursor used with different filters, sort, `q`, `seed`, `locale` or `max` returns `400`. |
+| `cursor`        | none      | An opaque cursor from `metadata.nextCursor` or `prevCursor`. Takes precedence over `page` and `offset`; an empty `cursor=` starts on the first page. A cursor used with different filters, sort, `q`, `seed`, `locale`, `messy` or `max` returns `400`. |
 | `max`           | `1000`    | Caps the dataset, to test the last page and end-of-data handling. Alias: `maxRecords`. |
 | `sortBy`        | none      | Field to sort by. Append `:numeric` to compare as numbers, e.g. `age:numeric`. |
 | `sortDirection` | `asc`     | `desc` (also `descending`, `reverse`, `rev`, `backwards`, `-1`). Alias: `sortOrder`. |
@@ -173,6 +176,7 @@ These work on every collection, including `/generate`.
 | *field name*    | none      | Filters: `gender=female`, `province=Ontario,Quebec`, `age[gte]=30`. Operators: `eq`, `ne`, `gt`, `gte`, `lt`, `lte`. |
 | `seed`          | `1`       | Selects a repeatable dataset. |
 | `locale`        | `en-CA`   | Which country the data is written for, or `global` for a mix. See [Data locales](#data-locales). |
+| `messy`         | off       | Rewrites a share of values into the ones that break layouts: null and missing keys, empty and whitespace-only strings, very long strings (120 characters, 2,000 for descriptions), emoji, combining marks and zero-width joiners, right-to-left text, leading and trailing whitespace, edge numbers (0, negative, very large, many decimals) and edge dates (the epoch, the far future, 29 February). `true` rewrites about 15%; `0.5` sets the share. The same `seed` gives the same mess, so a bug can be shared by URL. Values keep their type, but any field except the id may be null or missing. Also on `/{dataset}/{id}`. |
 | `metadata`      | on        | `false` returns the bare array. `/countries` defaults to off for compatibility. |
 | `resultsName`   | `results` | Renames the results key, e.g. `rows`. |
 | `format`        | `json`    | `csv`, `yaml` or `xml`. The `Accept` header works too. |

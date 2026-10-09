@@ -2,6 +2,7 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import { buildBody, pageLinks, queryCollection, setPaginationHeaders } from '../lib/collection.ts';
 import { requestedFormat, respond } from '../lib/format.ts';
 import { contentLanguage, parseLocale } from '../lib/locale.ts';
+import { messyRecord, parseMessy } from '../lib/messy.ts';
 import { intParam, pick } from '../lib/query.ts';
 import { DEFAULT_SEED, MAX_SEED, type Resource } from '../resources.ts';
 import { ErrorBody, FILTER_DOCS, ListQuery, listOf, TEXT_FORMATS } from '../schemas.ts';
@@ -40,7 +41,12 @@ export function collectionRoutes(resource: Resource, { deprecated = false, path 
     deprecated,
     request: {
       params: z.object({ id: z.string().openapi({ description: resource.idDescription }) }),
-      query: z.object({ seed: ListQuery.shape.seed, locale: ListQuery.shape.locale, format: ListQuery.shape.format }),
+      query: z.object({
+        seed: ListQuery.shape.seed,
+        locale: ListQuery.shape.locale,
+        format: ListQuery.shape.format,
+        messy: ListQuery.shape.messy,
+      }),
     },
     responses: {
       200: {
@@ -63,7 +69,10 @@ export function collectionRoutes(resource: Resource, { deprecated = false, path 
       const locale = parseLocale(pick(query, 'locale'));
       const { records, generatedAt } = resource.load(seed ?? DEFAULT_SEED, locale);
       contentLanguage(c, locale);
-      const page = queryCollection(records, query, resource.defaults, locale);
+      const page = queryCollection(records, query, resource.defaults, locale, {
+        seed: seed ?? DEFAULT_SEED,
+        keep: [resource.idField],
+      });
       const links = pageLinks(c, page);
       setPaginationHeaders(c, links, page.total);
       return respond(c, buildBody(page, links, { generatedAt, seed, locale }), page.records) as never;
@@ -72,11 +81,15 @@ export function collectionRoutes(resource: Resource, { deprecated = false, path 
       requestedFormat(c);
       const query = c.req.query();
       const locale = parseLocale(pick(query, 'locale'));
-      const { records } = resource.load(seedOf(query) ?? DEFAULT_SEED, locale);
+      const seed = seedOf(query) ?? DEFAULT_SEED;
+      const { records } = resource.load(seed, locale);
       contentLanguage(c, locale);
       const { id } = c.req.valid('param');
-      const record = resource.find(records, id);
-      if (!record) return c.json({ error: `No ${resource.title.toLowerCase()} with id "${id}".` }, 404);
+      const found = resource.find(records, id);
+      if (!found) return c.json({ error: `No ${resource.title.toLowerCase()} with id "${id}".` }, 404);
+      const share = parseMessy(pick(query, 'messy'));
+      // The same rewrite the list applies, so a record reads the same in its list and on its own.
+      const record = messyRecord(found, records.indexOf(found), { share, seed, keep: [resource.idField] });
       return respond(c, record, [record]) as never;
     });
 }

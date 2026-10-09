@@ -34,7 +34,8 @@ export function parseFilters(query: Query, fields: ReadonlySet<string>): Filter[
 function compare(actual: unknown, expected: string): number {
   const a = Number(actual);
   const b = Number(expected);
-  if (typeof actual !== 'string' && Number.isFinite(a) && Number.isFinite(b)) return a - b;
+  // A null compares as an empty string, not as the number 0.
+  if (typeof actual !== 'string' && actual !== null && Number.isFinite(a) && Number.isFinite(b)) return a - b;
   return String(actual ?? '').localeCompare(expected, undefined, { sensitivity: 'base', numeric: true });
 }
 

@@ -1,6 +1,6 @@
 /**
  * Opaque paging cursors. A cursor carries an offset and a fingerprint of the query it was issued for,
- * so following it with different filters, sort, search, seed, locale or `max` is refused rather than
+ * so following it with different filters, sort, search, seed, locale, `messy` or `max` is refused rather than
  * silently returning records from another result set.
  *
  * This module imports nothing, so the playground can build the same cursors without loading the API.
@@ -83,7 +83,7 @@ export function decodeCursor(cursor: string, fingerprint: string): number {
   if (!match) throw new CursorError('Invalid cursor. Use a nextCursor or prevCursor value from a previous response.');
   if (match[2] !== fingerprint) {
     throw new CursorError(
-      'This cursor belongs to a different query. Keep the filters, sort, q, seed, locale and max the same while paging, or start again without a cursor.',
+      'This cursor belongs to a different query. Keep the filters, sort, q, seed, locale, messy and max the same while paging, or start again without a cursor.',
     );
   }
   return Number(match[1]);

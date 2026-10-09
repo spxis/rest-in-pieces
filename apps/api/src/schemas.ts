@@ -15,6 +15,18 @@ export const LOCALE_DOCS =
   'prices (in the local currency) and country names follow the locale; `ja` adds katakana readings. ' +
   'Field names never change, so `province` and `postal` hold whatever the country uses. `GET /locales` lists them all.';
 
+/** The `messy` description. It carries the nullability note once rather than on every field of every schema. */
+export const MESSY_DOCS =
+  'Rewrites a share of values into the ones that break layouts and parsers: null and missing keys, empty and ' +
+  'whitespace-only strings, very long strings (120 characters, 2,000 for descriptions), emoji, combining marks ' +
+  'and zero-width joiners, right-to-left text, leading and trailing whitespace, numbers at the edges (0, ' +
+  'negative, very large, many decimals) and dates at the edges (the epoch, the far future, 29 February). ' +
+  '`true` rewrites about 15% of values; a number from 0 to 1 sets the share, so `0.5` rewrites half and `1` ' +
+  "every one. Which values change comes from `seed` and each record's position, so the same URL returns the " +
+  'same mess every time. Values keep their type (a string field holds a string, a number field a number, a ' +
+  'date field a date in the same format), but while `messy` is on every field except the id may be null or ' +
+  'missing, whatever the schema says.';
+
 /**
  * Query parameters shared by every collection. Parsing is deliberately lenient,
  * so they are documented as strings and bad values fall back to defaults.
@@ -26,7 +38,7 @@ export const ListQuery = z
     page: param('One-based page number in pages of `limit`: `page=3&pageSize=20` is `offset=40&limit=20`.'),
     pageSize: param('Alias of `limit`, for use with `page`.'),
     cursor: param(
-      'An opaque cursor from `metadata.nextCursor` or `prevCursor`. Overrides `page` and `offset`; an empty `cursor=` starts on the first page with cursor links. A cursor used with different filters, sort, `q`, `seed`, `locale` or `max` returns 400.',
+      'An opaque cursor from `metadata.nextCursor` or `prevCursor`. Overrides `page` and `offset`; an empty `cursor=` starts on the first page with cursor links. A cursor used with different filters, sort, `q`, `seed`, `locale`, `messy` or `max` returns 400.',
     ),
     max: param('Caps the dataset size to test end-of-data handling. Alias: `maxRecords`.'),
     sortBy: param('Field to sort by. Append `:numeric` to compare as numbers, e.g. `age:numeric`.'),
@@ -36,6 +48,7 @@ export const ListQuery = z
     resultsName: param('Renames the results key, e.g. `rows`.'),
     seed: param('Selects a repeatable dataset. The same seed always returns the same records.', '1'),
     locale: param(LOCALE_DOCS),
+    messy: param(MESSY_DOCS),
     format: param('`json` (default), `csv`, `yaml` or `xml`. The `Accept` header works too.'),
     delay: param(
       'Wait this many milliseconds before responding, up to 10000. A range such as `200-800` picks a wait inside it from the request, seed included, so the same URL always waits the same time.',

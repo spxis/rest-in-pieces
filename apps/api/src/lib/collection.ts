@@ -3,6 +3,7 @@ import pkg from '../../package.json' with { type: 'json' };
 import { decodeCursor, encodeCursor, queryFingerprint } from './cursor.ts';
 import { filterRecords, parseFilters } from './filter.ts';
 import { DEFAULT_LOCALE, type Locale } from './locale.ts';
+import { messyRecords, parseMessy } from './messy.ts';
 import { flagParam, intParam, paginate, pick, type Query } from './query.ts';
 import { parseSort, type SortOptions, sortRecords } from './sort.ts';
 
@@ -28,6 +29,8 @@ export interface ListOptions {
   q: string | undefined;
   resultsName: string;
   showMetadata: boolean;
+  /** Share of values `messy` rewrites, or 0. */
+  messy: number;
 }
 
 /**
@@ -63,6 +66,7 @@ export function parseListOptions(query: Query, defaults: CollectionDefaults): Li
     q: pick(query, 'q'),
     resultsName: requestedName && requestedName !== 'metadata' ? requestedName : DEFAULT_RESULTS_NAME,
     showMetadata: flagParam(pick(query, 'metadata'), defaults.metadata),
+    messy: parseMessy(pick(query, 'messy')),
   };
 }
 
@@ -72,19 +76,29 @@ export interface Page<T> {
   options: ListOptions;
 }
 
+/** What `messy` needs besides its share: the dataset's seed and the fields it must leave alone. */
+export interface MessyContext {
+  seed: number;
+  keep?: readonly string[];
+}
+
 /**
- * The pipeline every collection shares: filter, sort, cap to `max`, then page.
+ * The pipeline every collection shares: make messy, filter, sort, cap to `max`, then page.
  * Strings sort in the order of the dataset's `locale`.
  * `max` shrinks the dataset itself so clients can exercise their end-of-data handling.
+ * `messy` rewrites values before anything else, so filters, search and sort see what the client sees.
  */
 export function queryCollection<T extends object>(
-  source: readonly T[],
+  clean: readonly T[],
   query: Query,
   defaults: CollectionDefaults,
   locale: Locale = DEFAULT_LOCALE,
+  { seed, keep = [] }: MessyContext = { seed: 1 },
 ) {
   const options = parseListOptions(query, defaults);
-  const fields = new Set(source.length > 0 ? Object.keys(source[0] as object) : []);
+  const source = messyRecords(clean, { share: options.messy, seed, keep });
+  // Every key any record has: a messy or mixed-locale record may lack one the first record has.
+  const fields = new Set(source.flatMap((record) => Object.keys(record)));
   const filtered = filterRecords(source, parseFilters(query, fields), options.q);
   const dataset = sortRecords(filtered, options.sort, locale).slice(0, options.max);
   return { records: paginate(dataset, options.offset, options.limit), total: dataset.length, options };
@@ -179,6 +193,7 @@ export function buildBody<T>(page: Page<T>, links: PageLinks, meta: EnvelopeMeta
         seed: meta.seed,
         locale: meta.locale,
         q: options.q ?? null,
+        messy: options.messy || null,
         ...options.sort,
       },
       links,
