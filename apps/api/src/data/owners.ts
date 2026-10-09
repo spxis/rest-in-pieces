@@ -24,6 +24,12 @@ export const OWNERSHIP = {
 
 export type OwnedDataset = keyof typeof OWNERSHIP;
 
+/**
+ * The first ten parents always own at least one child, so `/users/1/posts`, `/posts/1/comments` and
+ * `/products/1/reviews` (what tutorials ask for first) are never empty.
+ */
+export const ALWAYS_OWNING = 10;
+
 /** The most children any parent has in a dataset: the bound on an embedded list. */
 export const MOST_CHILDREN = Math.max(...Object.values(OWNERSHIP).map((o) => o.weights.length - 1));
 
@@ -39,8 +45,12 @@ const known = new Map<string, Ownership>();
 function count(seed: number, dataset: OwnedDataset, parents: number): Ownership {
   const { key, weights } = OWNERSHIP[dataset];
   const starts = new Int32Array(parents + 1);
+  const some = weights.slice(1);
   for (let k = 1; k <= parents; k++) {
-    starts[k] = (starts[k - 1] ?? 0) + stream(mix(seed, key, k)).weighted(weights);
+    const random = stream(mix(seed, key, k));
+    let children = random.weighted(weights);
+    if (children === 0 && k <= ALWAYS_OWNING) children = 1 + random.weighted(some);
+    starts[k] = (starts[k - 1] ?? 0) + children;
   }
   return { starts, total: starts[parents] ?? 0 };
 }

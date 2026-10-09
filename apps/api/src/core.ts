@@ -18,6 +18,7 @@ import { createSession, type SessionOption } from './lib/session.ts';
 import { resources } from './resources.ts';
 import { authRoutes } from './routes/auth.ts';
 import { collectionRoutes } from './routes/collection.ts';
+import { compatRoutes } from './routes/compat.ts';
 import { generateRoutes } from './routes/generate.ts';
 import { home } from './routes/home.ts';
 import { imageRoutes } from './routes/images.ts';
@@ -97,6 +98,7 @@ export function createApp({
   }
   app.route('/generate', generateRoutes({ safe }));
   imageRoutes(app);
+  compatRoutes(app);
   const users = resources.find((r) => r.name === 'users');
   if (users) app.route('/auth', authRoutes(users, session));
   app.route('/', sessionRoutes(session));
@@ -130,6 +132,10 @@ export function createApp({
       { name: 'Reference data', description: 'Real-world lookup data.' },
       { name: 'Custom data', description: 'Records built from your own field list.' },
       { name: 'Images', description: 'Self-hosted SVG avatars and placeholder images, drawn from the URL alone.' },
+      {
+        name: 'Compatibility',
+        description: 'The same data with another API’s defaults, so its tutorials work by changing the base URL.',
+      },
       {
         name: 'Auth',
         description:

@@ -316,3 +316,72 @@ describe('JSONPlaceholder shapes', () => {
     expect(await created.json()).toMatchObject({ title: 'foo', body: 'bar', userId: 1 });
   });
 });
+
+describe('/jsonplaceholder', () => {
+  const get = async (path: string, init?: RequestInit) => {
+    const res = await createApp().request(`/jsonplaceholder${path}`, init);
+    return { status: res.status, body: (await res.json()) as unknown };
+  };
+
+  it('answers a tutorial’s requests with bare arrays as long as JSONPlaceholder’s', async () => {
+    const lengths: Record<string, number> = { '/posts': 100, '/comments': 500, '/todos': 200, '/users': 10 };
+    for (const [path, length] of Object.entries(lengths)) {
+      const { status, body } = await get(path);
+      expect(status, path).toBe(200);
+      expect(Array.isArray(body) && body.length, path).toBe(length);
+    }
+    for (const path of [
+      '/users/1/posts',
+      '/users/1/todos',
+      '/posts/1/comments',
+      '/posts?userId=1',
+      '/comments?postId=1',
+    ]) {
+      const { body } = await get(path);
+      expect(Array.isArray(body) && body.length > 0, path).toBe(true);
+    }
+    const byUser = (await get('/posts?userId=1')).body as Fields[];
+    expect(byUser).toEqual((await get('/users/1/posts')).body);
+    expect(((await get('/posts/1')).body as Fields).id).toBe(1);
+    expect(((await get('/posts?limit=3')).body as Fields[]).length).toBe(3);
+    expect(((await get('/posts?metadata=true&limit=2')).body as Envelope).metadata.count).toBe(2);
+    expect((await get('/albums')).status).toBe(404);
+  });
+
+  it('gives users JSONPlaceholder’s name, address, website and company', async () => {
+    const [user] = (await get('/users')).body as Fields[];
+    expect(user).toMatchObject({
+      id: 1,
+      name: expect.stringMatching(/^\S+ \S+$/),
+      website: expect.stringMatching(/\.example\.org$/),
+    });
+    expect(user?.address).toEqual({ city: expect.any(String), country: 'CA' });
+    expect(user?.company).toEqual({ name: expect.any(String) });
+    const one = (await get('/users/1?locale=ja')).body as Fields;
+    expect(one.name).toBe(`${one.lastName} ${one.firstName}`);
+    const page = (await get('/users?metadata=true&limit=2')).body as Envelope<Fields>;
+    expect(page.results[0]?.address).toBeDefined();
+    expect((await get('/users/99999')).status).toBe(404);
+  });
+
+  it('takes the writes a tutorial makes', async () => {
+    const json = { 'Content-Type': 'application/json; charset=UTF-8' };
+    const created = await get('/posts', {
+      method: 'POST',
+      headers: json,
+      body: JSON.stringify({ title: 'foo', body: 'bar', userId: 1 }),
+    });
+    expect(created.status).toBe(201);
+    expect(created.body).toMatchObject({ title: 'foo', body: 'bar', userId: 1 });
+    const put = await get('/posts/1', {
+      method: 'PUT',
+      headers: json,
+      body: JSON.stringify({ id: 1, title: 'foo', body: 'bar', userId: 1 }),
+    });
+    expect(put.status).toBe(200);
+    const patched = await get('/posts/1', { method: 'PATCH', headers: json, body: JSON.stringify({ title: 'foo' }) });
+    expect(patched.body).toMatchObject({ id: 1, title: 'foo' });
+    const res = await createApp().request('/jsonplaceholder/posts/1', { method: 'DELETE' });
+    expect(res.status).toBe(204);
+  });
+});
