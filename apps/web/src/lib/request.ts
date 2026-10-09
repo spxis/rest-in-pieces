@@ -45,8 +45,9 @@ function pagingParams({ paging, limit, offset }: PlaygroundConfig, rest: URLSear
   return params;
 }
 
-/** The simulation parameters, shared by reads and writes. */
+/** The simulation parameters, and `auth`, shared by reads and writes. */
 function simulationParams(config: PlaygroundConfig, params: URLSearchParams): void {
+  if (config.auth) params.set('auth', config.auth);
   const delay = normalizeDelay(config.delay);
   if (delay) params.set('delay', delay);
   if (config.trickle > 0) params.set('trickle', String(config.trickle));
@@ -106,6 +107,8 @@ export interface SendOptions {
   method: HttpMethod;
   /** The JSON body, as typed. Only `POST`, `PUT` and `PATCH` send one. */
   body?: string;
+  /** Snippets send `Authorization: Bearer` with a token from `POST /auth/login`, named `TOKEN`. */
+  bearer?: boolean;
 }
 
 /** The body as one line when it is valid JSON, or as typed when it is not. */
@@ -118,16 +121,22 @@ export function compactJson(body: string): string {
 }
 
 /** Writes always answer JSON, whatever format the reads were set to. */
-const acceptFor = (format: OutputFormat, method: HttpMethod) => mimeFor(method === 'GET' ? format : 'json');
+/** The header a snippet sends once signed in, as source: `token` is the snippet's own variable. */
+// biome-ignore lint/suspicious/noTemplateCurlyInString: this is source text for a snippet, not a template here
+export const BEARER_HEADER = 'Authorization: `Bearer ${token}`';
+
+export const acceptFor = (format: OutputFormat, method: HttpMethod) => mimeFor(method === 'GET' ? format : 'json');
 
 export function curlCommand(
   url: string,
   format: OutputFormat,
-  { method, body }: SendOptions = { method: 'GET' },
+  { method, body, bearer }: SendOptions = { method: 'GET' },
 ): string {
   const parts = ['curl -i'];
   if (method !== 'GET') parts.push(`-X ${method}`);
   parts.push(`-H ${shellQuote(`Accept: ${acceptFor(format, method)}`)}`);
+  // Double quotes, so the shell fills in the token.
+  if (bearer) parts.push('-H "Authorization: Bearer $TOKEN"');
   if (takesBody(method)) {
     parts.push(`-H ${shellQuote('Content-Type: application/json')}`, `-d ${shellQuote(compactJson(body ?? ''))}`);
   }
@@ -138,10 +147,11 @@ export function curlCommand(
 export function fetchSnippet(
   url: string,
   format: OutputFormat,
-  { method, body }: SendOptions = { method: 'GET' },
+  { method, body, bearer }: SendOptions = { method: 'GET' },
 ): string {
   const accept = JSON.stringify(acceptFor(format, method));
   const sendsBody = takesBody(method);
+  const auth = bearer ? `, ${BEARER_HEADER}` : '';
   const read =
     method === 'DELETE'
       ? 'const deleted = response.status === 204;'
@@ -150,8 +160,8 @@ export function fetchSnippet(
     `const response = await fetch(${JSON.stringify(url)}, {`,
     ...(method === 'GET' ? [] : [`  method: '${method}',`]),
     sendsBody
-      ? `  headers: { Accept: ${accept}, 'Content-Type': 'application/json' },`
-      : `  headers: { Accept: ${accept} },`,
+      ? `  headers: { Accept: ${accept}, 'Content-Type': 'application/json'${auth} },`
+      : `  headers: { Accept: ${accept}${auth} },`,
     ...(sendsBody ? [`  body: ${bodyExpression(body ?? '')},`] : []),
     '});',
     read,
@@ -159,7 +169,7 @@ export function fetchSnippet(
 }
 
 /** `JSON.stringify({...})` for a valid body, so the snippet reads as code; the typed text as a string otherwise. */
-function bodyExpression(body: string): string {
+export function bodyExpression(body: string): string {
   try {
     return `JSON.stringify(${JSON.stringify(JSON.parse(body))})`;
   } catch {
