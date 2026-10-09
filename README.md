@@ -61,6 +61,39 @@ const { results } = await (await fetch('/api/users?limit=10&seed=7')).json();
 
 ## Use with
 
+### Vite
+
+`@johnmorrisdotca/rest-in-pieces/vite` serves the whole API from the Vite dev server, under `/api` on the same origin as your app: one line, no second process, no proxy, no entry file. It applies to `vite dev` only, so nothing of it reaches a production build, and responses stream, so `?trickle=` arrives in pieces. `vite` is an optional peer dependency.
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite';
+import { restInPieces } from '@johnmorrisdotca/rest-in-pieces/vite';
+
+export default defineConfig({ plugins: [restInPieces()] }); // fetch('/api/users?limit=10') in the app
+```
+
+`restInPieces({ base: '/mock' })` moves it, and `app` passes options to `createApp()`. Every path outside the base stays Vite's. Because it runs in the dev server rather than the page, server-side rendering and any HTTP client work without a service worker.
+
+Two other ways, neither needing the plugin:
+
+- **[`@hono/vite-dev-server`](https://github.com/honojs/vite-plugins/tree/main/packages/dev-server)** runs a fetch-style app inside `vite dev` from an entry file. Prefer it when you are writing Hono routes of your own beside the fake ones, since it reloads the entry when it changes. Mount the API in the entry and leave every other path to Vite with `exclude`; its own `base` option moves Vite's base too, so it does not suit an app served at `/`.
+
+  ```ts
+  // src/api.ts
+  import { Hono } from 'hono';
+  import { createApp } from '@johnmorrisdotca/rest-in-pieces/core';
+  export default new Hono().route('/api', createApp());
+
+  // vite.config.ts: plugins: [devServer({ entry: 'src/api.ts', exclude: [/^\/(?!api(\/|\?|$))/] })]
+  ```
+
+- **Vite's `server.proxy`**, with no code at all: run `npx @johnmorrisdotca/rest-in-pieces` in another terminal and proxy to it. Prefer it when the same API should also answer curl, a phone on the network or another app.
+
+  ```ts
+  server: { proxy: { '/api': { target: 'http://localhost:6800', rewrite: (path) => path.replace(/^\/api/, '') } } }
+  ```
+
 ### Mock Service Worker
 
 `@johnmorrisdotca/rest-in-pieces/msw` gives [MSW](https://mswjs.io/) one handler that answers everything under a base path from the whole API. MSW's service worker catches `fetch`, `XMLHttpRequest` and axios alike, and a handler placed before it still wins, so a test can override one endpoint and leave the rest to the API. Pass MSW's own `http`: the entry imports nothing from `msw`, so it works with MSW 2 (`from 'msw'`) and MSW 3 (`from 'msw'` or `from 'msw/http'`). `msw` is an optional peer dependency.

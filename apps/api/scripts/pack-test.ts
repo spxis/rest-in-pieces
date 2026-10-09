@@ -107,6 +107,8 @@ try {
     'dist/browser.js',
     'dist/msw.js',
     'dist/msw.d.ts',
+    'dist/vite.js',
+    'dist/vite.d.ts',
     'dist/types.d.ts',
     'dist/openapi.json',
     'web/index.html',
@@ -135,6 +137,7 @@ import { createApp as createCoreApp } from '@johnmorrisdotca/rest-in-pieces/core
 import { restInPiecesHandlers } from '@johnmorrisdotca/rest-in-pieces/msw';
 import spec from '@johnmorrisdotca/rest-in-pieces/openapi.json' with { type: 'json' };
 import type { components, paths } from '@johnmorrisdotca/rest-in-pieces/types';
+import { restInPieces } from '@johnmorrisdotca/rest-in-pieces/vite';
 
 const fail = (message: string): never => {
   throw new Error(message);
@@ -159,6 +162,10 @@ const [handler] = restInPiecesHandlers({
 if (!handler) throw new Error('The MSW entry returned no handler.');
 if (handler.path !== 'https://msw.test/api/*') fail(\`The MSW handler matches \${handler.path}.\`);
 if ((await results(await handler.resolver({ request: new Request('https://msw.test/api/users?limit=2') }))).length !== 2) fail('The MSW entry did not answer.');
+
+// Vite is an optional peer and is not installed here; the plugin still loads without it.
+const plugin = restInPieces({ base: '/mock' });
+if (plugin.name !== 'rest-in-pieces' || plugin.apply !== 'serve' || typeof plugin.configureServer !== 'function') fail('The Vite entry did not return the plugin.');
 
 // The generated types describe the API: a person's postal code is a string, and /users is a path.
 type Person = components['schemas']['Person'];
@@ -197,7 +204,7 @@ console.log(pkg.version);
   const printed = run('node', [join(consumer, 'out', 'check.js')], consumer).trim();
   assert(printed === version, `The in-process check printed ${printed}.`);
   step(
-    'imported the in-process app, @johnmorrisdotca/rest-in-pieces/core, /browser, /msw, /types and /openapi.json from the install',
+    'imported the in-process app, @johnmorrisdotca/rest-in-pieces/core, /browser, /msw, /vite, /types and /openapi.json from the install',
   );
 
   step(`passed in ${((performance.now() - startedAt) / 1000).toFixed(1)} s`);
