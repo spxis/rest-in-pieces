@@ -27,6 +27,27 @@ describe('service endpoints', () => {
     expect(res.headers.get('access-control-expose-headers')).toContain('Link');
   });
 
+  it('answers a CORS preflight from any origin, for writes with an Authorization header too', async () => {
+    const { res, status } = await request('/users/1', {
+      method: 'OPTIONS',
+      headers: {
+        Origin: 'http://localhost:5173',
+        'Access-Control-Request-Method': 'PATCH',
+        'Access-Control-Request-Headers': 'authorization, content-type',
+      },
+    });
+    expect(status).toBe(204);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(res.headers.get('access-control-allow-methods')?.split(',')).toEqual(
+      expect.arrayContaining(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']),
+    );
+    expect(res.headers.get('access-control-allow-headers')?.split(/,\s*/)).toEqual(['authorization', 'content-type']);
+    const { res: list } = await request('/users', { headers: { Origin: 'http://localhost:5173' } });
+    expect(list.headers.get('access-control-expose-headers')?.split(',')).toEqual(
+      expect.arrayContaining(['X-Total-Count', 'Link', 'ETag', 'X-Simulated', 'Retry-After', 'Location']),
+    );
+  });
+
   it('returns JSON errors for unknown routes', async () => {
     const { status, body } = await request('/nope');
     expect(status).toBe(404);

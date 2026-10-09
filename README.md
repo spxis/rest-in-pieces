@@ -7,9 +7,13 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-7-3178c6)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
+Seeded, realistic, localized data plus latency, error and messy-data drills, as a REST API, a function call or a patch on `fetch`.
+
 **Try it: [spxis.github.io/rest-in-pieces](https://spxis.github.io/rest-in-pieces/).** The live demo runs the whole API inside the page, so there is no server behind it and nothing to install.
 
 **A repeatable test backend for frontend development.** Build tables, pagination, sorting, filters, loading states, empty states and error handling against realistic data, before a real backend exists.
+
+It plugs into [Vite, MSW, Storybook, Next.js, Playwright, Cypress and openapi-fetch](#use-with), and answers any origin.
 
 [![The REST in Pieces playground](docs/images/playground.png)](https://spxis.github.io/rest-in-pieces/)
 
@@ -161,9 +165,41 @@ export const Failed = { args: { src: '/api/users?status=500' } };
 export const Messy = { args: { src: '/api/users?messy=true&seed=3' } };
 ```
 
+### Next.js
+
+A catch-all route handler hosts the whole API inside a Next.js app, on its own origin. Hono's `mount` takes the base off the path before the API sees it (`hono` is already a dependency of this package; add it to yours if your package manager is strict):
+
+```ts
+// app/api/[[...path]]/route.ts
+import { Hono } from 'hono';
+import { createApp } from '@johnmorrisdotca/rest-in-pieces/core';
+
+const app = new Hono().mount('/api', createApp().fetch);
+const handler = (request: Request) => app.fetch(request);
+export { handler as GET, handler as HEAD, handler as POST, handler as PUT, handler as PATCH, handler as DELETE, handler as OPTIONS };
+```
+
+The same `createApp().fetch` runs on any other fetch-style host: Cloudflare Workers, Deno, Bun or a Vercel function.
+
 ### Playwright
 
-[`@msw/playwright`](https://github.com/mswjs/playwright) (MSW 3) routes the page's requests through MSW handlers in the test process, so the adapter plugs straight in. Give it the base at your app's origin:
+No server and no MSW: answer the page's API requests from the app in the test process with `page.route`, so each test gets the same data and can turn on a drill by URL:
+
+```ts
+import { createApp } from '@johnmorrisdotca/rest-in-pieces';
+
+const app = createApp();
+test.beforeEach(({ page }) => page.route('**/api/**', async (route) => {
+  const request = route.request();
+  const url = new URL(request.url());
+  const response = await app.request(url.pathname.replace(/^\/api/, '') + url.search, { method: request.method(), headers: request.headers(), body: request.postDataBuffer() });
+  await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: Buffer.from(await response.arrayBuffer()) });
+}));
+```
+
+Or start the API beside your app with Playwright's `webServer` (`command: 'npx @johnmorrisdotca/rest-in-pieces --port 6800'`, `url: 'http://localhost:6800/health'`).
+
+[`@msw/playwright`](https://github.com/mswjs/playwright) (MSW 3) does the same through MSW, so the [MSW handlers](#mock-service-worker) plug straight in. Give them the base at your app's origin:
 
 ```ts
 import { defineNetworkFixture } from '@msw/playwright';
@@ -171,6 +207,19 @@ import { defineNetworkFixture } from '@msw/playwright';
 const handlers = restInPiecesHandlers({ base: 'http://localhost:5173/api', http });
 // in test.extend: const network = defineNetworkFixture({ context, handlers }); await network.enable(); await use(network); await network.disable();
 ```
+
+### Cypress
+
+Cypress runs its intercept handlers in the browser, so the API runs as a server beside your app. With [start-server-and-test](https://github.com/bahmutov/start-server-and-test) and the package installed as a dev dependency:
+
+```json
+"scripts": {
+  "api": "rest-in-pieces --port 6800",
+  "e2e": "start-test api http://localhost:6800/health dev http://localhost:5173 'cypress run'"
+}
+```
+
+Slow, failing and flaky answers come from the API's own `?delay=`, `?status=` and `?fail=`, with no mocking code in the test. Keep `cy.intercept` for the faults no server can make, such as a dropped connection: `cy.intercept('GET', '/api/users*', { forceNetworkError: true })`. Or call `installInBrowserApi()` in the app under test and need no server at all.
 
 ### Typed clients
 
@@ -187,6 +236,10 @@ if (data && !Array.isArray(data)) console.log(data.metadata.total, data.results[
 
 `components['schemas']['User']`, `['Person']`, `['Product']` and the rest type single records, and `['UserInput']` and its siblings the write bodies. Query parameters are strings, as they are in a URL. To generate the types yourself, point openapi-typescript at the document: `npx openapi-typescript node_modules/@johnmorrisdotca/rest-in-pieces/dist/openapi.json -o rest-in-pieces.d.ts`, or at `/openapi.json` on any running instance.
 
+### Any origin
+
+CORS is on by default, so a frontend on any dev-server origin can call the API directly. Every response carries `Access-Control-Allow-Origin: *`; a preflight `OPTIONS` answers `204` with the methods allowed and the requested headers echoed back, so a write with an `Authorization` header preflights too; and `X-Total-Count`, `Link`, `ETag`, `X-Simulated`, `Retry-After` and `Location` are exposed to scripts.
+
 ## Why use it
 
 - **Repeatable data.** `?seed=42` always returns the same records. Screenshots, snapshot tests and bug reports stay stable.
@@ -198,6 +251,20 @@ if (data && !Array.isArray(data)) console.log(data.metadata.total, data.results[
 - **Any format.** JSON, CSV, YAML or XML, chosen by `?format=` or the `Accept` header.
 - **Self-documenting.** An OpenAPI 3.1 spec generated from the same schemas that validate requests, with interactive docs at `/docs`.
 - **A playground in English and 日本語.** Build a request, inspect the table, body and headers, page through results, and share the exact setup as a link. The language follows the browser, `?lang=ja` or the toggle in the top bar.
+
+## How it compares
+
+Most tools in this space either intercept requests and leave you to write the data, or serve data you wrote by hand and leave you to write the realism. REST in Pieces ships the data and the unhappy paths, and runs behind most of the interception tools.
+
+| Tool | What it is | Verdict |
+| ---- | ---------- | ------- |
+| [json-server](https://github.com/typicode/json-server) | A REST API over a `db.json` you write | Closest in spirit. It has persisted writes and relations today, which REST in Pieces does not (its writes are stateless); REST in Pieces has generated, seeded, localized data, paging, formats and failure drills with nothing to write. |
+| [MSW](https://mswjs.io/) | Request interception in the browser and Node | Not a rival but a host: MSW intercepts, REST in Pieces answers. Use the [MSW handlers](#mock-service-worker). |
+| [Mirage JS](https://miragejs.com/) | A fake server in the tab, with models and factories you define | Mirage wants a schema and routes; REST in Pieces needs no setup, but has no in-memory database. |
+| [Prism](https://github.com/stoplightio/prism) | A mock server generated from your OpenAPI file | Use Prism when you have a contract to mock; use REST in Pieces when you do not, and want realistic data rather than examples. |
+| [Mockoon](https://mockoon.com/) | A desktop app and CLI for hand-templated mock routes | Better for people who prefer a GUI and per-route templates; REST in Pieces is code-first, with seeds and locales built in. |
+| [DummyJSON](https://dummyjson.com/), [JSONPlaceholder](https://jsonplaceholder.typicode.com/) | Hosted fake APIs at public URLs | Nothing to install, but fixed English data and no failure drills; DummyJSON also has login and tokens, which REST in Pieces does not. The [fixtures](#fixtures) and the live demo are the hosted side here. |
+| [Faker](https://fakerjs.dev/) | A library of generators you call in code | REST in Pieces is built on it, and serves it over HTTP with paging, filters, formats and seeds already done. |
 
 ## Quick start
 
@@ -250,7 +317,7 @@ curl 'http://localhost:6800/products?department=Books&price[lt]=100&format=csv'
 curl 'http://localhost:6800/names?locale=ja&province=東京都&limit=5'
 
 # An international user table: every row from its own country
-curl 'http://localhost:8080/users?locale=global&limit=20'
+curl 'http://localhost:6800/users?locale=global&limit=20'
 
 # Your own shape
 curl 'http://localhost:6800/generate?fields=name:person.fullName,email:internet.email,plan:commerce.productAdjective&seed=3'
