@@ -4,6 +4,8 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+## 2.2.0 - 2026-10-08
+
 ### Added
 
 - A live demo on GitHub Pages. The whole API runs inside the browser tab, with static copies of the OpenAPI document and the reference docs beside it.
