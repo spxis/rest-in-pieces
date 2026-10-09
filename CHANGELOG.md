@@ -4,6 +4,11 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Fixed
+
+- The npm page shows the playground screenshot, and its LICENSE, SECURITY and CONTRIBUTING links open: npm resolved relative links against `apps/api`, where the package is published from.
+- npm keywords and description name what the package is searched for by: mock and fake REST API, json-server and JSONPlaceholder alternative, MSW, Vite, Playwright, Cypress, Storybook, OpenAPI, pagination, latency and error simulation.
+
 ## 2.12.0 - 2026-10-09
 
 ### Added
