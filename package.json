@@ -19,10 +19,11 @@
     "test": "pnpm -r test",
     "test:coverage": "pnpm --filter rest-in-pieces test:coverage",
     "test:e2e": "playwright test",
+    "pack:test": "pnpm --filter rest-in-pieces pack:test",
     "typecheck": "pnpm -r typecheck",
     "lint": "biome check .",
     "format": "biome check --write .",
-    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm pack:test"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",

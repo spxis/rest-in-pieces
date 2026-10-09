@@ -60,6 +60,7 @@
     "start": "node src/server.ts",
     "build": "node scripts/build.ts",
     "prepack": "pnpm --filter @rest-in-pieces/web build && node scripts/build.ts",
+    "pack:test": "node scripts/pack-test.ts",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc -p ."
