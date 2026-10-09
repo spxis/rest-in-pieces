@@ -2,7 +2,7 @@
 import { appendFileSync, mkdtempSync, readFileSync, rmSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createApp } from 'rest-in-pieces/core';
+import { createApp } from '@johnmorrisdotca/rest-in-pieces/core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   checkFixtures,

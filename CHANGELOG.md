@@ -4,6 +4,10 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Changed
+
+- The package is published as `@johnmorrisdotca/rest-in-pieces`: `npx @johnmorrisdotca/rest-in-pieces` starts it, and imports read `from '@johnmorrisdotca/rest-in-pieces'` (with `/core` and `/browser` under it). The unscoped `rest-in-pieces` on npm stays at 1.0.3 from 2022 and will not be updated.
+
 ## 2.10.2 - 2026-10-09
 
 ### Fixed

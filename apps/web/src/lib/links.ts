@@ -2,7 +2,7 @@ import { trimBase } from './request.ts';
 
 /** Where the project lives outside this page. */
 export const REPO_URL = 'https://github.com/spxis/rest-in-pieces';
-export const NPM_URL = 'https://www.npmjs.com/package/rest-in-pieces';
+export const NPM_URL = 'https://www.npmjs.com/package/@johnmorrisdotca/rest-in-pieces';
 /** The live demo on GitHub Pages, which also serves the static fixtures. */
 export const PAGES_URL = 'https://spxis.github.io/rest-in-pieces/';
 

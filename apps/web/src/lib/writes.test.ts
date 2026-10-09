@@ -1,4 +1,4 @@
-import { createApp } from 'rest-in-pieces/core';
+import { createApp } from '@johnmorrisdotca/rest-in-pieces/core';
 import { describe, expect, it } from 'vitest';
 import { defaultConfig, METHODS, takesBody } from './config.ts';
 import { buildRequestUrl, curlCommand, fetchSnippet } from './request.ts';

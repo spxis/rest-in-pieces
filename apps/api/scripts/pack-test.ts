@@ -119,10 +119,10 @@ try {
 
   writeFileSync(
     join(consumer, 'check.ts'),
-    `import pkg from 'rest-in-pieces/package.json' with { type: 'json' };
-import defaultApp, { app, createApp } from 'rest-in-pieces';
-import { type InBrowserApiOptions, installInBrowserApi } from 'rest-in-pieces/browser';
-import { createApp as createCoreApp } from 'rest-in-pieces/core';
+    `import pkg from '@johnmorrisdotca/rest-in-pieces/package.json' with { type: 'json' };
+import defaultApp, { app, createApp } from '@johnmorrisdotca/rest-in-pieces';
+import { type InBrowserApiOptions, installInBrowserApi } from '@johnmorrisdotca/rest-in-pieces/browser';
+import { createApp as createCoreApp } from '@johnmorrisdotca/rest-in-pieces/core';
 
 const fail = (message: string): never => {
   throw new Error(message);
@@ -131,7 +131,7 @@ const results = async (response: Response) => ((await response.json()) as { resu
 
 if (defaultApp !== app) fail('The default export is not the app.');
 if ((await results(await createApp().request('/users?limit=5'))).length !== 5) fail('createApp() did not answer in-process.');
-if ((await results(await createCoreApp().request('/names?limit=2'))).length !== 2) fail('rest-in-pieces/core did not answer.');
+if ((await results(await createCoreApp().request('/names?limit=2'))).length !== 2) fail('@johnmorrisdotca/rest-in-pieces/core did not answer.');
 
 const options: InBrowserApiOptions = { base: 'https://in-tab.test/api' };
 const uninstall: () => void = installInBrowserApi(options);
@@ -167,7 +167,9 @@ console.log(pkg.version);
   run('tsc', ['-p', consumer, '--noEmit', 'false', '--outDir', join(consumer, 'out')], consumer);
   const printed = run('node', [join(consumer, 'out', 'check.js')], consumer).trim();
   assert(printed === version, `The in-process check printed ${printed}.`);
-  step('imported the in-process app, rest-in-pieces/core and rest-in-pieces/browser from the install');
+  step(
+    'imported the in-process app, @johnmorrisdotca/rest-in-pieces/core and @johnmorrisdotca/rest-in-pieces/browser from the install',
+  );
 
   step(`passed in ${((performance.now() - startedAt) / 1000).toFixed(1)} s`);
 } finally {

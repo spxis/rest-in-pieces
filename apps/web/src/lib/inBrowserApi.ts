@@ -1,4 +1,4 @@
-import { installInBrowserApi as install } from 'rest-in-pieces/browser';
+import { installInBrowserApi as install } from '@johnmorrisdotca/rest-in-pieces/browser';
 
 /**
  * The GitHub Pages build has no server, so the whole API runs inside the page instead: requests to

@@ -14,7 +14,7 @@
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.2.6",
     "@fontsource/space-grotesk": "^5.2.6",
-    "rest-in-pieces": "workspace:*",
+    "@johnmorrisdotca/rest-in-pieces": "workspace:*",
     "lucide-react": "^1.48.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"

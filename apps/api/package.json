@@ -1,5 +1,5 @@
 {
-  "name": "rest-in-pieces",
+  "name": "@johnmorrisdotca/rest-in-pieces",
   "version": "2.10.2",
   "description": "Realistic, repeatable fake data for building and testing client applications: a REST API you can run with npx, in-process or inside a browser tab.",
   "keywords": [

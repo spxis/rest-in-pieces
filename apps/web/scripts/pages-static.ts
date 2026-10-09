@@ -4,7 +4,7 @@
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { createApp } from 'rest-in-pieces/core';
+import { createApp } from '@johnmorrisdotca/rest-in-pieces/core';
 import apiPackage from '../../api/package.json' with { type: 'json' };
 import { checkFixtures, folderBytes, writeFixtures } from './fixtures.ts';
 

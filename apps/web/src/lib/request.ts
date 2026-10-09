@@ -1,4 +1,4 @@
-import { encodeCursor, queryFingerprint } from 'rest-in-pieces/cursor';
+import { encodeCursor, queryFingerprint } from '@johnmorrisdotca/rest-in-pieces/cursor';
 import {
   DEFAULT_MESSY_SHARE,
   type HttpMethod,

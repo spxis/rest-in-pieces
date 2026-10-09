@@ -11,8 +11,8 @@ RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store pnpm install
 
 COPY . .
 RUN pnpm --filter @rest-in-pieces/web build \
-  && pnpm --filter rest-in-pieces build \
-  && pnpm --filter rest-in-pieces deploy --legacy --prod /out/api \
+  && pnpm --filter @johnmorrisdotca/rest-in-pieces build \
+  && pnpm --filter @johnmorrisdotca/rest-in-pieces deploy --legacy --prod /out/api \
   && cp -R apps/web/dist /out/web
 
 FROM node:24-alpine AS runtime

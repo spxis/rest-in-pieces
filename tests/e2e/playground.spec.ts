@@ -107,7 +107,7 @@ test('links to the API reference, the fixtures, npm and the repository', async (
   await expect(links.getByRole('link', { name: 'Fixtures' })).toHaveAttribute('href', /\/fixtures\/index\.json$/);
   await expect(links.getByRole('link', { name: 'npm' })).toHaveAttribute(
     'href',
-    'https://www.npmjs.com/package/rest-in-pieces',
+    'https://www.npmjs.com/package/@johnmorrisdotca/rest-in-pieces',
   );
   await expect(links.getByRole('link', { name: 'GitHub' })).toHaveAttribute(
     'href',

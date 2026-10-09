@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/spxis/rest-in-pieces/actions/workflows/ci.yml/badge.svg)](https://github.com/spxis/rest-in-pieces/actions/workflows/ci.yml)
 [![Pages](https://github.com/spxis/rest-in-pieces/actions/workflows/pages.yml/badge.svg)](https://spxis.github.io/rest-in-pieces/)
-[![npm](https://img.shields.io/npm/v/rest-in-pieces)](https://www.npmjs.com/package/rest-in-pieces)
+[![npm](https://img.shields.io/npm/v/@johnmorrisdotca/rest-in-pieces)](https://www.npmjs.com/package/@johnmorrisdotca/rest-in-pieces)
 ![Node 24](https://img.shields.io/badge/node-24_LTS-3c873a)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7-3178c6)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
@@ -20,9 +20,9 @@ Every dataset is generated from a seed. The same URL returns the same records on
 **With npx**, with nothing to clone (Node.js 22.13 or later):
 
 ```sh
-npx rest-in-pieces                  # API, playground and docs on http://localhost:6800
-npx rest-in-pieces --port 6900      # another port; PORT works too
-npx rest-in-pieces --host 0.0.0.0   # reachable from other machines and containers
+npx @johnmorrisdotca/rest-in-pieces                  # API, playground and docs on http://localhost:6800
+npx @johnmorrisdotca/rest-in-pieces --port 6900      # another port; PORT works too
+npx @johnmorrisdotca/rest-in-pieces --host 0.0.0.0   # reachable from other machines and containers
 ```
 
 **With Docker:**
@@ -34,7 +34,7 @@ docker run --rm -p 6800:6800 ghcr.io/spxis/rest-in-pieces
 **Inside your tests**, with no port and no server to start. `createApp()` builds the API and `app.request()` answers in-process, in Vitest, Jest, Playwright or any Node script:
 
 ```ts
-import { createApp } from 'rest-in-pieces';
+import { createApp } from '@johnmorrisdotca/rest-in-pieces';
 import { expect, test } from 'vitest';
 
 test('lists five users', async () => {
@@ -43,14 +43,14 @@ test('lists five users', async () => {
 });
 ```
 
-`rest-in-pieces/core` exports `createApp` alone, with no Node imports, for workers and other fetch-style hosts.
+`@johnmorrisdotca/rest-in-pieces/core` exports `createApp` alone, with no Node imports, for workers and other fetch-style hosts.
 
 ### A backend inside the tab
 
-`rest-in-pieces/browser` runs the API inside the page, so a frontend on StackBlitz, CodeSandbox or any static host gets a REST backend with no server:
+`@johnmorrisdotca/rest-in-pieces/browser` runs the API inside the page, so a frontend on StackBlitz, CodeSandbox or any static host gets a REST backend with no server:
 
 ```js
-import { installInBrowserApi } from 'rest-in-pieces/browser';
+import { installInBrowserApi } from '@johnmorrisdotca/rest-in-pieces/browser';
 
 installInBrowserApi(); // answers fetch('/api/...') in this tab; every other request goes to the network
 
