@@ -74,8 +74,10 @@ const writable = resources.filter((resource) => resource.input);
 const isoDate = (value: unknown) => typeof value === 'string' && !Number.isNaN(Date.parse(value));
 
 describe('write routes', () => {
-  it('exist on every generated dataset and nowhere else', () => {
+  it('exist on every generated dataset and nowhere else, as /resources says', async () => {
     expect(writable.map((resource) => resource.name)).toEqual(Object.keys(NEW));
+    const { body } = await request<Array<{ name: string; writable: boolean }>>('/resources');
+    expect(body.filter((resource) => resource.writable).map((resource) => resource.name)).toEqual(Object.keys(NEW));
   });
 
   for (const resource of writable) {
@@ -141,7 +143,7 @@ describe('write routes', () => {
 
       it('accepts every record it serves back as a PUT body, in every locale', () => {
         for (const locale of LOCALE_CODES) {
-          for (const record of resource.load(1, locale).records.slice(0, 100)) {
+          for (const record of resource.load(1, locale).records) {
             const parsed = resource.input?.safeParse(record);
             expect(parsed?.success, `${locale}: ${JSON.stringify(parsed?.error?.issues)}`).toBe(true);
           }

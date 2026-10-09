@@ -50,6 +50,9 @@ const resourcesRoute = createRoute({
                 description: z.string(),
                 idField: z.string(),
                 seeded: z.boolean(),
+                writable: z.boolean().openapi({
+                  description: 'Whether the dataset takes `POST`, `PUT`, `PATCH` and `DELETE`. Writes store nothing.',
+                }),
                 fields: z.array(z.string()),
                 locales: z.record(z.string(), z.object({ fields: z.array(z.string()) })).openapi({
                   description:
@@ -121,6 +124,7 @@ const catalog = resources.map((resource) => ({
   description: resource.description,
   idField: resource.idField,
   seeded: resource.seeded,
+  writable: resource.input !== undefined,
   fields: resource.fields(DEFAULT_LOCALE),
   locales: Object.fromEntries(LOCALE_CODES.map((locale) => [locale, { fields: resource.fields(locale) }])),
 }));
