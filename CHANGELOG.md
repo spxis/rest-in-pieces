@@ -4,6 +4,8 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+## 2.13.0 - 2026-10-09
+
 ### Added
 
 - Sessions: an opt-in in-memory store that keeps writes. With `--session`, `REST_IN_PIECES_SESSION=true`, `createApp({ session: true })`, or `app: { session: true }` in the Vite plugin, the MSW handlers and `installInBrowserApi`, `POST`, `PUT`, `PATCH` and `DELETE` change a copy of the seeded dataset at the request's `seed` and `locale`, and every later read, count, filter, page and item sees the change. `POST /reset` puts the seed back (every dataset, or one with `?dataset=`), and `GET /session` lists what is held. Off by default; capped at 2,000 records a dataset, 16 changed datasets and 8 MB, answering `507` when full; memory only, with no timers and nothing written to disk. The hosted demos stay stateless.
