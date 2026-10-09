@@ -1,5 +1,5 @@
-import { type Faker, fakerEN_CA as faker } from '@faker-js/faker';
-import { fakerFor, type Locale } from '../lib/locale.ts';
+import { type CountryLocale, countryLocale, DEFAULT_LOCALE, type Locale } from '../lib/locale.ts';
+import { build } from './build.ts';
 
 /** Faker modules offered to custom schemas. Helpers, seeding and locale internals are left out on purpose. */
 const MODULES = [
@@ -33,8 +33,14 @@ const MODULES = [
 /** Methods that work without arguments but produce values too large for list responses. */
 const EXCLUDED = new Set(['image.dataUri', 'image.personPortrait']);
 
-/** Calls one Faker method on whichever locale's instance it is given. */
-type Generator = (instance: Faker) => unknown;
+/** Produces one value for a record built in the given locale, usually by calling a method on its Faker. */
+type Generator = (locale: CountryLocale) => unknown;
+
+/** Types that read the record's locale rather than Faker, so a `locale=global` schema can say where each row is from. */
+const LOCALE_GENERATORS: Record<string, Generator> = {
+  'locale.country': (locale) => locale.country,
+  'locale.currency': (locale) => locale.currency,
+};
 
 function methodNames(target: object): string[] {
   const names = new Set<string>();
@@ -50,8 +56,24 @@ function methodNames(target: object): string[] {
   return [...names];
 }
 
+/**
+ * Some locales have no data for a method on purpose (Russian has no name prefixes or suffixes), and Faker
+ * throws there rather than fall back. Such a field comes back `null` instead of failing the request.
+ */
+const orNull =
+  (generate: Generator): Generator =>
+  (locale) => {
+    try {
+      return generate(locale);
+    } catch {
+      return null;
+    }
+  };
+
 function buildRegistry(): Map<string, Generator> {
-  const registry = new Map<string, Generator>();
+  const registry = new Map<string, Generator>(Object.entries(LOCALE_GENERATORS));
+  // Methods are discovered on the default locale's instance; each record calls them on its own locale's.
+  const probe = countryLocale('en-CA');
   // Faker reports deprecated methods through console.warn; those are left out rather than offered.
   const warn = console.warn;
   let deprecated = false;
@@ -59,20 +81,20 @@ function buildRegistry(): Map<string, Generator> {
     deprecated = true;
   };
   for (const module of MODULES) {
-    const instance = faker[module] as unknown as Record<string, unknown>;
+    const instance = probe.faker[module] as unknown as Record<string, unknown>;
     for (const method of methodNames(instance)) {
       const type = `${module}.${method}`;
       const fn = instance[method];
       if (EXCLUDED.has(type) || typeof fn !== 'function') continue;
-      const generate: Generator = (source) => {
-        const target = source[module] as unknown as Record<string, () => unknown>;
+      const generate: Generator = (locale) => {
+        const target = locale.faker[module] as unknown as Record<string, () => unknown>;
         return target[method]?.call(target);
       };
       // Only methods that work without arguments are offered.
       try {
         deprecated = false;
-        generate(faker);
-        if (!deprecated) registry.set(type, generate);
+        generate(probe);
+        if (!deprecated) registry.set(type, orNull(generate));
       } catch {}
     }
   }
@@ -138,17 +160,17 @@ export function parseFieldList(value: string): FieldSpec[] {
   return validateFields(fields);
 }
 
+/** Builds records from a field list. With `locale=global` each record draws every field from its own locale. */
 export function generateRecords(
   fields: readonly FieldSpec[],
   count: number,
   seed: number,
-  locale: Locale = 'en-CA',
+  locale: Locale = DEFAULT_LOCALE,
 ): Record<string, unknown>[] {
-  const source = fakerFor(locale);
-  source.seed(seed);
-  return Array.from({ length: count }, (_, index) => {
+  const make = (source: CountryLocale, index: number) => {
     const record: Record<string, unknown> = { index };
     for (const { name, type } of fields) record[name] = registry.get(type)?.(source);
     return record;
-  });
+  };
+  return build({ default: make }, count, seed, locale);
 }

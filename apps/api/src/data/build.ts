@@ -1,0 +1,60 @@
+import { base, Faker } from '@faker-js/faker';
+import {
+  type CountryLocale,
+  type CountryLocaleCode,
+  countryLocale,
+  GLOBAL,
+  LOCALES,
+  type Locale,
+} from '../lib/locale.ts';
+
+/** Builds the record at `index` from a locale's Faker instance, country and currency. */
+export type Maker<T> = (locale: CountryLocale, index: number) => T;
+
+/** The maker every locale uses, plus hand-built ones for locales that have them. */
+export type Makers<T> = { default: Maker<T> } & Partial<Record<CountryLocaleCode, Maker<T>>>;
+
+/** 32-bit FNV-1a, so each locale's stream is told apart by something that never changes. */
+function hash(text: string): number {
+  let h = 0x811c9dc5;
+  for (const char of text) h = Math.imul(h ^ (char.codePointAt(0) ?? 0), 0x01000193) >>> 0;
+  return h;
+}
+
+/**
+ * Seeds a locale's Faker. English (Canada) and Japanese keep the bare seed, so the datasets they served
+ * before more locales arrived are unchanged; every other locale adds its own code, so locales that share
+ * Faker's English names (en-US, en-GB) do not come out with the same people in the same order.
+ */
+function seedLocale(locale: CountryLocale, seed: number): void {
+  if (locale.code === 'en-CA' || locale.code === 'ja') locale.faker.seed(seed);
+  else locale.faker.seed([seed, hash(locale.code)]);
+}
+
+const MIX = LOCALES.map((value: CountryLocale) => ({ value, weight: value.weight }));
+
+/**
+ * Builds `count` records. A country locale builds them all from its own Faker; `global` chooses each
+ * record's locale from the seed, weighted toward the bigger populations, so the same seed always gives
+ * the same mix. Building is synchronous, so the shared Faker instances are never seeded mid-dataset.
+ */
+export function build<T>(makers: Makers<T>, count: number, seed: number, locale: Locale): T[] {
+  const makerFor = (info: CountryLocale) => makers[info.code as CountryLocaleCode] ?? makers.default;
+  if (locale !== GLOBAL) {
+    const info = countryLocale(locale);
+    seedLocale(info, seed);
+    const make = makerFor(info);
+    return Array.from({ length: count }, (_, index) => make(info, index));
+  }
+  const picker = new Faker({ locale: base });
+  picker.seed([seed, hash(GLOBAL)]);
+  const seeded = new Set<CountryLocale>();
+  return Array.from({ length: count }, (_, index) => {
+    const info = picker.helpers.weightedArrayElement(MIX);
+    if (!seeded.has(info)) {
+      seedLocale(info, seed);
+      seeded.add(info);
+    }
+    return makerFor(info)(info, index);
+  });
+}

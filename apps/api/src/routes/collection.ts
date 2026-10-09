@@ -1,7 +1,7 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import { buildBody, pageLinks, queryCollection, setPaginationHeaders } from '../lib/collection.ts';
 import { requestedFormat, respond } from '../lib/format.ts';
-import { parseLocale } from '../lib/locale.ts';
+import { contentLanguage, parseLocale } from '../lib/locale.ts';
 import { intParam, pick } from '../lib/query.ts';
 import { DEFAULT_SEED, MAX_SEED, type Resource } from '../resources.ts';
 import { ErrorBody, FILTER_DOCS, ListQuery, listOf, TEXT_FORMATS } from '../schemas.ts';
@@ -62,7 +62,7 @@ export function collectionRoutes(resource: Resource, { deprecated = false, path 
       const seed = seedOf(query);
       const locale = parseLocale(pick(query, 'locale'));
       const { records, generatedAt } = resource.load(seed ?? DEFAULT_SEED, locale);
-      c.header('Content-Language', locale);
+      contentLanguage(c, locale);
       const page = queryCollection(records, query, resource.defaults, locale);
       const links = pageLinks(c, page);
       setPaginationHeaders(c, links, page.total);
@@ -73,7 +73,7 @@ export function collectionRoutes(resource: Resource, { deprecated = false, path 
       const query = c.req.query();
       const locale = parseLocale(pick(query, 'locale'));
       const { records } = resource.load(seedOf(query) ?? DEFAULT_SEED, locale);
-      c.header('Content-Language', locale);
+      contentLanguage(c, locale);
       const { id } = c.req.valid('param');
       const record = resource.find(records, id);
       if (!record) return c.json({ error: `No ${resource.title.toLowerCase()} with id "${id}".` }, 404);

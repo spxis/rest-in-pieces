@@ -1,4 +1,5 @@
-import { fakerEN_CA as faker } from '@faker-js/faker';
+import type { Faker } from '@faker-js/faker';
+import type { Maker } from './build.ts';
 
 export interface Person {
   index: number;
@@ -16,21 +17,24 @@ export interface Person {
   gender: 'male' | 'female';
 }
 
-/** The original `/names` record shape, kept as-is for existing clients. */
-export function generatePeople(count: number, seed: number): Person[] {
-  faker.seed(seed);
-  return Array.from({ length: count }, (_, index) => {
-    const gender = faker.person.sex() as Person['gender'];
-    return {
-      index,
-      name: faker.person.fullName({ sex: gender }),
-      age: faker.number.int({ min: 18, max: 65 }),
-      address: faker.location.streetAddress(),
-      city: faker.location.city(),
-      province: faker.location.state(),
-      postal: faker.location.zipCode(),
-      country: 'CA',
-      gender,
-    };
-  });
-}
+/**
+ * `male` or `female` in every locale, so filters are portable. Faker's own `person.sex()` answers in the
+ * locale's language (`männlich`, `女`); `sexType()` draws the same way and always answers in English.
+ */
+export const genderOf = (faker: Faker) => faker.person.sexType() as Person['gender'];
+
+/** The original `/names` record shape, kept as-is for existing clients; `country` says how to read the address. */
+export const makePerson: Maker<Person> = ({ faker, country }, index) => {
+  const gender = genderOf(faker);
+  return {
+    index,
+    name: faker.person.fullName({ sex: gender }),
+    age: faker.number.int({ min: 18, max: 65 }),
+    address: faker.location.streetAddress(),
+    city: faker.location.city(),
+    province: faker.location.state(),
+    postal: faker.location.zipCode(),
+    country,
+    gender,
+  };
+};

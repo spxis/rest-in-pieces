@@ -1,7 +1,7 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import pkg from '../../package.json' with { type: 'json' };
 import { generatorModules, generatorTypes } from '../data/generators.ts';
-import { LOCALES } from '../lib/locale.ts';
+import { DEFAULT_LOCALE, GLOBAL, GLOBAL_NAME, LOCALE_CODES, LOCALES } from '../lib/locale.ts';
 import { resources } from '../resources.ts';
 
 const started = Date.now();
@@ -51,14 +51,48 @@ const resourcesRoute = createRoute({
                 idField: z.string(),
                 seeded: z.boolean(),
                 fields: z.array(z.string()),
-                locales: z
-                  .record(z.string(), z.object({ fields: z.array(z.string()) }))
-                  .openapi({ description: 'Fields per `locale`. Japanese records add readings such as `nameKana`.' }),
+                locales: z.record(z.string(), z.object({ fields: z.array(z.string()) })).openapi({
+                  description:
+                    'Fields per `locale`. Japanese records add readings such as `nameKana`; `global` lists every field its locales use.',
+                }),
               }),
             )
             .openapi('Resources'),
         },
       },
+    },
+  },
+});
+
+const LocaleInfo = z
+  .object({
+    code: z.string().openapi({ description: 'The value `locale=` takes.', example: 'en-CA' }),
+    name: z.string().openapi({ example: 'English (Canada)' }),
+    nativeName: z.string().openapi({ description: 'The name in its own language.', example: 'English (Canada)' }),
+    tag: z.string().nullable().openapi({ description: 'BCP 47 language tag; `null` for the mix.', example: 'en-CA' }),
+    country: z
+      .string()
+      .nullable()
+      .openapi({ description: 'ISO 3166-1 alpha-2 code records carry as `country`; `null` for the mix.' }),
+    currency: z
+      .string()
+      .nullable()
+      .openapi({ description: 'ISO 4217 code products are priced in; `null` for the mix.' }),
+    default: z.boolean(),
+  })
+  .openapi('Locale');
+
+const localesRoute = createRoute({
+  method: 'get',
+  path: '/locales',
+  tags: ['Service'],
+  operationId: 'listLocales',
+  summary: 'List data locales',
+  description: 'Every value the `locale` parameter takes, with its names, country and currency. Useful for pickers.',
+  responses: {
+    200: {
+      description: 'Data locales, the default first.',
+      content: { 'application/json': { schema: z.array(LocaleInfo).openapi('Locales') } },
     },
   },
 });
@@ -81,22 +115,41 @@ const healthRoute = createRoute({
   },
 });
 
-const fieldsOf = (resource: (typeof resources)[number], locale: (typeof LOCALES)[number]) =>
-  Object.keys(resource.load(1, locale).records[0] ?? {});
-
 const catalog = resources.map((resource) => ({
   name: resource.name,
   path: `/${resource.name}`,
   description: resource.description,
   idField: resource.idField,
   seeded: resource.seeded,
-  fields: fieldsOf(resource, 'en-CA'),
-  locales: Object.fromEntries(LOCALES.map((locale) => [locale, { fields: fieldsOf(resource, locale) }])),
+  fields: resource.fields(DEFAULT_LOCALE),
+  locales: Object.fromEntries(LOCALE_CODES.map((locale) => [locale, { fields: resource.fields(locale) }])),
 }));
+
+const locales: z.infer<typeof LocaleInfo>[] = [
+  ...LOCALES.map(({ code, name, nativeName, tag, country, currency }) => ({
+    code,
+    name,
+    nativeName,
+    tag,
+    country,
+    currency,
+    default: code === DEFAULT_LOCALE,
+  })),
+  {
+    code: GLOBAL,
+    name: GLOBAL_NAME,
+    nativeName: GLOBAL_NAME,
+    tag: null,
+    country: null,
+    currency: null,
+    default: false,
+  },
+];
 
 export const meta = new OpenAPIHono()
   .openapi(generatorsRoute, (c) => c.json({ generators: generatorTypes, modules: generatorModules }))
   .openapi(resourcesRoute, (c) => c.json(catalog))
+  .openapi(localesRoute, (c) => c.json(locales))
   .openapi(healthRoute, (c) =>
     c.json({ status: 'ok' as const, version: pkg.version, uptime: Math.round((Date.now() - started) / 1000) }),
   );

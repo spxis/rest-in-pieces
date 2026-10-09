@@ -1,4 +1,4 @@
-import { DEFAULT_LOCALE, type Locale } from './locale.ts';
+import { DEFAULT_LOCALE, type Locale, localeTag } from './locale.ts';
 
 export type SortDirection = 'asc' | 'desc';
 export type SortType = 'string' | 'numeric';
@@ -37,7 +37,9 @@ const collators = new Map<string, Intl.Collator>();
 function collatorFor(locale: Locale): Intl.Collator {
   let collator = collators.get(locale);
   if (!collator) {
-    collator = new Intl.Collator(locale, { numeric: true, sensitivity: 'variant' });
+    // `global` mixes languages and is not a language tag; its order is the default locale's.
+    const tag = localeTag(locale) ?? localeTag(DEFAULT_LOCALE);
+    collator = new Intl.Collator(tag, { numeric: true, sensitivity: 'variant' });
     collators.set(locale, collator);
   }
   return collator;

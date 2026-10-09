@@ -1,10 +1,19 @@
 import { z } from '@hono/zod-openapi';
+import { GLOBAL, GLOBAL_NAME, LOCALES } from './lib/locale.ts';
 
 const param = (description: string, example?: string) =>
   z
     .string()
     .optional()
     .openapi({ description, ...(example === undefined ? {} : { example }) });
+
+/** The `locale` description, written from the one list so the docs never miss a locale. */
+export const LOCALE_DOCS =
+  `Which country the data is written for: ${LOCALES.map((locale) => `\`${locale.code}\` (${locale.name})`).join(', ')}, ` +
+  `or \`${GLOBAL}\` (${GLOBAL_NAME}): every record from a locale chosen by the seed, weighted toward the bigger ` +
+  'developer populations, with `country` saying which. `en-CA` is the default. Names, addresses, phone numbers, ' +
+  'prices (in the local currency) and country names follow the locale; `ja` adds katakana readings. ' +
+  'Field names never change, so `province` and `postal` hold whatever the country uses. `GET /locales` lists them all.';
 
 /**
  * Query parameters shared by every collection. Parsing is deliberately lenient,
@@ -26,9 +35,7 @@ export const ListQuery = z
     metadata: param('`false` returns the bare array instead of the metadata envelope.'),
     resultsName: param('Renames the results key, e.g. `rows`.'),
     seed: param('Selects a repeatable dataset. The same seed always returns the same records.', '1'),
-    locale: param(
-      '`en-CA` (default) or `ja` for Japanese data: kanji names with katakana readings, prefectures, 〒 postal codes, yen prices and Japanese country names.',
-    ),
+    locale: param(LOCALE_DOCS),
     format: param('`json` (default), `csv`, `yaml` or `xml`. The `Accept` header works too.'),
     delay: param(
       'Wait this many milliseconds before responding, up to 10000. A range such as `200-800` picks a wait inside it from the request, seed included, so the same URL always waits the same time.',
@@ -89,7 +96,7 @@ export const Person = z
     city: z.string(),
     province: z.string(),
     postal: z.string(),
-    country: z.string(),
+    country: z.string().openapi({ description: 'ISO 3166-1 alpha-2 code of the locale the record was written for.' }),
     gender: z.enum(['male', 'female']),
   })
   .openapi('Person', {
@@ -120,7 +127,7 @@ export const User = z
     jobTitle: z.string(),
     company: z.string(),
     city: z.string(),
-    country: z.string(),
+    country: z.string().openapi({ description: 'ISO 3166-1 alpha-2 code of the locale the record was written for.' }),
     active: z.boolean(),
     createdAt: z.string().datetime(),
   })
@@ -134,7 +141,7 @@ export const Product = z
     department: z.string(),
     description: z.string(),
     price: z.number(),
-    currency: z.enum(['CAD', 'JPY']),
+    currency: z.string().openapi({ description: "ISO 4217 code of the locale's currency.", example: 'CAD' }),
     rating: z.number(),
     stock: z.number().int(),
     inStock: z.boolean(),
@@ -155,6 +162,7 @@ export const Company = z
     founded: z.number().int(),
     city: z.string(),
     province: z.string(),
+    country: z.string().openapi({ description: 'ISO 3166-1 alpha-2 code of the locale the record was written for.' }),
   })
   .openapi('Company');
 

@@ -10,7 +10,7 @@ import {
 } from '../data/generators.ts';
 import { buildBody, MAX_RECORDS, pageLinks, queryCollection, setPaginationHeaders } from '../lib/collection.ts';
 import { requestedFormat, respond } from '../lib/format.ts';
-import { parseLocale } from '../lib/locale.ts';
+import { contentLanguage, parseLocale } from '../lib/locale.ts';
 import { intParam, pick } from '../lib/query.ts';
 import { DEFAULT_SEED, MAX_SEED } from '../resources.ts';
 import { ErrorBody, FILTER_DOCS, GeneratedRecord, ListQuery, listOf, TEXT_FORMATS } from '../schemas.ts';
@@ -97,7 +97,7 @@ function send(c: Context, fields: FieldSpec[], count: number, seed: number) {
   requestedFormat(c);
   const query = c.req.query();
   const locale = parseLocale(pick(query, 'locale'));
-  c.header('Content-Language', locale);
+  contentLanguage(c, locale);
   const page = queryCollection(generateRecords(fields, count, seed, locale), query, DEFAULTS, locale);
   const links = pageLinks(c, page);
   setPaginationHeaders(c, links, page.total);

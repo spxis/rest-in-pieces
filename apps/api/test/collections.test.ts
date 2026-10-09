@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { generatePeople } from '../src/data/people.ts';
+import { build } from '../src/data/build.ts';
+import { makePerson } from '../src/data/people.ts';
 import { type Envelope, request } from './helpers.ts';
 
 type Person = { index: number; name: string; age: number; gender: string; province: string };
@@ -90,7 +91,8 @@ describe('seeds', () => {
   });
 
   it('is stable across processes because generation depends only on the seed', () => {
-    expect(generatePeople(20, 42)).toEqual(generatePeople(20, 42));
+    const people = () => build({ default: makePerson }, 20, 42, 'en-CA');
+    expect(people()).toEqual(people());
   });
 });
 

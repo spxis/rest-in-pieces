@@ -19,9 +19,9 @@ describe('locale parameter', () => {
   });
 
   it('rejects locales it does not have with a 400', async () => {
-    const { status, body } = await request<{ error: string }>('/names?locale=fr');
+    const { status, body } = await request<{ error: string }>('/names?locale=xx');
     expect(status).toBe(400);
-    expect(body.error).toContain('en-CA, ja');
+    expect(body.error).toContain('en-CA, en-US');
   });
 
   it('labels every response with Content-Language and echoes it in metadata', async () => {

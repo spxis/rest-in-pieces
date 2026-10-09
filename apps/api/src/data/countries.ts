@@ -1,26 +1,34 @@
 import { type Country, countries as countryData } from 'country-data';
-import type { Locale } from '../lib/locale.ts';
+import { type Locale, localeTag } from '../lib/locale.ts';
 
 export type CountryRecord = Country;
 
 /** Every country and territory, in the data set's own order. */
 export const countries: readonly Country[] = countryData.all;
 
-const japaneseNames = new Intl.DisplayNames('ja', { type: 'region', fallback: 'none' });
+const translated = new Map<string, readonly Country[]>();
 
-function japaneseName(country: Country): string {
-  try {
-    return japaneseNames.of(country.alpha2) ?? country.name;
-  } catch {
-    return country.name;
-  }
-}
-
-/** Japanese names come from the runtime's own CLDR data; retired codes it doesn't know keep their English name. */
-const japanese: readonly Country[] = countries.map((country) => ({ ...country, name: japaneseName(country) }));
-
+/**
+ * Country names in the locale's language, from the runtime's own CLDR data; retired codes it doesn't know
+ * keep their English name. English locales and the global mix keep the data set's own English names.
+ */
 export function localizedCountries(locale: Locale): readonly Country[] {
-  return locale === 'ja' ? japanese : countries;
+  const tag = localeTag(locale);
+  if (!tag || tag.startsWith('en-')) return countries;
+  let list = translated.get(tag);
+  if (!list) {
+    const names = new Intl.DisplayNames(tag, { type: 'region', fallback: 'none' });
+    const nameOf = (country: Country) => {
+      try {
+        return names.of(country.alpha2) ?? country.name;
+      } catch {
+        return country.name;
+      }
+    };
+    list = countries.map((country) => ({ ...country, name: nameOf(country) }));
+    translated.set(tag, list);
+  }
+  return list;
 }
 
 /** Finds a country by ISO 3166 alpha-2 or alpha-3 code, ignoring case. */

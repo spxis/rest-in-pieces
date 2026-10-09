@@ -1,11 +1,10 @@
 import { fakerJA as faker } from '@faker-js/faker';
+import type { Maker } from '../build.ts';
 import type { Person } from '../people.ts';
-import type { Company, Product, User } from '../presets.ts';
+import { ANCHOR, type Company, type Product, type User } from '../presets.ts';
 import { CATCH_PHRASES, COMPANY_KINDS, DEPARTMENTS, JOB_TITLES } from './catalog.ts';
 import { FAMILY_NAMES, FEMALE_NAMES, type JapaneseName, MALE_NAMES } from './names.ts';
 import { PREFECTURES } from './places.ts';
-
-const ANCHOR = new Date('2026-01-01T00:00:00Z');
 
 /**
  * Words companies are often named after besides a family name, with romaji for their domains.
@@ -92,94 +91,88 @@ function yen(min: number, max: number): number {
   return Math.max(faker.datatype.boolean() ? hundreds - 20 : hundreds, 80);
 }
 
-export function generatePeopleJa(count: number, seed: number): Person[] {
-  faker.seed(seed);
-  return Array.from({ length: count }, (_, index) => {
-    const sex = gender();
-    const { family, given } = person(sex);
-    const { prefecture, city } = place();
-    return {
-      index,
-      name: `${family.kanji} ${given.kanji}`,
-      nameKana: `${family.kana} ${given.kana}`,
-      nameRomaji: `${family.romaji} ${given.romaji}`,
-      age: faker.number.int({ min: 18, max: 65 }),
-      address: faker.location.streetAddress(),
-      city,
-      province: prefecture,
-      postal: faker.location.zipCode(),
-      country: 'JP',
-      gender: sex,
-    };
-  });
-}
+/*
+ * The makers below draw from the module's `fakerJA`, which is the instance the Japanese locale entry carries,
+ * so `build` seeds it before the first record.
+ */
 
-export function generateUsersJa(count: number, seed: number): User[] {
-  faker.seed(seed);
-  return Array.from({ length: count }, (_, i) => {
-    const sex = gender();
-    const { family, given } = person(sex);
-    const names = { firstName: given.romaji.toLowerCase(), lastName: family.romaji.toLowerCase() };
-    return {
-      id: i + 1,
-      firstName: given.kanji,
-      lastName: family.kanji,
-      firstNameKana: given.kana,
-      lastNameKana: family.kana,
-      username: faker.internet.username(names).toLowerCase(),
-      email: faker.internet.email(names).toLowerCase(),
-      avatar: faker.image.personPortrait({ sex }),
-      phone: mobile(),
-      jobTitle: faker.helpers.arrayElement(JOB_TITLES),
-      company: companyName().name,
-      city: place().city,
-      country: 'JP',
-      active: faker.datatype.boolean({ probability: 0.85 }),
-      createdAt: faker.date.past({ years: 3, refDate: ANCHOR }).toISOString(),
-    };
-  });
-}
+export const makePersonJa: Maker<Person> = ({ country }, index) => {
+  const sex = gender();
+  const { family, given } = person(sex);
+  const { prefecture, city } = place();
+  return {
+    index,
+    name: `${family.kanji} ${given.kanji}`,
+    nameKana: `${family.kana} ${given.kana}`,
+    nameRomaji: `${family.romaji} ${given.romaji}`,
+    age: faker.number.int({ min: 18, max: 65 }),
+    address: faker.location.streetAddress(),
+    city,
+    province: prefecture,
+    postal: faker.location.zipCode(),
+    country,
+    gender: sex,
+  };
+};
 
-export function generateProductsJa(count: number, seed: number): Product[] {
-  faker.seed(seed);
-  return Array.from({ length: count }, (_, i) => {
-    const department = faker.helpers.arrayElement(DEPARTMENTS);
-    const item = faker.helpers.arrayElement(department.items);
-    const name = `${item.name}${faker.helpers.arrayElement(item.variants)}`;
-    const stock = faker.number.int({ min: 0, max: 250 });
-    return {
-      id: i + 1,
-      sku: faker.string.alphanumeric({ length: 8, casing: 'upper' }),
-      name,
-      department: department.name,
-      description: faker.helpers.arrayElements(department.notes, 2).join(''),
-      price: yen(...item.price),
-      currency: 'JPY',
-      rating: faker.number.float({ min: 1, max: 5, fractionDigits: 1 }),
-      stock,
-      inStock: stock > 0,
-      createdAt: faker.date.past({ years: 2, refDate: ANCHOR }).toISOString(),
-    };
-  });
-}
+export const makeUserJa: Maker<User> = ({ country }, i) => {
+  const sex = gender();
+  const { family, given } = person(sex);
+  const names = { firstName: given.romaji.toLowerCase(), lastName: family.romaji.toLowerCase() };
+  return {
+    id: i + 1,
+    firstName: given.kanji,
+    lastName: family.kanji,
+    firstNameKana: given.kana,
+    lastNameKana: family.kana,
+    username: faker.internet.username(names).toLowerCase(),
+    email: faker.internet.email(names).toLowerCase(),
+    avatar: faker.image.personPortrait({ sex }),
+    phone: mobile(),
+    jobTitle: faker.helpers.arrayElement(JOB_TITLES),
+    company: companyName().name,
+    city: place().city,
+    country,
+    active: faker.datatype.boolean({ probability: 0.85 }),
+    createdAt: faker.date.past({ years: 3, refDate: ANCHOR }).toISOString(),
+  };
+};
 
-export function generateCompaniesJa(count: number, seed: number): Company[] {
-  faker.seed(seed);
-  return Array.from({ length: count }, (_, i) => {
-    const { name, domain, industry } = companyName();
-    const { prefecture, city } = place();
-    return {
-      id: i + 1,
-      name,
-      industry,
-      catchPhrase: faker.helpers.arrayElement(CATCH_PHRASES),
-      website: `https://${domain}`,
-      email: `info@${domain}`,
-      phone: landline(city),
-      employees: faker.number.int({ min: 2, max: 25_000 }),
-      founded: faker.number.int({ min: 1900, max: 2025 }),
-      city,
-      province: prefecture,
-    };
-  });
-}
+export const makeProductJa: Maker<Product> = ({ currency }, i) => {
+  const department = faker.helpers.arrayElement(DEPARTMENTS);
+  const item = faker.helpers.arrayElement(department.items);
+  const name = `${item.name}${faker.helpers.arrayElement(item.variants)}`;
+  const stock = faker.number.int({ min: 0, max: 250 });
+  return {
+    id: i + 1,
+    sku: faker.string.alphanumeric({ length: 8, casing: 'upper' }),
+    name,
+    department: department.name,
+    description: faker.helpers.arrayElements(department.notes, 2).join(''),
+    price: yen(...item.price),
+    currency,
+    rating: faker.number.float({ min: 1, max: 5, fractionDigits: 1 }),
+    stock,
+    inStock: stock > 0,
+    createdAt: faker.date.past({ years: 2, refDate: ANCHOR }).toISOString(),
+  };
+};
+
+export const makeCompanyJa: Maker<Company> = ({ country }, i) => {
+  const { name, domain, industry } = companyName();
+  const { prefecture, city } = place();
+  return {
+    id: i + 1,
+    name,
+    industry,
+    catchPhrase: faker.helpers.arrayElement(CATCH_PHRASES),
+    website: `https://${domain}`,
+    email: `info@${domain}`,
+    phone: landline(city),
+    employees: faker.number.int({ min: 2, max: 25_000 }),
+    founded: faker.number.int({ min: 1900, max: 2025 }),
+    city,
+    province: prefecture,
+    country,
+  };
+};
