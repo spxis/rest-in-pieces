@@ -4,6 +4,8 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+## 2.14.0 - 2026-10-09
+
 ### Added
 
 - Related datasets: `/orders` (with line items), `/posts`, `/comments`, `/todos` and `/reviews`, joined to `/users` and `/products`, and to each other, by ids that always resolve. Who owns what depends on the seed alone, so a relation reads the same in every locale, and one prefix sum per seed turns each parent's seeded count of children into an id range: `/users/{id}/orders`, `/users/{id}/posts`, `/users/{id}/todos`, `/posts/{id}/comments` and `/products/{id}/reviews` cost what a page costs, return exactly what the filter does, and keep paging, sorting, filters, search, formats, `messy`, locales, ETags and the simulation. Order totals add up (each line `quantity × unitPrice`, tax at the buyer's locale's headline rate, in the locale's currency, exact in the currency's smallest unit); dates follow one another (joined, ordered, shipped, delivered; posted, commented; listed, reviewed); review ratings gather around the product's own and their words match their stars; nobody comments on their own post. Japanese posts, comments, todos and reviews are hand-written. The first ten users, posts and products always own at least one child.
