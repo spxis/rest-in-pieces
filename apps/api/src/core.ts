@@ -8,6 +8,7 @@ import { secureHeaders } from 'hono/secure-headers';
 import pkg from '../package.json' with { type: 'json' };
 import { SchemaError } from './data/generators.ts';
 import { simulate } from './lib/controls.ts';
+import { CursorError } from './lib/cursor.ts';
 import { UnsupportedFormatError } from './lib/format.ts';
 import { UnsupportedLocaleError } from './lib/locale.ts';
 import { resources } from './resources.ts';
@@ -77,7 +78,12 @@ export function createApp({ log = false, specUrl = '/openapi.json', mount }: App
 
   app.notFound((c) => c.json({ error: 'Not Found' }, 404));
   app.onError((err, c) => {
-    if (err instanceof SchemaError || err instanceof UnsupportedFormatError || err instanceof UnsupportedLocaleError) {
+    if (
+      err instanceof SchemaError ||
+      err instanceof UnsupportedFormatError ||
+      err instanceof UnsupportedLocaleError ||
+      err instanceof CursorError
+    ) {
       return c.json({ error: err.message }, 400);
     }
     console.error(err);

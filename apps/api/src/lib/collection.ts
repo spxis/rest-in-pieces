@@ -1,5 +1,6 @@
 import type { Context } from 'hono';
 import pkg from '../../package.json' with { type: 'json' };
+import { decodeCursor, encodeCursor, queryFingerprint } from './cursor.ts';
 import { filterRecords, parseFilters } from './filter.ts';
 import { DEFAULT_LOCALE, type Locale } from './locale.ts';
 import { flagParam, intParam, paginate, pick, type Query } from './query.ts';
@@ -13,9 +14,15 @@ export interface CollectionDefaults {
   metadata: boolean;
 }
 
+/** How the request chose its page. Links in the response page the same way. */
+export type PagingStyle = 'offset' | 'page' | 'cursor';
+
 export interface ListOptions {
   limit: number;
   offset: number;
+  paging: PagingStyle;
+  /** Identifies the result set, so a cursor cannot be replayed against another one. */
+  fingerprint: string;
   max: number;
   sort: SortOptions;
   q: string | undefined;
@@ -23,11 +30,31 @@ export interface ListOptions {
   showMetadata: boolean;
 }
 
+/**
+ * Reads the page from `cursor`, then `page` (one-based, in pages of `limit`), then `offset`.
+ * An empty `cursor=` starts a cursor walk on the first page. A cursor issued for a different query throws.
+ */
+function readPage(query: Query, limit: number, fingerprint: string): { offset: number; paging: PagingStyle } {
+  if (query.cursor !== undefined) {
+    const offset = query.cursor === '' ? 0 : decodeCursor(query.cursor, fingerprint);
+    return { offset: Math.min(offset, MAX_RECORDS), paging: 'cursor' };
+  }
+  const page = pick(query, 'page');
+  if (page !== undefined) {
+    const number = Math.max(1, intParam(page, 1));
+    return { offset: Math.min((number - 1) * limit, MAX_RECORDS), paging: 'page' };
+  }
+  return { offset: intParam(pick(query, 'offset'), 0, MAX_RECORDS), paging: 'offset' };
+}
+
 export function parseListOptions(query: Query, defaults: CollectionDefaults): ListOptions {
   const requestedName = pick(query, 'resultsName');
+  const limit = intParam(pick(query, 'limit', 'size', 'length', 'pageSize'), defaults.limit, MAX_RECORDS);
+  const fingerprint = queryFingerprint(query);
   return {
-    limit: intParam(pick(query, 'limit', 'size', 'length'), defaults.limit, MAX_RECORDS),
-    offset: intParam(pick(query, 'offset'), 0, MAX_RECORDS),
+    limit,
+    ...readPage(query, limit, fingerprint),
+    fingerprint,
     max: intParam(pick(query, 'max', 'maxRecords'), MAX_RECORDS, MAX_RECORDS),
     sort: parseSort(
       pick(query, 'sortBy', 'sortby', 'sortField', 'sortfield'),
@@ -63,13 +90,29 @@ export function queryCollection<T extends object>(
   return { records: paginate(dataset, options.offset, options.limit), total: dataset.length, options };
 }
 
-function pageUrl(c: Context, offset: number, limit: number): string {
+function pageUrl(c: Context, offset: number, { limit, paging, fingerprint }: ListOptions): string {
   const url = new URL(c.req.url);
-  url.searchParams.delete('size');
-  url.searchParams.delete('length');
-  url.searchParams.set('offset', String(offset));
-  url.searchParams.set('limit', String(limit));
+  for (const name of ['size', 'length', 'offset', 'page', 'pageSize', 'cursor']) url.searchParams.delete(name);
+  if (paging === 'page') {
+    url.searchParams.delete('limit');
+    url.searchParams.set('page', String(limit > 0 ? Math.floor(offset / limit) + 1 : 1));
+    url.searchParams.set('pageSize', String(limit));
+  } else if (paging === 'cursor') {
+    url.searchParams.set('cursor', encodeCursor(offset, fingerprint));
+    url.searchParams.set('limit', String(limit));
+  } else {
+    url.searchParams.set('offset', String(offset));
+    url.searchParams.set('limit', String(limit));
+  }
   return `${url.pathname}${url.search}`;
+}
+
+/** Offsets of the neighbouring pages, or null at either end. */
+function neighbours(total: number, { offset, limit }: ListOptions) {
+  return {
+    prev: offset > 0 && limit > 0 ? Math.max(0, offset - limit) : null,
+    next: limit > 0 && offset + limit < total ? offset + limit : null,
+  };
 }
 
 export interface PageLinks {
@@ -80,14 +123,25 @@ export interface PageLinks {
   next: string | null;
 }
 
-export function pageLinks(c: Context, { total, options: { offset, limit } }: Page<unknown>): PageLinks {
+export function pageLinks(c: Context, { total, options }: Page<unknown>): PageLinks {
+  const { offset, limit } = options;
   const lastOffset = limit > 0 ? Math.max(0, Math.floor((total - 1) / limit) * limit) : 0;
+  const { prev, next } = neighbours(total, options);
   return {
-    self: pageUrl(c, offset, limit),
-    first: pageUrl(c, 0, limit),
-    last: pageUrl(c, lastOffset, limit),
-    prev: offset > 0 && limit > 0 ? pageUrl(c, Math.max(0, offset - limit), limit) : null,
-    next: limit > 0 && offset + limit < total ? pageUrl(c, offset + limit, limit) : null,
+    self: pageUrl(c, offset, options),
+    first: pageUrl(c, 0, options),
+    last: pageUrl(c, lastOffset, options),
+    prev: prev === null ? null : pageUrl(c, prev, options),
+    next: next === null ? null : pageUrl(c, next, options),
+  };
+}
+
+/** Cursors for the neighbouring pages. Every response carries them, so a cursor walk can start from any page. */
+export function pageCursors({ total, options }: Page<unknown>) {
+  const { prev, next } = neighbours(total, options);
+  return {
+    nextCursor: next === null ? null : encodeCursor(next, options.fingerprint),
+    prevCursor: prev === null ? null : encodeCursor(prev, options.fingerprint),
   };
 }
 
@@ -128,6 +182,7 @@ export function buildBody<T>(page: Page<T>, links: PageLinks, meta: EnvelopeMeta
         ...options.sort,
       },
       links,
+      ...pageCursors(page),
     },
     [options.resultsName]: records,
   };

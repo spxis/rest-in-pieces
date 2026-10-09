@@ -12,8 +12,13 @@ const param = (description: string, example?: string) =>
  */
 export const ListQuery = z
   .object({
-    limit: param('Records per page, 0 to 1000. Aliases: `size`, `length`.', '10'),
+    limit: param('Records per page, 0 to 1000. Aliases: `size`, `length`, `pageSize`.', '10'),
     offset: param('Records to skip.', '0'),
+    page: param('One-based page number in pages of `limit`: `page=3&pageSize=20` is `offset=40&limit=20`.'),
+    pageSize: param('Alias of `limit`, for use with `page`.'),
+    cursor: param(
+      'An opaque cursor from `metadata.nextCursor` or `prevCursor`. Overrides `page` and `offset`; an empty `cursor=` starts on the first page with cursor links. A cursor used with different filters, sort, `q`, `seed`, `locale` or `max` returns 400.',
+    ),
     max: param('Caps the dataset size to test end-of-data handling. Alias: `maxRecords`.'),
     sortBy: param('Field to sort by. Append `:numeric` to compare as numbers, e.g. `age:numeric`.'),
     sortDirection: param('`asc` or `desc` (also `reverse`, `rev`, `backwards`, `-1`). Alias: `sortOrder`.'),
@@ -57,6 +62,11 @@ export const Metadata = z
     version: z.string(),
     parameters: z.record(z.string(), z.unknown()),
     links: PageLinks,
+    nextCursor: z.string().nullable().openapi({ description: 'Cursor for the next page, or null on the last page.' }),
+    prevCursor: z
+      .string()
+      .nullable()
+      .openapi({ description: 'Cursor for the previous page, or null on the first page.' }),
   })
   .openapi('Metadata');
 

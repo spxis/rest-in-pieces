@@ -136,6 +136,103 @@ describe('pagination headers and links', () => {
   });
 });
 
+describe('page and cursor paging', () => {
+  const indexes = (body: Envelope<Person>) => body.results.map((p) => p.index);
+
+  it('treats page and pageSize as aliases of offset and limit', async () => {
+    const { res, body } = await request<Envelope<Person>>('/names?page=3&pageSize=20');
+    const byOffset = await request<Envelope<Person>>('/names?offset=40&limit=20');
+    expect(body.results).toEqual(byOffset.body.results);
+    expect(indexes(body)[0]).toBe(40);
+    expect(body.metadata.links).toMatchObject({
+      self: '/names?page=3&pageSize=20',
+      first: '/names?page=1&pageSize=20',
+      prev: '/names?page=2&pageSize=20',
+      next: '/names?page=4&pageSize=20',
+      last: '/names?page=50&pageSize=20',
+    });
+    expect(res.headers.get('link')).toContain('</names?page=4&pageSize=20>; rel="next"');
+    expect(indexes((await request<Envelope<Person>>('/names?page=2&limit=5')).body)).toEqual([5, 6, 7, 8, 9]);
+    expect(indexes((await request<Envelope<Person>>('/names?page=0&limit=3')).body)).toEqual([0, 1, 2]);
+  });
+
+  it('walks every page by cursor, first to last and back', async () => {
+    const query = 'gender=female&sortBy=age:numeric&max=40&seed=3';
+    const all = (await request<Envelope<Person>>(`/names?${query}&limit=1000`)).body.results;
+    expect(all.length).toBeGreaterThan(7);
+
+    const seen: Person[] = [];
+    let page = await request<Envelope<Person>>(`/names?${query}&limit=7&cursor=`);
+    expect(page.body.metadata.prevCursor).toBeNull();
+    const cursors: string[] = [];
+    for (;;) {
+      expect(page.status).toBe(200);
+      seen.push(...page.body.results);
+      const { nextCursor, links } = page.body.metadata;
+      if (!nextCursor) break;
+      expect(links.next).toContain(`cursor=${nextCursor}`);
+      expect(page.res.headers.get('link')).toContain(`cursor=${nextCursor}>; rel="next"`);
+      cursors.push(nextCursor);
+      page = await request<Envelope<Person>>(`/names?${query}&limit=7&cursor=${nextCursor}`);
+    }
+    expect(seen).toEqual(all);
+    expect(page.body.metadata.links.next).toBeNull();
+
+    const back = await request<Envelope<Person>>(`/names?${query}&limit=7&cursor=${page.body.metadata.prevCursor}`);
+    expect(back.body.metadata.nextCursor).toBe(cursors.at(-1));
+  });
+
+  it('offers cursors on every page, so a walk can start without one', async () => {
+    const { body } = await request<Envelope<Person>>('/names?limit=5');
+    expect(body.metadata.prevCursor).toBeNull();
+    expect(body.metadata.links.next).toBe('/names?limit=5&offset=5');
+    const next = await request<Envelope<Person>>(`/names?limit=5&cursor=${body.metadata.nextCursor}`);
+    expect(indexes(next.body)).toEqual([5, 6, 7, 8, 9]);
+  });
+
+  it('keeps a cursor valid when only the page size or format changes', async () => {
+    const { body } = await request<Envelope<Person>>('/names?limit=5&sortDirection=desc');
+    const cursor = body.metadata.nextCursor;
+    const wider = await request<Envelope<Person>>(`/names?sortOrder=desc&pageSize=10&cursor=${cursor}`);
+    expect(indexes(wider.body)).toEqual([994, 993, 992, 991, 990, 989, 988, 987, 986, 985]);
+    expect((await request(`/names?limit=5&sortDirection=desc&format=csv&cursor=${cursor}`)).status).toBe(200);
+  });
+
+  it('rejects a cursor once the query has changed', async () => {
+    const { body } = await request<Envelope<Person>>('/names?gender=female&limit=5');
+    const cursor = body.metadata.nextCursor;
+    for (const changed of ['gender=male', 'gender=female&sortBy=age', 'gender=female&q=ont', 'gender=female&seed=2']) {
+      const { status, body: error } = await request<{ error: string }>(`/names?${changed}&limit=5&cursor=${cursor}`);
+      expect(status, changed).toBe(400);
+      expect(error.error).toMatch(/different query/);
+    }
+    expect((await request(`/names?gender=female&locale=ja&limit=5&cursor=${cursor}`)).status).toBe(400);
+    expect((await request(`/names?gender=female&max=50&limit=5&cursor=${cursor}`)).status).toBe(400);
+  });
+
+  it('rejects a cursor it did not issue', async () => {
+    for (const cursor of ['nope', '%%%', btoa('2.10.abc')]) {
+      const { status, body } = await request<{ error: string }>(`/names?cursor=${encodeURIComponent(cursor)}`);
+      expect(status).toBe(400);
+      expect(body.error).toMatch(/^Invalid cursor/);
+    }
+  });
+
+  it('pages /generate the same way', async () => {
+    const query = 'fields=name:person.fullName&count=12&limit=5';
+    const first = await request<Envelope>(`/generate?${query}&cursor=`);
+    const second = await request<Envelope>(`/generate?${query}&cursor=${first.body.metadata.nextCursor}`);
+    expect(second.body.results.map((r) => r.index)).toEqual([5, 6, 7, 8, 9]);
+    const paged = await request<Envelope>(`/generate?${query.replace('limit', 'pageSize')}&page=3`);
+    expect(paged.body.results.map((r) => r.index)).toEqual([10, 11]);
+    expect(paged.body.metadata.nextCursor).toBeNull();
+    const changed = await request(
+      `/generate?fields=email:internet.email&count=12&limit=5&cursor=${first.body.metadata.nextCursor}`,
+    );
+    expect(changed.status).toBe(400);
+  });
+});
+
 describe('item routes', () => {
   it('returns one record by id for each dataset', async () => {
     expect((await request<Person>('/names/42')).body.index).toBe(42);

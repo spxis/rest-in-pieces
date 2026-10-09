@@ -62,6 +62,10 @@ curl 'http://localhost:6800/names?limit=10'
 # Women in their thirties in Ontario, oldest first
 curl 'http://localhost:6800/names?gender=female&age[gte]=30&age[lt]=40&province=Ontario&sortBy=age:numeric&sortDirection=desc'
 
+# Page by page number, or follow a cursor from metadata.nextCursor
+curl 'http://localhost:6800/users?page=3&pageSize=20'
+curl 'http://localhost:6800/users?limit=20&cursor='
+
 # One record
 curl 'http://localhost:6800/users/42?seed=7'
 
@@ -104,8 +108,10 @@ These work on every collection, including `/generate`.
 
 | Parameter       | Default   | Description |
 | --------------- | --------- | ----------- |
-| `limit`         | `10`      | Records per page, up to 1000. Aliases: `size`, `length`. |
+| `limit`         | `10`      | Records per page, up to 1000. Aliases: `size`, `length`, `pageSize`. |
 | `offset`        | `0`       | Records to skip. |
+| `page`          | none      | One-based page number in pages of `limit`: `page=3&pageSize=20` is `offset=40&limit=20`. |
+| `cursor`        | none      | An opaque cursor from `metadata.nextCursor` or `prevCursor`. Takes precedence over `page` and `offset`; an empty `cursor=` starts on the first page. A cursor used with different filters, sort, `q`, `seed`, `locale` or `max` returns `400`. |
 | `max`           | `1000`    | Caps the dataset, to test the last page and end-of-data handling. Alias: `maxRecords`. |
 | `sortBy`        | none      | Field to sort by. Append `:numeric` to compare as numbers, e.g. `age:numeric`. |
 | `sortDirection` | `asc`     | `desc` (also `descending`, `reverse`, `rev`, `backwards`, `-1`). Alias: `sortOrder`. |
@@ -134,13 +140,17 @@ Simulated responses carry `X-Simulated: true`, and 429 and 503 carry `Retry-Afte
     "output": { "results": "results" },
     "version": "2.1.0",
     "parameters": { "size": 10, "offset": 0, "max": 1000, "seed": 1, "locale": "en-CA", "q": null, "sortBy": null, "sortType": "string", "sortDirection": "asc" },
-    "links": { "self": "/names?limit=10&offset=0", "first": "…", "last": "…", "prev": null, "next": "/names?limit=10&offset=10" }
+    "links": { "self": "/names?limit=10&offset=0", "first": "…", "last": "…", "prev": null, "next": "/names?limit=10&offset=10" },
+    "nextCursor": "MS4xMC4xbWpzZnBiM3JmaQ",
+    "prevCursor": null
   },
   "results": [{ "index": 0, "name": "Aaliyah Corkery", "age": 26, "…": "…" }]
 }
 ```
 
 `total` counts the records after filters and `max`. The same numbers are in the `X-Total-Count` and `Link` headers, which are exposed to browsers through CORS.
+
+`links` and the `Link` header page the way the request did: with `offset` and `limit`, with `page` and `pageSize`, or with `cursor`. `nextCursor` is null on the last page and `prevCursor` on the first.
 
 ## Japanese data
 

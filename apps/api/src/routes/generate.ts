@@ -22,7 +22,10 @@ const listResponses = {
     description: 'A page of generated records. Each record has an `index` plus the requested fields.',
     content: { 'application/json': { schema: listOf(GeneratedRecord, 'Generated') }, ...TEXT_FORMATS },
   },
-  400: { description: 'Invalid field list or generator type.', content: { 'application/json': { schema: ErrorBody } } },
+  400: {
+    description: 'Invalid field list or generator type, or a cursor that is invalid or belongs to another query.',
+    content: { 'application/json': { schema: ErrorBody } },
+  },
 };
 
 const getRoute = createRoute({

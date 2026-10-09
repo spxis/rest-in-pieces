@@ -8,6 +8,8 @@ export interface Envelope<T = Record<string, unknown>> {
     version: string;
     parameters: Record<string, unknown>;
     links: { self: string; first: string; last: string; prev: string | null; next: string | null };
+    nextCursor: string | null;
+    prevCursor: string | null;
   };
   results: T[];
 }

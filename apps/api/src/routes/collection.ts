@@ -24,7 +24,10 @@ export function collectionRoutes(resource: Resource, { deprecated = false, path 
         description: `A page of ${resource.name}. \`X-Total-Count\` and \`Link\` headers describe the whole result.`,
         content: { 'application/json': { schema: listOf(resource.schema, resource.title) }, ...TEXT_FORMATS },
       },
-      400: { description: 'Unsupported format or locale.', content: { 'application/json': { schema: ErrorBody } } },
+      400: {
+        description: 'Unsupported format or locale, or a cursor that is invalid or belongs to another query.',
+        content: { 'application/json': { schema: ErrorBody } },
+      },
     },
   });
 
