@@ -207,7 +207,7 @@ Set `PORT` to move the API, and `VITE_API_BASE_URL` to point the playground else
 
 **Docker.** The image above serves everything from port 8080, runs as a non-root user and includes a health check.
 
-**GitHub Pages.** `.github/workflows/pages.yml` publishes the in-browser playground on every push to `master`. `pnpm --filter @rest-in-pieces/web build:pages` builds it locally into `apps/web/dist-pages`: the playground, the API bundled as a chunk it loads on the first request, and static copies of `api/openapi.json` and `api/docs/`. Set `PAGES_BASE` to serve it from somewhere other than `/rest-in-pieces/`.
+**GitHub Pages.** `.github/workflows/pages.yml` publishes the in-browser playground on every push to `main`. `pnpm --filter @rest-in-pieces/web build:pages` builds it locally into `apps/web/dist-pages`: the playground, the API bundled as a chunk it loads on the first request, and static copies of `api/openapi.json` and `api/docs/`. Set `PAGES_BASE` to serve it from somewhere other than `/rest-in-pieces/`.
 
 ## License
 
