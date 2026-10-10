@@ -22,3 +22,4 @@ apps/api/web/
 apps/api/README.md
 apps/api/LICENSE
 *.tgz
+.next/
