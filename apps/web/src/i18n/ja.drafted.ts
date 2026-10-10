@@ -139,25 +139,25 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
     back: "Product reviews by users. Ratings come out close to the product's own rating.",
   },
   'dataset.countries': {
-    text: 'ISO の国コード・日本語と英語の名前・通貨・言語・国番号（国際電話）・首都・タイムゾーン・人口・面積・座標・陸上の国境・通行区分・国旗のアドレスを持つ、すべての国と地域。Kuni と Hata の実在のデータなので `seed` は影響しません。`/flags/{code}.svg` と `/maps/{code}.svg` で国旗と国の輪郭を描けます。互換性のため、`metadata=true` を指定しない限り全件を配列のまま返します。行政区画は `/countries/{code}/subdivisions`、ISO が廃止した国コードは `/countries/withdrawn` にあります。',
-    back: 'Every country and region with its ISO country code, names in Japanese and English, currencies, languages, calling country codes (international phone), capital, time zones, population, area, coordinates, land borders and which side of the road traffic keeps to, and the address of its flag. It is the real data of Kuni and Hata, so `seed` has no effect. `/flags/{code}.svg` and `/maps/{code}.svg` draw the flag and the outline of the country. For compatibility it returns everything as a plain array unless `metadata=true` is given. Administrative divisions are at `/countries/{code}/subdivisions`, and the country codes ISO has withdrawn are at `/countries/withdrawn`.',
+    text: 'ISO の国コード・日本語と英語の名前・通貨・言語・国番号（国際電話）・首都・タイムゾーン・人口・面積・座標・陸上の国境・左側通行か右側通行か・国旗のアドレスを持つ、すべての国と地域。Kuni と Hata が持つ実在のデータなので `seed` は影響しません。`/flags/{code}.svg` と `/maps/{code}.svg` で国旗と国の輪郭を描けます。互換性のため、`metadata=true` を指定しない限り全件を配列のまま返します。行政区画は `/countries/{code}/subdivisions`、ISO が廃止した国コードは `/countries/withdrawn` にあります。',
+    back: 'Every country and region with its ISO country code, names in Japanese and English, currencies, languages, calling country codes (international phone), capital, time zones, population, area, coordinates, land borders, whether traffic drives on the left or the right, and the address of its flag. It is real data that Kuni and Hata hold, so `seed` has no effect. `/flags/{code}.svg` and `/maps/{code}.svg` draw the flag and the outline of the country. For compatibility it returns everything as a plain array unless `metadata=true` is given. Administrative divisions are at `/countries/{code}/subdivisions`, and the country codes ISO has withdrawn are at `/countries/withdrawn`.',
   },
   'dataset.withdrawn': {
-    text: 'ISO 3166-3 で廃止された国コードを持つ国。ソビエト連邦（SU）、ユーゴスラビア（YU）、チェコスロバキア（CS）、東ドイツ（DD）、ザイール（ZR）など。各国が使っていたコード、日本語と英語の名前、そのコードが使われた期間、後継の国を持ちます。`/countries` には含まれません。実在のデータなので `seed` は影響しません。',
+    text: 'ISO 3166-3 で廃止された国コードを持つ国。ソビエト連邦（SU）、ユーゴスラビア（YU）、チェコスロバキア（CS）、東ドイツ（DD）、ザイール（ZR）など。使っていたコード、日本語と英語の名前、そのコードが使われた期間、後継の国を持ちます。`/countries` には含まれません。実在のデータなので `seed` は影響しません。',
     back: 'Countries whose country codes were withdrawn in ISO 3166-3: the Soviet Union (SU), Yugoslavia (YU), Czechoslovakia (CS), East Germany (DD), Zaire (ZR) and others. Each has the codes it used, names in Japanese and English, the period the code was in use, and its successor countries. They are not included in `/countries`. It is real data, so `seed` has no effect.',
   },
   'dataset.subdivisions': {
-    text: '州・省・県・郡・地域・ドイツの州など、ISO 3166-2 の行政区画。200 か国、5,050 件で、コード・種類・階層・親・日本語と英語の名前・州都などの中心都市・人口・面積・座標、一部は旗のアドレスも持ちます。実在のデータなので `seed` は影響しません。`country=JP`、`type=prefecture`、`level=1` などで絞り込めます。`/maps/JP-13.svg` で、その国の中に区画を強調した地図を描けます。',
-    back: 'ISO 3166-2 administrative divisions: states, provinces, prefectures, counties, regions, German states and so on. 200 countries and 5,050 entries, each with a code, kind, level, parent, names in Japanese and English, a central city such as a state capital, population, area, coordinates and, for some, the address of its flag. It is real data, so `seed` has no effect. You can narrow it with `country=JP`, `type=prefecture`, `level=1` and so on. `/maps/JP-13.svg` draws a map with that division highlighted inside its country.',
+    text: '州・省・県・郡・地域など、ISO 3166-2 の行政区画。200 か国、5,050 件で、コード・種類・階層・上位の区画・日本語と英語の名前・州都などの中心都市・人口・面積・座標、一部は旗のアドレスも持ちます。実在のデータなので `seed` は影響しません。`country=JP`、`type=prefecture`、`level=1` などで絞り込めます。`/maps/JP-13.svg` は、国の中でその区画を強調した地図を描きます。',
+    back: 'ISO 3166-2 administrative divisions: states, provinces, prefectures, counties, regions and so on. 200 countries and 5,050 entries, each with a code, kind, level, higher-level division, names in Japanese and English, a central city such as a state capital, population, area, coordinates and, for some, the address of its flag. It is real data, so `seed` has no effect. You can narrow it with `country=JP`, `type=prefecture`, `level=1` and so on. `/maps/JP-13.svg` draws a map with that division highlighted within its country.',
   },
   'dataset.groupings': {
-    text: 'EU・G7・ASEAN などの国のグループと、国内の地方区分。7 つの大陸、国連の地域区分、加盟・脱退の日付つきの国際機関 23 件、中東やバルカン半島などの非公式なグループ 16 件、日本の地方などを含む 107 件です。実在のデータなので `seed` は影響しません。`kind=membership` や `members=JP` で絞り込めます。',
-    back: 'Groups of countries such as the EU, G7 and ASEAN, and regional divisions inside a country. 107 entries, including the seven continents, the UN regional divisions, 23 international organizations with join and leave dates, 16 informal groups such as the Middle East and the Balkans, and the regions of Japan. It is real data, so `seed` has no effect. You can narrow it with `kind=membership` or `members=JP`.',
+    text: 'EU・G7・ASEAN などの国のグループと、国内の地方区分。全部で 107 件あり、7 つの大陸、国連の地域区分、加盟・脱退の日付つきの国際機関 23 件、中東やバルカン半島などの非公式なグループ 16 件、日本の地方などを含みます。実在のデータなので `seed` は影響しません。`kind=membership` や `members=JP` で絞り込めます。',
+    back: 'Groups of countries such as the EU, G7 and ASEAN, and regional divisions inside a country. There are 107 entries in all, including the seven continents, the UN regional divisions, 23 international organizations with join and leave dates, 16 informal groups such as the Middle East and the Balkans, and the regions of Japan. It is real data, so `seed` has no effect. You can narrow it with `kind=membership` or `members=JP`.',
   },
 
   'dataset.addresses': {
-    text: 'アメリカ・カナダ・日本・オーストラリア・イギリス・フランス・ドイツの住所。それぞれの国の郵便の書式で書かれ、郵便番号はその地域に実在するものです。通りや地名は Faker のもので、実在の人物の住所ではありません。`country=JP` で絞り込め、`regionCode` は `/subdivisions` につながります。`/addresses/validate` と `/addresses/format` は、渡した住所を検証・整形します。',
-    back: "Addresses in the United States, Canada, Japan, Australia, the United Kingdom, France and Germany. Each is written in its own country's postal format, and the postal code is one that really exists in that region. Street and place names are Faker's, so they are not any real person's address. You can narrow it with `country=JP`, and `regionCode` connects to `/subdivisions`. `/addresses/validate` and `/addresses/format` validate and format an address you hand them.",
+    text: 'アメリカ・カナダ・日本・オーストラリア・イギリス・フランス・ドイツの住所。それぞれの国の郵便の書式で書かれ、郵便番号はその地域に実在するものです。通りの名前は作り物で（日本の町名はよくある町名の短い一覧から選びます）、実在の人物の住所ではありません。`country=JP` で絞り込め、`regionCode` は `/subdivisions` につながります。`/addresses/validate` と `/addresses/format` は、渡した住所を検証・整形します。',
+    back: "Addresses in the United States, Canada, Japan, Australia, the United Kingdom, France and Germany. Each is written in its own country's postal format, and the postal code is one that really exists in that region. Street names are made up (Japanese town names are chosen from a short list of common town names), and they are not any real person's address. You can narrow it with `country=JP`, and `regionCode` connects to `/subdivisions`. `/addresses/validate` and `/addresses/format` validate and format an address you hand them.",
   },
 
   'scenario.heading': { text: '再現できるシナリオ', back: 'Scenarios you can reproduce' },
@@ -270,7 +270,7 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
   'metadata.include': { text: 'レスポンスにメタデータを含める', back: 'Include metadata in the response' },
   'data.safe': { text: '安全な値', back: 'Safe values' },
   'data.safeHint': {
-    text: 'メールアドレスと URL は例示用ドメイン、電話番号はフィクション用に確保された番号帯、カード番号はテスト用番号、IP アドレスはドキュメント用の範囲、アバターはこの API が配信する画像を使います。3.0 から既定でオンで、外すと 2.x の値になります',
+    text: 'メールアドレスと URL は例示用ドメイン、電話番号はフィクション用に確保された番号帯、カード番号はテスト用番号、IP アドレスはドキュメント用の範囲、アバターはこの API が配信する画像を使います。3.0 から既定でオンになっていて、オフにすると 2.x の値になります',
     back: 'Emails and URLs use example domains, phone numbers use number ranges reserved for fiction, card numbers use test numbers, IP addresses use the range for documentation, and avatars use images this API serves. It has been on by default since 3.0, and turning it off gives the 2.x values',
   },
   'relations.heading': { text: 'リレーション', back: 'Relations' },

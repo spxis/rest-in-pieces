@@ -227,8 +227,8 @@ export const USE_CASE_JA: Record<keyof typeof USE_CASE_PHRASES, { text: string; 
   'uc.healthcare-fintech.doesNotAdd': { text: '明細の合計が合いません。', back: 'The lines do not add up.' },
   'uc.places-pickers.title': { text: '国・地域・国旗の選択欄', back: 'Country, region and flag pickers' },
   'uc.places-pickers.problem': {
-    text: '登録フォームには、選ぶと州や県の選択欄が埋まる国の選択欄が必要で、国旗や地図も添えたいところです。作り物の地名リストは、そのまま出荷すると不具合のもとになります。',
-    back: 'A sign-up form needs a country select that, once chosen, fills a state or prefecture select, and you also want a flag and a map beside them. A made-up list of place names becomes a cause of bugs if you ship it as it is.',
+    text: '登録フォームでは、国を選ぶと州や県の選択欄に候補が入るようにし、国旗や地図も添えたいものです。作り物の地名リストをそのまま使うと、不具合のもとになります。',
+    back: 'In a sign-up form, you want the state or prefecture select to fill with options once a country is chosen, and a flag and a map beside them. Using a made-up list of place names as it is becomes a cause of bugs.',
   },
   'uc.places-pickers.how': {
     text: '国、その州・省・県などの行政区画、所属するグループは、日本語と英語の実在のデータです。各レコードに国旗のアドレスがあり、/maps がその場所の地図を描き、人物の province は expand=subdivision でその行政区画につながります。',
