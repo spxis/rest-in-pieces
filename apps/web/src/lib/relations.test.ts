@@ -151,5 +151,6 @@ describe('the UI preview', () => {
     expect(splitType('number.int(18,65)?blank=10')).toEqual({ base: 'number.int', rest: '(18,65)?blank=10' });
     expect(splitType('pick(a,b|1,2)')).toEqual({ base: 'pick', rest: '(a,b|1,2)' });
     expect(splitType(' person.firstName ')).toEqual({ base: 'person.firstName', rest: '' });
+    expect(splitType("=concat(a, ' ', b)")).toEqual({ base: '=', rest: "concat(a, ' ', b)" });
   });
 });

@@ -51,6 +51,42 @@ test('generates custom records', async ({ page }) => {
   await expect(page.getByRole('columnheader', { name: 'email' })).toBeVisible();
 });
 
+test('generates derived fields, a distribution and constrained numbers', async ({ page }) => {
+  await page.getByRole('tab', { name: /Generate/ }).click();
+  const add = async (name: string, type: string, args?: string) => {
+    await page.getByRole('button', { name: 'Add field' }).click();
+    await page.getByLabel('Field name').last().fill(name);
+    await page.getByLabel('Generator type').last().selectOption(type);
+    if (args !== undefined)
+      await page
+        .getByLabel(type === '=' ? 'Expression' : /Arguments/)
+        .last()
+        .fill(args);
+  };
+  await add('low', 'number.int', '(1,100)');
+  await add('high', 'number.int', '(1,100)');
+  await add('score', 'number.normal', '(70,10,0,100,0)');
+  await add('next', '=');
+  await expect(page.getByLabel('Expression').last()).toHaveValue('index + 1');
+  await page.getByLabel('Expression').last().fill('high - low');
+  await page.getByLabel('Constraints').fill('high>low');
+  await page.getByRole('button', { name: /Send request/ }).click();
+  await expect(page.getByTestId('response-status')).toHaveText(/200/);
+  await expect(page.getByRole('columnheader', { name: 'next' })).toBeVisible();
+  await expect(snippet(page)).toContainText('constraints=high%3Elow');
+  await expect(snippet(page)).toContainText('next%3A%3Dhigh+-+low');
+  const headers = await page.locator('.data-table thead th').allTextContents();
+  const column = (name: string) => headers.findIndex((text) => text.includes(name)) + 1;
+  const read = async (name: string) =>
+    (await page.locator(`.data-table tbody tr td:nth-child(${column(name)})`).allTextContents()).map(Number);
+  const [low, high, next] = [await read('low'), await read('high'), await read('next')];
+  expect(low).toHaveLength(10);
+  for (const [i, value] of low.entries()) {
+    expect(high[i]).toBeGreaterThan(value as number);
+    expect(next[i]).toBe((high[i] as number) - (value as number));
+  }
+});
+
 test('rehearses a create, a validation error and a delete', async ({ page }) => {
   await page.getByRole('tab', { name: /Users/ }).click();
   await page.getByRole('button', { name: 'POST', exact: true }).click();

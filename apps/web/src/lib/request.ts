@@ -100,6 +100,7 @@ export function buildRequestUrl(config: PlaygroundConfig, seeded = true): string
   }
   if (config.endpoint === 'generate') {
     params.set('fields', config.fields.map((field) => `${field.name.trim()}:${field.type.trim()}`).join(','));
+    if (config.constraints.trim()) params.set('constraints', config.constraints.trim());
   }
   if (config.expand.length > 0 && config.endpoint !== 'generate') params.set('expand', config.expand.join(','));
   if (config.safe) params.set('safe', 'true');

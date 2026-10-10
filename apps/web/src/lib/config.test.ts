@@ -17,10 +17,12 @@ describe('shared setups', () => {
       delay: '200-800',
       trickle: 250,
       fields: [{ id: 3, name: 'price', type: 'commerce.price' }],
+      constraints: 'end>start,total>=subtotal',
       locale: 'global',
       messy: 0.5,
     };
     expect(configFromHash(configToHash(config, base), base)).toEqual(config);
+    expect(configFromHash(`#constraints=${'a>b,'.repeat(200)}`, base).constraints).toBe('');
   });
 
   it('round-trips a write: method, record, body and conflict', () => {

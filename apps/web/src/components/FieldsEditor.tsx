@@ -3,6 +3,8 @@ import { useSpeaker } from '../i18n/LocaleProvider.tsx';
 import type { PhraseKey } from '../i18n/phrases.ts';
 import { type Field, MAX_FIELDS } from '../lib/config.ts';
 
+/** The type a derived field's select shows: its type is `=` and the expression. */
+export const DERIVED = '=';
 const FIELD_NAME = /^[A-Za-z_][\w-]{0,63}$/;
 
 export interface FieldProblem {
@@ -20,6 +22,8 @@ export function fieldProblem(fields: Field[]): FieldProblem | null {
 
 /** A type expression as its generator and the rest: `number.int(18,65)?blank=10` is `number.int` and `(18,65)?blank=10`. */
 export function splitType(type: string): { base: string; rest: string } {
+  // A derived field is `=` and an expression over the other fields.
+  if (type.trim().startsWith('=')) return { base: DERIVED, rest: type.trim().slice(1) };
   const base = /^[A-Za-z]\w*(?:\.[A-Za-z]\w*)?/.exec(type.trim())?.[0] ?? '';
   return { base, rest: type.trim().slice(base.length) };
 }
@@ -29,14 +33,19 @@ export function FieldsEditor({
   generators,
   parameters = {},
   state,
+  constraints = '',
   onChange,
+  onConstraints,
 }: {
   fields: Field[];
   generators: Record<string, string[]>;
   /** Each type that takes arguments, with them in order, from `GET /generators`. */
   parameters?: Record<string, string>;
   state: 'loading' | 'ready' | 'offline';
+  /** Rules between two fields, comma-separated. */
+  constraints?: string;
   onChange: (fields: Field[]) => void;
+  onConstraints?: (constraints: string) => void;
 }) {
   const { say } = useSpeaker();
   const update = (id: number, patch: Partial<Field>) =>
@@ -55,6 +64,7 @@ export function FieldsEditor({
   }
   const known = new Set([
     'pick',
+    DERIVED,
     ...Object.entries(modules).flatMap(([module, methods]) => methods.map((m) => `${module}.${m}`)),
   ]);
 
@@ -82,15 +92,21 @@ export function FieldsEditor({
             />
             {(() => {
               const { base, rest } = splitType(field.type);
+              const derived = base === DERIVED;
               const takes = parameters[base];
               return (
                 <>
                   <select
                     aria-label={say('fields.type')}
                     value={base}
-                    onChange={(event) => update(field.id, { type: event.target.value })}
+                    onChange={(event) =>
+                      update(field.id, { type: event.target.value === DERIVED ? '=index + 1' : event.target.value })
+                    }
                   >
                     {!known.has(base) && <option value={base}>{base}</option>}
+                    <optgroup label={say('fields.derivedGroup')}>
+                      <option value={DERIVED}>{say('fields.derived')}</option>
+                    </optgroup>
                     {Object.keys(parameters).includes('pick') && (
                       <optgroup label="pick">
                         <option value="pick">pick</option>
@@ -108,12 +124,20 @@ export function FieldsEditor({
                   </select>
                   <input
                     className="field-args"
-                    aria-label={say('fields.args')}
-                    title={takes ? say('fields.takes', { type: base, args: takes }) : say('fields.syntax')}
-                    placeholder={takes ? `(${takes})` : '?blank=15'}
+                    aria-label={derived ? say('fields.expression') : say('fields.args')}
+                    title={
+                      derived
+                        ? say('fields.expressionHint')
+                        : takes
+                          ? say('fields.takes', { type: base, args: takes })
+                          : say('fields.syntax')
+                    }
+                    placeholder={derived ? "age(born), concat(first, ' ', last)" : takes ? `(${takes})` : '?blank=15'}
                     value={rest}
                     spellCheck={false}
-                    onChange={(event) => update(field.id, { type: `${base}${event.target.value.trim()}` })}
+                    onChange={(event) =>
+                      update(field.id, { type: `${derived ? '=' : base}${event.target.value.trim()}` })
+                    }
                   />
                 </>
               );
@@ -136,7 +160,22 @@ export function FieldsEditor({
           {say(problem.key, { name: problem.name })}
         </span>
       )}
+      {onConstraints && (
+        <label className="control constraints-control">
+          <span>{say('fields.constraints')}</span>
+          <input
+            className="mono-input"
+            aria-label={say('fields.constraints')}
+            title={say('fields.constraintsHint')}
+            placeholder="end>start, total>=subtotal"
+            value={constraints}
+            spellCheck={false}
+            onChange={(event) => onConstraints(event.target.value)}
+          />
+        </label>
+      )}
       <span className="inline-note">{say('fields.syntax')}</span>
+      <span className="inline-note">{say('fields.expressions')}</span>
       {state === 'loading' && <span className="inline-note">{say('fields.loading')}</span>}
       {state === 'offline' && <span className="inline-note warning">{say('fields.offline')}</span>}
     </div>

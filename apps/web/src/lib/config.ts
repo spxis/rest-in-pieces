@@ -76,6 +76,8 @@ export interface PlaygroundConfig {
   /** Share of requests that fail: 0 (never) to 1 (always). */
   failRate: number;
   fields: Field[];
+  /** Rules between two generated fields, comma-separated: `end>start,total>=subtotal`. */
+  constraints: string;
   /** The API's `locale`: which audience the generated data is written for. */
   locale: DataLocale;
   /** Share of values the API's `messy` rewrites: 0 (clean) to 1 (every value). */
@@ -116,6 +118,8 @@ export const PAGING_STYLES = [
   { value: 'cursor', label: 'page.styleCursor' },
 ] as const satisfies ReadonlyArray<{ value: PagingStyle; label: PhraseKey }>;
 export const MAX_FIELDS = 50;
+/** The longest `constraints` the playground sends: ten rules of a couple of dozen characters. */
+export const MAX_CONSTRAINTS_LENGTH = 400;
 export const MAX_SEED = 4294967295;
 /** The share `messy=true` rewrites, and the shares the playground offers. */
 export const DEFAULT_MESSY_SHARE = 0.15;
@@ -174,6 +178,7 @@ export function defaultConfig(apiBase = defaultApiBase()): PlaygroundConfig {
     status: 0,
     failRate: 0,
     fields: DEFAULT_FIELDS,
+    constraints: '',
     locale: 'en-CA',
     messy: 0,
     method: 'GET',
@@ -239,6 +244,7 @@ export function configFromHash(hash: string, fallback = defaultConfig()): Playgr
   const nested = params.get('nested');
   const parentId = params.get('parentId');
   const table = params.get('table');
+  const constraints = params.get('constraints');
 
   return {
     endpoint: endpoint && /^[a-z-]+$/.test(endpoint) ? endpoint : fallback.endpoint,
@@ -260,6 +266,8 @@ export function configFromHash(hash: string, fallback = defaultConfig()): Playgr
     status: params.has('status') && !params.has('fail') ? int('status', 0, 0, 599) : legacyStatus,
     failRate: Number.isFinite(failRate) && failRate >= 0 && failRate <= 1 ? failRate : 0,
     fields: fields && fields.length > 0 ? fields : fallback.fields,
+    constraints:
+      constraints !== null && constraints.length <= MAX_CONSTRAINTS_LENGTH ? constraints : fallback.constraints,
     locale: LOCALE_CODE.test(params.get('locale') ?? '') ? (params.get('locale') as DataLocale) : fallback.locale,
     messy: Number.isFinite(messy) && messy >= 0 && messy <= 1 ? messy : fallback.messy,
     method: method ?? fallback.method,

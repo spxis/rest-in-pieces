@@ -85,6 +85,14 @@ export const PHRASES = {
   'fields.args': 'Arguments, choices or blank rate',
   'fields.syntax': 'Add arguments, choices or blanks: number.int(18,65), pick(a,b|70,30), person.firstName?blank=15',
   'fields.takes': '{type} takes ({args})',
+  'fields.derivedGroup': 'Worked out',
+  'fields.derived': '= derived from other fields',
+  'fields.expression': 'Expression',
+  'fields.expressionHint': "An expression over the other fields, such as age(born) or concat(first, ' ', last)",
+  'fields.expressions':
+    'A derived field is worked out last from the others: = age(born), = addDays(start, 30), = price * qty.',
+  'fields.constraints': 'Constraints',
+  'fields.constraintsHint': 'Put two fields in order, separated by commas: end>start, total>=subtotal',
 
   'page.heading': 'PAGE & SORT',
   'page.limit': 'Limit',

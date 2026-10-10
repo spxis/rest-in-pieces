@@ -133,6 +133,22 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
     back: 'You can specify arguments, choices and a blank rate: number.int(18,65), pick(a,b|70,30), person.firstName?blank=15',
   },
   'fields.takes': { text: '{type} の引数は ({args})', back: 'The arguments of {type} are ({args})' },
+  'fields.derivedGroup': { text: '計算で求める', back: 'Worked out by calculation' },
+  'fields.derived': { text: '= 他のフィールドから導出', back: '= derived from other fields' },
+  'fields.expression': { text: '式', back: 'Expression' },
+  'fields.expressionHint': {
+    text: "他のフィールドを使った式です。例：age(born)、concat(first, ' ', last)",
+    back: "An expression using other fields. For example: age(born), concat(first, ' ', last)",
+  },
+  'fields.expressions': {
+    text: '導出フィールドは他のフィールドの後で計算されます：= age(born)、= addDays(start, 30)、= price * qty。',
+    back: 'A derived field is calculated after the other fields: = age(born), = addDays(start, 30), = price * qty.',
+  },
+  'fields.constraints': { text: '制約', back: 'Constraints' },
+  'fields.constraintsHint': {
+    text: '2つのフィールドの順序をカンマ区切りで指定します：end>start、total>=subtotal',
+    back: 'Specify the order of two fields, separated by commas: end>start, total>=subtotal',
+  },
 
   'page.heading': { text: 'ページと並べ替え', back: 'Pages and sorting' },
   'page.limit': { text: '件数（limit）', back: 'Count (limit)' },

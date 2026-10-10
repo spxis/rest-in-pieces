@@ -216,7 +216,9 @@ export default function App() {
                 generators={catalog.generators}
                 parameters={catalog.parameters}
                 state={catalog.state}
+                constraints={config.constraints}
                 onChange={(next) => update({ fields: next })}
+                onConstraints={(constraints) => update({ constraints })}
               />
             )}
             {writing ? (

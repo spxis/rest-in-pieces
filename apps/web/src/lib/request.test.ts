@@ -110,6 +110,33 @@ describe('buildRequestUrl', () => {
     expect(url.searchParams.get('fields')).toBe('name:person.fullName,email:internet.email');
     expect(url.searchParams.get('fail')).toBe('0.3');
   });
+
+  it('sends derived fields and constraints for /generate, with a plus sign kept', async () => {
+    const config = {
+      ...base,
+      endpoint: 'generate',
+      fields: [
+        { id: 1, name: 'start', type: 'date.between(2026-01-01,2026-12-31)' },
+        { id: 2, name: 'end', type: 'date.between(2026-01-01,2026-12-31)' },
+        { id: 3, name: 'next', type: '=index + 1' },
+      ],
+      constraints: ' end>start ',
+    };
+    const url = buildRequestUrl(config);
+    expect(new URL(url).searchParams.get('constraints')).toBe('end>start');
+    expect(new URL(url).searchParams.get('fields')).toContain('next:=index + 1');
+    expect(url).toContain('%2B');
+    const res = await createApp().request(url.replace('http://localhost:6800', ''));
+    expect(res.status).toBe(200);
+    const { results } = (await res.json()) as {
+      results: Array<{ index: number; next: number; start: string; end: string }>;
+    };
+    for (const row of results) {
+      expect(row.next).toBe(row.index + 1);
+      expect(row.end >= row.start).toBe(true);
+    }
+    expect(new URL(buildRequestUrl({ ...config, endpoint: 'users' })).searchParams.has('constraints')).toBe(false);
+  });
 });
 
 describe('messy data', () => {
