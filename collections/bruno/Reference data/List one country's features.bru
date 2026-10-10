@@ -1,11 +1,11 @@
 meta {
-  name: List one subdivision's children
+  name: List one country's features
   type: http
-  seq: 16
+  seq: 13
 }
 
 get {
-  url: {{baseUrl}}/subdivisions/:id/children
+  url: {{baseUrl}}/countries/:id/features
   body: none
   auth: none
 }
@@ -41,7 +41,7 @@ params:path {
 }
 
 docs {
-  The children whose `parent` is this subdivision's id, in id order: the same records `/subdivisions?parent={id}` returns, found without a scan. Paging, sorting, filters, search, formats, `expand`, `messy`, `safe` and the simulation all work as they do on `/subdivisions`.
+  The features whose `countries` is this country's id, in id order: the same records `/features?countries={id}` returns, found without a scan. Paging, sorting, filters, search, formats, `expand`, `messy`, `safe` and the simulation all work as they do on `/features`.
 
   Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
 }

@@ -4,7 +4,7 @@
 
 The people, companies, orders and messages REST in Pieces makes are invented, and none of them is a real person. The places they live in are real: a record from `en-CA` lives in Ontario, in Canada, and the country, the province, its capital, its flag and its postcode are the ones on the map. Real reference data about places is public fact, not personal data, so it is served as it is: the same way a test-data tool serves a real list of currencies. Nothing about a real person is in here, and nothing is ever added.
 
-The reference data comes from the family of packages this project is part of: [Kuni](https://github.com/johnmorrisdotca/kuni) for countries and the regions inside them, [Hata](https://github.com/johnmorrisdotca/hata) for flags, [Chizu](https://github.com/johnmorrisdotca/chizu) for maps, [address-plus](https://github.com/johnmorrisdotca/address-plus) for addresses. Each is loaded the first time a request needs it, so starting the server, and every request that does not ask for a place, pays nothing for them. None of them is called while the server waits: nothing here runs on a timer, and every request is bounded.
+The reference data comes from the family of packages this project is part of: [Kuni](https://github.com/johnmorrisdotca/kuni) for countries and the regions inside them, [Hata](https://github.com/johnmorrisdotca/hata) for flags, [Chizu](https://github.com/johnmorrisdotca/chizu) for maps and named seas, lakes, rivers and peaks, [address-plus](https://github.com/johnmorrisdotca/address-plus) for addresses. Each is loaded the first time a request needs it, so starting the server, and every request that does not ask for a place, pays nothing for them. None of them is called while the server waits: nothing here runs on a timer, and every request is bounded.
 
 Reference datasets have no `seed` (they are real, so a seed would change nothing), are read-only, and take every list parameter the other datasets do: paging, `sortBy`, field filters, `q`, `format` (JSON, CSV, YAML, XML, NDJSON, SQL), `expand` and `locale`.
 
@@ -154,6 +154,37 @@ curl 'http://localhost:6800/maps/CA-ON.svg'
 
 A country's map is its outline (Natural Earth 1:50m) for 238 countries; a subdivision's is its country's regions with that one lit and framed, for the regions of 32 countries (Japan, Canada, the United States, Australia, the United Kingdom, Germany, France and more). Any other code is `404`, and a colour that is not hex `400`. Chizu is an optional peer dependency, like Hata (`npm install @johnmorrisdotca/chizu` beside this package; 22 MB of outlines, so `npx` does not install it), and is loaded the first time a map is asked for; each country's outline is its own small file. Without it, `/maps` is `501`, and the message says to run `npm install @johnmorrisdotca/chizu` beside this package. The copy of this API that runs inside a browser tab, as on the demo site, has no maps either (`501`), because Chizu's data is not part of that page. The Docker image carries Chizu, so its `/maps` works; from `npx`, install both packages in a project and run `npx rest-in-pieces` there.
 
+## Geographic features: `/geo/features`
+
+The named physical features of the world, from Chizu: oceans, seas, gulfs, bays and straits, lakes and reservoirs, rivers, deserts, mountain ranges, plateaus, plains, peninsulas and the other landforms, and peaks. The list is read from Chizu's feature files for the world and each of 238 countries (Natural Earth's physical vectors at 1:10m, public domain; names from Natural Earth and Wikidata, CC0), joined into one record each: a river through three countries, or a sea on four coasts, is one record with all of its countries. 2,790 on 2026-10-10. A **point and a box are served, never a shape**: a record is about 0.5 kB.
+
+```sh
+curl 'http://localhost:6800/geo/features/Q200239'                     # Lake Biwa: 琵琶湖, びわこ, a point and a box
+curl 'http://localhost:6800/geo/features?kind=lake&countries=JP'       # a country's lakes
+curl 'http://localhost:6800/geo/features?group=marine&rank[lte]=1'     # the big seas
+curl 'http://localhost:6800/geo/features?q=琵琶'                         # a name in English, Japanese or kana
+curl 'http://localhost:6800/countries/JP/features?kind=peak'           # Fuji and the rest, with elevation
+curl 'http://localhost:6800/maps/JP.svg?features=water&feature=Q200239' # Japan's water with Lake Biwa lit
+```
+
+| Field | What it holds |
+| ----- | ------------- |
+| `id`, `wikidata` | The feature's Wikidata item (`Q200239`) where it has one, and then `wikidata` is the same; else Natural Earth's own id (`ne-…`) and `wikidata` is `null`. |
+| `kind`, `group` | What it is (`ocean`, `sea`, `gulf`, `bay`, `strait`, `lake`, `reservoir`, `river`, `desert`, `range`, `peninsula`, `peak` and the rest) and its group: `marine`, `landforms`, `lakes`, `rivers` or `peaks`. A list is in that order, the biggest (lowest `rank`) first. |
+| `name`, `names`, `reading` | The name in the locale (Japanese for `ja` where there is one, else English) and `{ en, ja }` (`ja` is `null` where neither Natural Earth nor Wikidata has one), and the Japanese name in kana where it is known. |
+| `rank` | Natural Earth's scale rank: 0 for an ocean, up to 10 for a small lake or a short river. |
+| `elevation` | A peak's height in metres, else `null`. |
+| `location` | A point on it, `{ lat, lon }`: a peak itself, the middle of a river's course, a lake's or sea's labelling point (the point farthest from its edges). |
+| `bbox` | The box round it, `{ west, south, east, north }` in degrees, `null` for a peak. A feature that crosses the 180th meridian (the Pacific, Fiji) has `west` greater than `east`, as in RFC 7946. For a feature on several countries' maps it is the box round what the maps draw. |
+| `countries` | The alpha-2 codes of the countries whose map holds it, by Chizu's rules: a sea within 1.5% of the map's width of the coast, a lake or river with three tenths of it on the land, a landform or peak on the land. Empty for an ocean or sea that no country's map shows. Three places Chizu draws that have no ISO 3166-1 code (Ashmore and Cartier, the Indian Ocean Territories, the Siachen area) are left out. |
+| `map` | A path from the API's base address to `/maps` with the feature lit (`maps/JP.svg?features=all&feature=Q200239`), on the map of the country that shows most of it; `null` where no country's map holds it. |
+
+Filters are the fields: `kind=lake,reservoir`, `group=rivers`, `countries=JP`, `rank[lte]=2`, `wikidata=Q200239`; `q` searches every value, so a name in English, Japanese or kana finds it (`q=びわこ`). `/countries/{code}/features` lists a country's, and `expand=countries` on a feature embeds its countries. Capitals are not here: they are in `/countries` (`capital`, `capitalLocation`) and `/subdivisions`.
+
+**On a map.** `/maps/{code}.svg` takes `features` (`water`, `all`, a group such as `peaks`, or a kind such as `strait`, several separated by commas) to draw the named features that fall on it, and `feature` (an `id` from this dataset) to light one, drawn even if its group is not named; a feature the map does not hold is `404`, and a `features` word that is none of those `400`. A subdivision's map takes them too, from its country's regions.
+
+**Needs Chizu 1.2 or later.** Chizu is an optional peer dependency, like Hata: without it every request to `/geo/features`, `/geo/features/{id}` and `/countries/{code}/features` is `501`, and the message says to run `npm install @johnmorrisdotca/chizu` beside this package (a version without features says to update it). The first request reads Chizu's 239 feature files once, about 0.2 s and 25 MB while they are read; later ones answer from memory. The copy of this API inside a browser tab, as on the demo site, cannot load Chizu, so it has no Features tab; the static API on the demo site holds the whole dataset as files (`api/features.json`, `api/features/Q200239.json`, `api/countries/JP/features.json`, each also as CSV, NDJSON and SQL).
+
 ## Addresses: `/addresses`
 
 Addresses in the United States, Canada, Japan, Australia, the United Kingdom, France and Germany, each in its own country's format and with a postcode that exists in the right region. They are invented: the street names are Faker's, and Japanese town names come from a short list of common ones (`JP_TOWNS`), so no address is a real person's; only the postcode is checked against the real tables.
@@ -226,6 +257,7 @@ Where two countries held a code (`CS` was Czechoslovakia and then Serbia and Mon
 | Land borders, confirmed | Natural Earth 1:50m, through Kuni | Public domain |
 | Flags of countries and subdivisions | Wikimedia Commons files and flag-icons, optimised by Hata, which keeps each file's author and licence | Each file's own, kept in Hata's manifest; Hata is MIT |
 | Country outlines and regions for maps | Natural Earth 1:50m, drawn by Chizu | Public domain; Chizu is MIT |
+| Seas, lakes, rivers, landforms and peaks | Natural Earth's physical vectors at 1:10m (marine areas, lakes, rivers, geographic regions, elevation points), read from Chizu; their names from Natural Earth and Wikidata | Public domain (Natural Earth); CC0 (Wikidata); Chizu is MIT |
 | Japan's prefectures, municipalities and the prefecture each postal code delivers to | Geolonia 住所データ; Japan Post's KEN_ALL through jp-postal, in address-plus | MIT |
 | Australian postcode blocks | Australia Post's blocks and the Australian Bureau of Statistics' Postal Areas, in address-plus | CC BY 4.0 (the ABS) |
 | British postcode areas and districts | Royal Mail's grammar and Ordnance Survey's Code-Point Open, in address-plus; contains Royal Mail data © Royal Mail copyright and database right 2026 | Open Government Licence v3 |
