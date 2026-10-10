@@ -4,6 +4,8 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+## 2.24.0 - 2026-10-09
+
 ### Added
 
 - `examples/` with three starters that load seeded data and show loading and error states: React with Vite, Vue with Vite (both add `restInPieces()` to `vite.config.js`) and Next.js (one route handler answers `/api/*` with `createApp()`). Each has an "Open in StackBlitz" link, with no account, and the Vite two a CodeSandbox link. The starters install the package from npm and are not part of the workspace.
