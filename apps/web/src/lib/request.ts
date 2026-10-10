@@ -79,12 +79,62 @@ export function readPath(config: Pick<PlaygroundConfig, 'endpoint' | 'nested' | 
   return `/${config.endpoint}/${encodeURIComponent(config.parentId.trim() || '1')}/${config.nested}`;
 }
 
+/** Whether the setup generates from a schema: a `POST /generate` whose paging, sorting and format still ride in the query. */
+export const isSchemaRequest = (config: Pick<PlaygroundConfig, 'endpoint' | 'schemaMode'>) =>
+  config.endpoint === 'generate' && config.schemaMode;
+
+/** The properties a typed schema lists, for the sort and filter pickers; none when it does not parse. */
+export function schemaProperties(text: string): string[] {
+  try {
+    const parsed = JSON.parse(text) as unknown;
+    const shape = parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : {};
+    const root =
+      shape.openapi !== undefined || shape.swagger !== undefined
+        ? (shape.components as { schemas?: Record<string, { properties?: object }> } | undefined)?.schemas
+        : undefined;
+    const properties = root ? Object.values(root)[0]?.properties : (shape.properties as object | undefined);
+    return properties && typeof properties === 'object' ? Object.keys(properties) : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * The JSON body a schema request sends: the typed schema as `schema`, or as `openapi` with its `component` when it is an
+ * OpenAPI document, with the dataset size and seed. `''` when the text is not a JSON object.
+ */
+export function schemaBody(config: Pick<PlaygroundConfig, 'schema' | 'component' | 'max' | 'seed'>): string {
+  try {
+    const parsed = JSON.parse(config.schema) as unknown;
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return '';
+    const document = parsed as Record<string, unknown>;
+    const isDocument = document.openapi !== undefined || document.swagger !== undefined;
+    const component = config.component.trim();
+    return JSON.stringify({
+      ...(isDocument ? { openapi: document, ...(component ? { component } : {}) } : { schema: document }),
+      count: Math.max(1, config.max),
+      seed: config.seed,
+    });
+  } catch {
+    return '';
+  }
+}
+
+/** The method and body a setup sends, whatever the controls show: a schema request is always a `POST`. */
+export function requestFor(config: PlaygroundConfig): { method: HttpMethod; body: string } {
+  return isSchemaRequest(config)
+    ? { method: 'POST', body: schemaBody(config) }
+    : { method: config.method, body: config.body };
+}
+
 /** Builds the request URL for a setup. Parameters at their API defaults are left out to keep URLs readable. */
 export function buildRequestUrl(config: PlaygroundConfig, seeded = true): string {
-  if (config.method !== 'GET') return buildWriteUrl(config, seeded);
+  const schema = isSchemaRequest(config);
+  if (config.method !== 'GET' && !schema) return buildWriteUrl(config, seeded);
   const params = new URLSearchParams();
-  if (seeded && config.seed !== 1) params.set('seed', String(config.seed));
-  if (config.max < 1000) params.set('max', String(config.max));
+  // A schema request carries its size and seed in the body.
+  if (seeded && config.seed !== 1 && !schema) params.set('seed', String(config.seed));
+  if (config.max < 1000 && !schema) params.set('max', String(config.max));
   if (config.sortBy) {
     params.set('sortBy', `${config.sortBy}${config.sortType === 'numeric' ? ':numeric' : ''}`);
     if (config.sortDirection === 'desc') params.set('sortDirection', 'desc');
@@ -98,7 +148,7 @@ export function buildRequestUrl(config: PlaygroundConfig, seeded = true): string
   if (config.endpoint === 'countries' ? config.metadata : !config.metadata) {
     params.set('metadata', String(config.metadata));
   }
-  if (config.endpoint === 'generate') {
+  if (config.endpoint === 'generate' && !schema) {
     params.set('fields', config.fields.map((field) => `${field.name.trim()}:${field.type.trim()}`).join(','));
     if (config.constraints.trim()) params.set('constraints', config.constraints.trim());
   }

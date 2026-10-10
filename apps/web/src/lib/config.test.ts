@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { configFromHash, configToHash, defaultConfig, normalizeDelay } from './config.ts';
+import { configFromHash, configToHash, defaultConfig, normalizeDelay, SAMPLE_SCHEMA } from './config.ts';
 
 const base = defaultConfig('http://localhost:6800');
+
+describe('the sample schema', () => {
+  it('is valid JSON, and its pattern keeps its backslash', () => {
+    const parsed = JSON.parse(SAMPLE_SCHEMA) as { properties: { sku: { pattern: string } } };
+    expect(parsed.properties.sku.pattern).toBe('^[A-Z]{3}-\\d{4}$');
+  });
+});
 
 describe('shared setups', () => {
   it('round-trips a setup through the URL hash', () => {
@@ -18,6 +25,9 @@ describe('shared setups', () => {
       trickle: 250,
       fields: [{ id: 3, name: 'price', type: 'commerce.price' }],
       constraints: 'end>start,total>=subtotal',
+      schemaMode: true,
+      schema: '{"type":"object"}',
+      component: 'Pet',
       locale: 'global',
       messy: 0.5,
     };

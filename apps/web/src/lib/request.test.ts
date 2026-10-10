@@ -1,7 +1,17 @@
 import { createApp } from '@johnmorrisdotca/rest-in-pieces/core';
 import { describe, expect, it } from 'vitest';
 import { defaultConfig } from './config.ts';
-import { buildRequestUrl, curlCommand, extractRows, fetchSnippet, isLocalApi } from './request.ts';
+import {
+  buildRequestUrl,
+  curlCommand,
+  extractRows,
+  fetchSnippet,
+  isLocalApi,
+  isSchemaRequest,
+  requestFor,
+  schemaBody,
+  schemaProperties,
+} from './request.ts';
 
 const base = defaultConfig('http://localhost:6800/');
 
@@ -136,6 +146,64 @@ describe('buildRequestUrl', () => {
       expect(row.end >= row.start).toBe(true);
     }
     expect(new URL(buildRequestUrl({ ...config, endpoint: 'users' })).searchParams.has('constraints')).toBe(false);
+  });
+});
+
+describe('generating from a schema', () => {
+  const schema = JSON.stringify({
+    type: 'object',
+    required: ['id'],
+    properties: { id: { type: 'integer' }, email: { type: 'string', format: 'email' } },
+  });
+  const config = { ...base, endpoint: 'generate', schemaMode: true, schema, max: 25, seed: 7, limit: 5 };
+
+  it('is a POST whose size and seed are in the body and whose paging is in the query', () => {
+    const url = new URL(buildRequestUrl(config));
+    expect(url.pathname).toBe('/generate');
+    expect(url.searchParams.get('limit')).toBe('5');
+    for (const name of ['fields', 'constraints', 'seed', 'max']) expect(url.searchParams.has(name)).toBe(false);
+    expect(requestFor(config)).toEqual({
+      method: 'POST',
+      body: JSON.stringify({ schema: JSON.parse(schema), count: 25, seed: 7 }),
+    });
+    expect(isSchemaRequest(config)).toBe(true);
+    expect(isSchemaRequest({ ...config, schemaMode: false })).toBe(false);
+    expect(requestFor({ ...config, schemaMode: false, method: 'GET', body: '' })).toEqual({ method: 'GET', body: '' });
+  });
+
+  it('sends an OpenAPI document with the schema to use, and reads nothing it cannot', () => {
+    const document = JSON.stringify({
+      openapi: '3.0.3',
+      components: { schemas: { Pet: { properties: { id: {}, name: {} } } } },
+    });
+    expect(JSON.parse(schemaBody({ schema: document, component: ' Pet ', max: 3, seed: 1 }))).toEqual({
+      openapi: JSON.parse(document),
+      component: 'Pet',
+      count: 3,
+      seed: 1,
+    });
+    expect(JSON.parse(schemaBody({ schema: document, component: '', max: 3, seed: 1 }))).not.toHaveProperty(
+      'component',
+    );
+    for (const text of ['', '{', '[]', '7', 'null'])
+      expect(schemaBody({ schema: text, component: '', max: 3, seed: 1 }), text).toBe('');
+    expect(schemaProperties(schema)).toEqual(['id', 'email']);
+    expect(schemaProperties(document)).toEqual(['id', 'name']);
+    expect(schemaProperties('{')).toEqual([]);
+  });
+
+  it('is answered by the real API', async () => {
+    const sent = requestFor(config);
+    const res = await createApp().request(buildRequestUrl(config).replace('http://localhost:6800', ''), {
+      method: sent.method,
+      body: sent.body,
+      headers: { 'Content-Type': 'application/json' },
+    });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { metadata: { total: number }; results: Array<{ id: number; email?: string }> };
+    expect(body.metadata.total).toBe(25);
+    expect(body.results).toHaveLength(5);
+    for (const row of body.results) expect(Number.isInteger(row.id)).toBe(true);
   });
 });
 

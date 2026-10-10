@@ -101,6 +101,41 @@ test('lists a bundled domain whose records agree with themselves', async ({ page
   await expect(page.getByRole('columnheader', { name: 'geometry' })).toBeVisible();
 });
 
+test('generates records from a JSON Schema, and refuses what is not JSON', async ({ page }) => {
+  await page.getByRole('tab', { name: /Generate/ }).click();
+  await page.getByRole('button', { name: 'JSON Schema', exact: true }).click();
+  await expect(page.getByLabel('JSON Schema or OpenAPI document')).toHaveValue(/"format": "email"/);
+  await page.getByRole('button', { name: /Send request/ }).click();
+  await expect(page.getByTestId('response-status')).toHaveText(/200/);
+  await page.getByRole('tab', { name: /Table/ }).click();
+  await expect(page.getByRole('columnheader', { name: 'email' })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'sku' })).toBeVisible();
+  const skus = await page.locator('.data-table tbody tr td:nth-child(6)').allTextContents();
+  for (const sku of skus.filter(Boolean)) expect(sku).toMatch(/^[A-Z]{3}-\d{4}$/);
+  await expect(snippet(page)).toContainText('POST');
+
+  await page
+    .getByLabel('JSON Schema or OpenAPI document')
+    .fill('{ "type": "object", "properties": { "a": { "not": {} } } }');
+  await page.getByRole('button', { name: /Send request/ }).click();
+  await expect(page.getByTestId('response-status')).toHaveText(/400/);
+  await expect(page.locator('.response-body')).toContainText('the keyword \\"not\\" is not supported');
+
+  await page.getByLabel('JSON Schema or OpenAPI document').fill('{ nope');
+  await expect(page.getByRole('alert')).toContainText('not a JSON object');
+  await expect(page.getByRole('button', { name: /Send request/ })).toBeDisabled();
+
+  await page.getByLabel('JSON Schema or OpenAPI document').fill(
+    JSON.stringify({
+      openapi: '3.0.3',
+      components: { schemas: { Pet: { type: 'object', required: ['id'], properties: { id: { type: 'integer' } } } } },
+    }),
+  );
+  await page.getByLabel(/Schema to use in the OpenAPI document/).fill('Pet');
+  await page.getByRole('button', { name: /Send request/ }).click();
+  await expect(page.getByTestId('response-status')).toHaveText(/200/);
+});
+
 test('rehearses a create, a validation error and a delete', async ({ page }) => {
   await page.getByRole('tab', { name: /Users/ }).click();
   await page.getByRole('button', { name: 'POST', exact: true }).click();

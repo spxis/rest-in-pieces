@@ -78,6 +78,12 @@ export interface PlaygroundConfig {
   fields: Field[];
   /** Rules between two generated fields, comma-separated: `end>start,total>=subtotal`. */
   constraints: string;
+  /** `/generate` from a JSON Schema or an OpenAPI document (a `POST`) instead of a field list. */
+  schemaMode: boolean;
+  /** The schema as typed. */
+  schema: string;
+  /** The schema to use in an OpenAPI document's `components.schemas`; empty for a JSON Schema or a document with one. */
+  component: string;
   /** The API's `locale`: which audience the generated data is written for. */
   locale: DataLocale;
   /** Share of values the API's `messy` rewrites: 0 (clean) to 1 (every value). */
@@ -141,6 +147,20 @@ export function normalizeDelay(text: string): string | null {
   return low === high ? String(low) : `${low}-${high}`;
 }
 
+/** A schema to start from: small, and showing a few of what the generator reads. */
+export const SAMPLE_SCHEMA = `{
+  "type": "object",
+  "required": ["id", "email", "status"],
+  "properties": {
+    "id": { "type": "integer", "minimum": 1, "maximum": 9999 },
+    "email": { "type": "string", "format": "email" },
+    "name": { "type": "string" },
+    "status": { "enum": ["active", "paused", "closed"] },
+    "sku": { "type": "string", "pattern": "^[A-Z]{3}-\\\\d{4}$" },
+    "tags": { "type": "array", "items": { "type": "string" }, "maxItems": 3 }
+  }
+}`;
+
 export const DEFAULT_FIELDS: Field[] = [
   { id: 1, name: 'name', type: 'person.fullName' },
   { id: 2, name: 'email', type: 'internet.email' },
@@ -179,6 +199,9 @@ export function defaultConfig(apiBase = defaultApiBase()): PlaygroundConfig {
     failRate: 0,
     fields: DEFAULT_FIELDS,
     constraints: '',
+    schemaMode: false,
+    schema: SAMPLE_SCHEMA,
+    component: '',
     locale: 'en-CA',
     messy: 0,
     method: 'GET',
@@ -245,6 +268,8 @@ export function configFromHash(hash: string, fallback = defaultConfig()): Playgr
   const parentId = params.get('parentId');
   const table = params.get('table');
   const constraints = params.get('constraints');
+  const schema = params.get('schema');
+  const component = params.get('component');
 
   return {
     endpoint: endpoint && /^[a-z-]+$/.test(endpoint) ? endpoint : fallback.endpoint,
@@ -268,6 +293,9 @@ export function configFromHash(hash: string, fallback = defaultConfig()): Playgr
     fields: fields && fields.length > 0 ? fields : fallback.fields,
     constraints:
       constraints !== null && constraints.length <= MAX_CONSTRAINTS_LENGTH ? constraints : fallback.constraints,
+    schemaMode: params.has('schemaMode') ? params.get('schemaMode') === 'true' : fallback.schemaMode,
+    schema: schema !== null && schema.length <= MAX_BODY_LENGTH ? schema : fallback.schema,
+    component: component !== null && component.length <= 200 ? component : fallback.component,
     locale: LOCALE_CODE.test(params.get('locale') ?? '') ? (params.get('locale') as DataLocale) : fallback.locale,
     messy: Number.isFinite(messy) && messy >= 0 && messy <= 1 ? messy : fallback.messy,
     method: method ?? fallback.method,

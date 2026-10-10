@@ -133,6 +133,22 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
     back: 'You can specify arguments, choices and a blank rate: number.int(18,65), pick(a,b|70,30), person.firstName?blank=15',
   },
   'fields.takes': { text: '{type} の引数は ({args})', back: 'The arguments of {type} are ({args})' },
+  'schema.mode': { text: '生成元', back: 'Generate from' },
+  'schema.modeFields': { text: 'フィールド一覧', back: 'Field list' },
+  'schema.modeSchema': { text: 'JSON スキーマ', back: 'JSON Schema' },
+  'schema.label': { text: 'JSON スキーマまたは OpenAPI ドキュメント', back: 'JSON Schema or OpenAPI document' },
+  'schema.component': {
+    text: 'OpenAPI ドキュメント内で使うスキーマ（components.schemas）',
+    back: 'The schema to use in the OpenAPI document (components.schemas)',
+  },
+  'schema.invalid': {
+    text: 'JSON オブジェクトではないため、送信できるものがありません。',
+    back: 'This is not a JSON object, so there is nothing that can be sent.',
+  },
+  'schema.note': {
+    text: 'POST /generate として送信されます。参照はドキュメント内のみで、外部からは何も取得しません。対応していないキーワードは 400 でそのキーワード名とともに返ります。',
+    back: 'It is sent as POST /generate. References are within the document only, and nothing is fetched from outside. A keyword that is not supported is returned as 400 together with the keyword name.',
+  },
   'fields.derivedGroup': { text: '計算で求める', back: 'Worked out by calculation' },
   'fields.derived': { text: '= 他のフィールドから導出', back: '= derived from other fields' },
   'fields.expression': { text: '式', back: 'Expression' },

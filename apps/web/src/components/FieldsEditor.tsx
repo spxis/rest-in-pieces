@@ -1,7 +1,8 @@
 import { Plus, Trash2 } from 'lucide-react';
 import { useSpeaker } from '../i18n/LocaleProvider.tsx';
 import type { PhraseKey } from '../i18n/phrases.ts';
-import { type Field, MAX_FIELDS } from '../lib/config.ts';
+import { type Field, MAX_FIELDS, SAMPLE_SCHEMA } from '../lib/config.ts';
+import { schemaBody } from '../lib/request.ts';
 
 /** The type a derived field's select shows: its type is `=` and the expression. */
 export const DERIVED = '=';
@@ -28,12 +29,73 @@ export function splitType(type: string): { base: string; rest: string } {
   return { base, rest: type.trim().slice(base.length) };
 }
 
+/** The schema half of the Generate tab: whether it is on, what was typed, and how to change it. */
+export interface SchemaSetup {
+  on: boolean;
+  text: string;
+  component: string;
+  /** Dataset size and seed, which the body carries. */
+  max: number;
+  seed: number;
+  onMode: (on: boolean) => void;
+  onText: (text: string) => void;
+  onComponent: (component: string) => void;
+}
+
+/** Whether a typed schema can be sent: a JSON object. */
+export const schemaProblem = (setup: Pick<SchemaSetup, 'text' | 'component' | 'max' | 'seed'>): boolean =>
+  schemaBody({ schema: setup.text, component: setup.component, max: setup.max, seed: setup.seed }) === '';
+
+function SchemaEditor({ setup }: { setup: SchemaSetup }) {
+  const { say } = useSpeaker();
+  const invalid = schemaProblem(setup);
+  const isDocument = /"(openapi|swagger)"\s*:/.test(setup.text);
+  return (
+    <>
+      <div className="control body-control">
+        <div className="body-label">
+          <label htmlFor="schema-text">{say('schema.label')}</label>
+          <button type="button" className="small-command" onClick={() => setup.onText(SAMPLE_SCHEMA)}>
+            {say('write.sample')}
+          </button>
+        </div>
+        <textarea
+          id="schema-text"
+          value={setup.text}
+          rows={12}
+          spellCheck={false}
+          aria-invalid={invalid || undefined}
+          onChange={(event) => setup.onText(event.target.value)}
+        />
+        {invalid && (
+          <span className="inline-note warning" role="alert">
+            {say('schema.invalid')}
+          </span>
+        )}
+      </div>
+      {isDocument && (
+        <label className="control constraints-control">
+          <span>{say('schema.component')}</span>
+          <input
+            className="mono-input"
+            value={setup.component}
+            spellCheck={false}
+            onChange={(event) => setup.onComponent(event.target.value)}
+          />
+        </label>
+      )}
+      <span className="inline-note">{say('schema.note')}</span>
+    </>
+  );
+}
+
 export function FieldsEditor({
   fields,
   generators,
   parameters = {},
   state,
   constraints = '',
+  schema = null,
   onChange,
   onConstraints,
 }: {
@@ -44,6 +106,8 @@ export function FieldsEditor({
   state: 'loading' | 'ready' | 'offline';
   /** Rules between two fields, comma-separated. */
   constraints?: string;
+  /** Generating from a schema instead of a field list: its text and component, and how to change them. */
+  schema?: SchemaSetup | null;
   onChange: (fields: Field[]) => void;
   onConstraints?: (constraints: string) => void;
 }) {
@@ -73,15 +137,36 @@ export function FieldsEditor({
       <div className="field-heading">
         <div>
           <span className="section-caption">{say('fields.heading')}</span>
-          <span className="field-count">
-            {fields.length} / {MAX_FIELDS}
-          </span>
+          {!schema?.on && (
+            <span className="field-count">
+              {fields.length} / {MAX_FIELDS}
+            </span>
+          )}
         </div>
-        <button type="button" className="small-command" onClick={add} disabled={fields.length >= MAX_FIELDS}>
-          <Plus size={14} /> {say('fields.add')}
-        </button>
+        {!schema?.on && (
+          <button type="button" className="small-command" onClick={add} disabled={fields.length >= MAX_FIELDS}>
+            <Plus size={14} /> {say('fields.add')}
+          </button>
+        )}
       </div>
-      <div className="field-list">
+      {schema && (
+        <fieldset className="method-picker schema-mode">
+          <legend className="sr-only">{say('schema.mode')}</legend>
+          {([false, true] as const).map((on) => (
+            <button
+              type="button"
+              key={String(on)}
+              className={schema.on === on ? 'method-option active' : 'method-option'}
+              aria-pressed={schema.on === on}
+              onClick={() => schema.onMode(on)}
+            >
+              {say(on ? 'schema.modeSchema' : 'schema.modeFields')}
+            </button>
+          ))}
+        </fieldset>
+      )}
+      {schema?.on && <SchemaEditor setup={schema} />}
+      <div className="field-list" hidden={schema?.on} style={schema?.on ? { display: 'none' } : undefined}>
         {fields.map((field) => (
           <div className="field-row" key={field.id}>
             <input
@@ -160,7 +245,7 @@ export function FieldsEditor({
           {say(problem.key, { name: problem.name })}
         </span>
       )}
-      {onConstraints && (
+      {onConstraints && !schema?.on && (
         <label className="control constraints-control">
           <span>{say('fields.constraints')}</span>
           <input
@@ -174,8 +259,8 @@ export function FieldsEditor({
           />
         </label>
       )}
-      <span className="inline-note">{say('fields.syntax')}</span>
-      <span className="inline-note">{say('fields.expressions')}</span>
+      {!schema?.on && <span className="inline-note">{say('fields.syntax')}</span>}
+      {!schema?.on && <span className="inline-note">{say('fields.expressions')}</span>}
       {state === 'loading' && <span className="inline-note">{say('fields.loading')}</span>}
       {state === 'offline' && <span className="inline-note warning">{say('fields.offline')}</span>}
     </div>

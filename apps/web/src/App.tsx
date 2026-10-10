@@ -1,7 +1,7 @@
 import { LoaderCircle, Send, Workflow } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useReducer } from 'react';
 import { EndpointTabs } from './components/EndpointTabs.tsx';
-import { FieldsEditor, fieldProblem } from './components/FieldsEditor.tsx';
+import { FieldsEditor, fieldProblem, schemaProblem } from './components/FieldsEditor.tsx';
 import { FormatPicker, SimulationPanel } from './components/OutputAndSimulation.tsx';
 import { PageAndSort, SearchAndFilters } from './components/QueryControls.tsx';
 import { RelationsControls } from './components/RelationsControls.tsx';
@@ -27,7 +27,7 @@ import {
   METHODS,
   type PlaygroundConfig,
 } from './lib/config.ts';
-import { buildRequestUrl } from './lib/request.ts';
+import { buildRequestUrl, isSchemaRequest, requestFor, schemaProperties } from './lib/request.ts';
 import { sampleBody } from './lib/samples.ts';
 
 const MAC = /Mac|iPhone|iPad/.test(navigator.userAgent);
@@ -80,40 +80,65 @@ export default function App() {
   const nested = config.nested && resource?.nested?.includes(config.nested) ? config.nested : '';
   const listed = nested ? catalog.resources.find((r) => r.name === nested) : resource;
   const isGenerate = config.endpoint === 'generate';
+  const schemaMode = isSchemaRequest(config);
   const fields = isGenerate
-    ? ['index', ...config.fields.map((field) => field.name)]
+    ? ['index', ...(schemaMode ? schemaProperties(config.schema) : config.fields.map((field) => field.name))]
     : (listed?.locales?.[config.locale]?.fields ?? listed?.fields ?? []);
   const seeded = isGenerate || (resource?.seeded ?? true);
   // A dataset the API does not mark writable takes GET, whatever a shared link asked for.
   const methods = resource?.writable ? METHODS : (['GET'] as const);
-  const method: HttpMethod = methods.includes(config.method) ? config.method : 'GET';
-  const writing = method !== 'GET';
+  const chosen: HttpMethod = methods.includes(config.method) ? config.method : 'GET';
+  // A schema request is a POST whose paging, sorting and format ride in the query, so it is not a write to rehearse.
+  const method: HttpMethod = schemaMode ? 'POST' : chosen;
+  const writing = method !== 'GET' && !schemaMode;
   /** The setup as sent: embeds only the listed dataset has, so a shared link or an older API never breaks it. */
   const asSent = useCallback(
     (next: PlaygroundConfig): PlaygroundConfig => ({
       ...next,
-      method,
+      method: chosen,
       nested,
       expand: next.expand.filter((path) => listed?.expand?.includes(path)),
     }),
-    [method, nested, listed],
+    [chosen, nested, listed],
   );
   const url = useMemo(() => buildRequestUrl(asSent(config), seeded), [asSent, config, seeded]);
-  const problem = isGenerate ? fieldProblem(config.fields) : null;
+  const schemaSetup = {
+    text: config.schema,
+    component: config.component,
+    max: config.max,
+    seed: config.seed,
+  };
+  const problem = isGenerate
+    ? schemaMode
+      ? schemaProblem(schemaSetup)
+        ? true
+        : null
+      : fieldProblem(config.fields)
+    : null;
 
   const { token } = auth;
   const { reload: reloadSession } = session;
   /** Sends the setup, with the signed-in token when there is one. A write is followed by a look at the session. */
   const sendConfig = useCallback(
     (next: PlaygroundConfig, withToken: string | null = token) => {
-      if (isGenerate && fieldProblem(next.fields)) return;
-      void send(buildRequestUrl(asSent(next), seeded), next.format, { method, body: next.body, token: withToken }).then(
-        () => {
-          if (method !== 'GET') void reloadSession();
-        },
-      );
+      if (
+        isGenerate &&
+        (isSchemaRequest(next)
+          ? schemaProblem({
+              text: next.schema,
+              component: next.component,
+              max: next.max,
+              seed: next.seed,
+            })
+          : fieldProblem(next.fields))
+      )
+        return;
+      const sent = requestFor({ ...next, method: chosen });
+      void send(buildRequestUrl(asSent(next), seeded), next.format, { ...sent, token: withToken }).then(() => {
+        if (sent.method !== 'GET' && !isSchemaRequest(next)) void reloadSession();
+      });
     },
-    [isGenerate, method, asSent, seeded, send, token, reloadSession],
+    [isGenerate, chosen, asSent, seeded, send, token, reloadSession],
   );
 
   /** A body the reader has not touched follows the dataset and method; one they edited stays. */
@@ -189,7 +214,11 @@ export default function App() {
                 <span className="step-number">01</span>
                 <h2>{say('app.build')}</h2>
               </div>
-              <MethodPicker methods={methods} value={method} onChange={chooseMethod} />
+              <MethodPicker
+                methods={schemaMode ? ([method] as const) : methods}
+                value={method}
+                onChange={chooseMethod}
+              />
             </div>
 
             <EndpointTabs resources={catalog.resources} value={config.endpoint} onChange={openEndpoint} />
@@ -217,6 +246,13 @@ export default function App() {
                 parameters={catalog.parameters}
                 state={catalog.state}
                 constraints={config.constraints}
+                schema={{
+                  on: schemaMode,
+                  ...schemaSetup,
+                  onMode: (on) => update({ schemaMode: on }),
+                  onText: (schema) => update({ schema }),
+                  onComponent: (component) => update({ component }),
+                }}
                 onChange={(next) => update({ fields: next })}
                 onConstraints={(constraints) => update({ constraints })}
               />
@@ -255,7 +291,7 @@ export default function App() {
               url={url}
               apiBase={config.apiBase}
               format={config.format}
-              request={{ method, body: config.body }}
+              request={requestFor({ ...config, method: chosen })}
               account={auth.username}
               session={session.summary?.enabled === true}
               copied={copied}
