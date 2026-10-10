@@ -4,11 +4,13 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
-### Countries from Kuni (major release, 3.0.0)
+A major release: `/countries` now comes from Kuni and safe values are on by default. Every breaking change, and how to keep the 2.x behaviour, is in [docs/upgrading-to-3.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/upgrading-to-3.md).
+
+### Countries from Kuni
 
 This is the release that makes 3.0.0: safe values are on by default, and `/countries` is a different list. [docs/upgrading-to-3.md](docs/upgrading-to-3.md) has every breaking change, before and after, and how to keep the 2.x behaviour. The items below it are 3.1.0, 3.2.0 and so on, one minor release each.
 
-Added:
+#### Added
 
 - `/countries` is made from [Kuni](https://github.com/johnmorrisdotca/kuni) instead of `country-data`, which is dropped (it stays a dev dependency, for the test that compares the two). Every country now also has `numeric`, `names` (`{ en, ja, native }`), `shortName`, `reading`, `aliases`, `continent`, `subregion`, `callingCode`, `tld`, `capital` (`{ en, ja }`), `timeZones`, `subdivisionType`, `population`, `populationYear`, `areaKm2`, `areaYear`, `location`, `capitalLocation`, `borders`, `drivingSide`, `weekStart`, `measurement`, `paper` and `hourCycle`, and the Japanese locale names a country in Kuni's Japanese. Kuni is loaded the first time a country is asked for, not at start-up.
 - `GET /countries/withdrawn` and `/countries/withdrawn/{code}`: the 31 countries ISO 3166-3 withdrew (`SU`, `YU`, `CS`, `DD`, `ZR`, `TP`, `AN`, `BU` and the rest), each with the four-letter code, the alpha-2, alpha-3 and numeric codes it held, its name in English and Japanese, `since` and `until` (the years the code was in force), `successors` (`expand=successors` and `/countries/withdrawn/SU/successors` give the countries) and `reusedBy` where a current country holds the alpha-2 code now. They are never in `/countries`. A code is found by its four letters, alpha-2, alpha-3 or numeric code. The codes, the years and the successors are ISO 3166-3's own table, held by Kuni 1.3, which is the API's dependency (`^1.3.0`); `successors` names the countries ISO lists (so `YU` has `CS`, and `CS` has `RS` and `ME`), and `/countries/withdrawn/CS` finds `CSXX`.
@@ -16,7 +18,7 @@ Added:
 - A dataset can be made of something that loads on first use (`Resource.ready`), have routes of its own (`Resource.mount`) and list another dataset's records by a field of ids (`kind: 'list'`); `GET /resources` gives each dataset's `path`.
 - [docs/reference-data.md](docs/reference-data.md) says what `/countries` and `/countries/withdrawn` hold, what changed and where each source comes from; the README has a "Real places, invented people" section and the sources' licences; the playground has tabs for the new dataset, in English and Japanese.
 
-Changed:
+#### Changed
 
 - **Safe values are on by default** (breaking). Every dataset, `/generate`, the streams, the mock of your own OpenAPI document, the offline generator, the CLI, the playground and the static API write emails at `example.com`, fiction-range phone numbers, test card numbers, documentation IP addresses and self-hosted avatars unless asked not to: `?safe=false` on one request, `--no-safe` on `serve` and `generate`, `REST_IN_PIECES_SAFE=false`, `createApp({ safe: false })` or `app: { safe: false }` in-process, in Vite, MSW and a browser tab. `safe=false` writes the 2.x values byte for byte (a test pins the hashes of 2.13.0's records). `--safe` and `REST_IN_PIECES_SAFE=true` still work and now change nothing.
 - `@johnmorrisdotca/kuni` (^1.3.0) is a dependency of the package, and `country-data` is not.
@@ -24,13 +26,13 @@ Changed:
 - The static API and the fixtures hold the whole of a reference dataset (250 countries), not its first hundred records; and the Postman and Bruno collections have the new routes.
 - The README's Safe values tables move to [docs/safe-values.md](docs/safe-values.md), leaving a summary and a link, to make room.
 
-Fixed:
+#### Fixed
 
 - The static API no longer repeats five country codes.
 
-### Regions: subdivisions and groupings (one minor release)
+### Regions: subdivisions and groupings
 
-Added:
+#### Added
 
 - `GET /subdivisions` and `/subdivisions/{code}`: the 5,050 ISO 3166-2 subdivisions of 200 countries (states, provinces, prefectures, counties, Länder, France's departments) with `code`, `country`, `shortCode`, `type`, `level`, `parent`, `name` (Japanese for `ja`, English otherwise), `names` (`{ en, ja }`), `reading`, `capital`, `population`, `populationYear`, `areaKm2`, `areaYear`, `location` and `capitalLocation`, from Kuni (Unicode CLDR and Wikidata). Filter by `country=JP`, `type=prefecture` or `level=1`, sort by `population:numeric`, search with `q`. The first request for a country loads only that country's subdivisions and facts; a request that names none loads all 200, once.
 - `GET /countries/{code}/subdivisions` (by alpha-2, alpha-3 or numeric code) and `/countries/{code}/groupings`; `/subdivisions/{code}/children`; and `expand=subdivisions`, `groupings`, `country`, `parent` and `children`.
@@ -39,13 +41,13 @@ Added:
 - The static API and the fixtures hold all 5,050 subdivisions and all 107 groupings, in the default locale only (every record carries both languages in `names`), each country's own list at `countries/{code}/subdivisions.json`.
 - [docs/reference-data.md](docs/reference-data.md) has the fields, the province link and the sources; the README lists the new routes; the playground has Subdivisions and Groupings tabs, in English and Japanese.
 
-Changed:
+#### Changed
 
 - The README's Relations section moves to [docs/relations.md](docs/relations.md), leaving a summary and a link, to make room.
 
-### Flags and maps (one minor release)
+### Flags and maps
 
-Added:
+#### Added
 
 - `flag` on every country and subdivision: the address of its flag's SVG on the jsDelivr CDN from [Hata](https://github.com/johnmorrisdotca/hata) (`https://cdn.jsdelivr.net/npm/@johnmorrisdotca/hata@1/dist/svg/jp.svg`), or `null` where Hata has none (245 countries and 219 subdivisions have one). The package holds a 2 KB list of the codes Hata has and no flag; `scripts/hata-codes.ts` makes it and a test fails when it is not the installed Hata's own.
 - `GET /flags/{code}.svg`, answered like `/avatars`: a standalone SVG, cached for a day, by alpha-2 or ISO 3166-2 code in any case. `shape` (`own`, `4:3`, `1:1`, `round`), `fit` (`auto`, `whole`, `crop`, `cover`, `hoist`, `contain`) and `variant` are Hata's, so a square or round flag never stretches. The server fetches nothing while a request waits: with `@johnmorrisdotca/hata` installed beside this package (an optional peer dependency) the flag is drawn from it; without it a plain request is a `302` to the CDN and a framed one is `501`, saying to install it. `REST_IN_PIECES_FLAGS=cdn` and `createApp({ flags: 'cdn' })` always redirect. `404` for a code with no flag, `400` for an unknown shape or fit.
@@ -53,39 +55,39 @@ Added:
 - The playground's cards for countries and subdivisions show the flag, and a map beside it where the API can draw one; the tabs' descriptions say so, in English and Japanese.
 - [docs/reference-data.md](docs/reference-data.md) has the parameters, where the SVG comes from and the licences; `/flags` and `/maps` are in the OpenAPI document, the Postman and Bruno collections and the README.
 
-Changed:
+#### Changed
 
 - Nothing a client relied on: the nine original country fields are as they were, and `flag` is new.
 
-### Addresses in seven countries (one minor release)
+### Addresses in seven countries
 
-Added:
+#### Added
 
 - `GET /addresses` and `/addresses/{id}`: 1,000 addresses for each `seed` in the United States, Canada, Japan, Australia, the United Kingdom, France and Germany, each in its country's own postal format (`lines` as USPS, Canada Post, Japan Post, Australia Post, Royal Mail, La Poste and Deutsche Post write them) with a postcode that exists in the right region: a US state's ZIP prefixes, a Canadian province's postal letters, an Australian state's postcode blocks, a Royal Mail district, one of La Poste's 6,328 and one of GeoNames' 10,813 for its department or Land, and a Japan Post code delivered to its prefecture. `country=JP` narrows it; `regionCode` is an ISO 3166-2 code and `expand=subdivision` embeds the record in `/subdivisions`. Street names are invented (Japanese town names come from a short list of common ones), so no address is a real person's. A test runs all 1,000 default addresses through address-plus's validator and fails on a postcode that disagrees with its region.
 - `GET /addresses/validate?address=…&country=…` (what disagrees in an address you give, such as `Postcode 2000 belongs to NSW, not VIC`) and `GET /addresses/format?address=…&country=…` (the address as its country's post writes it): address-plus's checker and formatters, bounded to 300 characters, with nothing looked up on the network and nothing kept.
 - The country modules of address-plus (`/au`, `/fr`, `/de`, `/gb`, `/jp`) are imported, and the French and German postcodes indexed (about 60 ms), the first time a request asks for addresses; the first request for a new seed builds its 1,000 addresses in about 100 ms.
 - The playground has an Addresses tab, with the address as an envelope shows it, in English and Japanese; [docs/reference-data.md](docs/reference-data.md) has the fields, what "right region" means for each country and the licences of the tables.
 
-Changed:
+#### Changed
 
 - `@johnmorrisdotca/address-plus` is 1.6.0 (was ^1.1.0). The postcodes `/names`, `/users` and `/companies` lay over a Canadian or American region are as they were.
 
-### Static API in CSV, NDJSON and SQL (one minor release)
+### Static API in CSV, NDJSON and SQL
 
-Added:
+#### Added
 
 - Every `.json` of the GitHub Pages static API has the same records as a `.csv`, a `.ndjson` and a `.sql` beside it: `api/users.csv`, `api/users/page/2.csv`, `api/users/1.csv`, `api/users/1/orders.sql`, `api/ja/products.csv`, `api/jsonplaceholder/posts.ndjson`. They are made by the API's own serializers (`?format=csv`, `ndjson`, `sql`), so they are what the live API answers byte for byte: CSV with the UTF-8 byte order mark, so Excel reads Japanese; NDJSON one record a line; SQL an `INSERT` for each record into a table named for the dataset (`orders` for `users/1/orders.sql`). No YAML or XML. `api/index.json` lists them (`formats`, and `{format}` in each path template).
 - Spreadsheets and databases read a file as it is: Google Sheets `=IMPORTDATA("…/api/users.csv")`, Excel's From Web, `pandas.read_csv(url)`, R `read.csv(url)`, `curl …/users.sql | sqlite3 test.db`, `curl …/users.ndjson | jq`. Pages serves a `.csv` as `text/csv` and a `.ndjson` and `.sql` as downloads, which those tools read as they are. [docs/static-api.md](docs/static-api.md) and the README's zero-install section have the recipes.
 - `toCsv`, `csvCell` and `CSV_BOM` join `toNdjson` and `toSql` in `@johnmorrisdotca/rest-in-pieces/serialize`, the pure functions the API, the playground and the static files all use.
 - `apps/web/scripts/staticApi.test.ts` checks that every `.json` has its three siblings and every sibling its `.json`, that the NDJSON, CSV and SQL of a page, a record and a list hold the JSON's records, that the CSV is the API's bytes, and that the CSV of a Japanese page parses back to the JSON's records.
 
-Changed:
+#### Changed
 
 - The static API is larger: 6.0 MB in 6,367 files before 2.25 (JSON only, first 100 records of each seeded dataset) and 71 MB in 51,983 files now: 20 MB of JSON (of which the real reference data, whole, is 13 MB) and 51 MB of CSV, NDJSON and SQL. The countries and withdrawn countries are written for the default locale only (their `names` hold both languages), which keeps a Japanese copy of 250 countries and their lists (33 MB) out. Written in under a minute.
 
-### The eleventh use case (docs only: rides with the next release)
+### The eleventh use case
 
-Added:
+#### Added
 
 - An eleventh use case on the use cases page and in [docs/use-cases.md](docs/use-cases.md): "Country, region and flag pickers": a country select that fills a region select and the place they name, drawn from three real requests (the G7 as countries, Canada's provinces, Ontario), with the `fetch` and `curl` that make it, in English and Japanese. The README, the page's jump list and its tests say eleven. The page needs no change to the API.
 - [docs/avatars-and-placeholders.md](docs/avatars-and-placeholders.md): the README's Images section moves there, leaving a summary, to make room.
