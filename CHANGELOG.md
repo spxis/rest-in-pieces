@@ -4,6 +4,19 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Public static API (one minor release)
+
+Added:
+
+- A read-only copy of the API as plain files on the GitHub Pages site, at `https://spxis.github.io/rest-in-pieces/api/`: nothing to install, no key and no server, with CORS open. `users.json` is the first page of ten, `users/page/2.json` the next, `users/1.json` one record, `users/1/orders.json` the records it owns, `ja/products.json` the same in Japanese, and `index.json` lists what is there. A page number is in the path and every address ends in `.json`, because Pages cannot read a query string and chooses the content type from the ending.
+- Every dataset holds its first 100 records at seed 1, in the default locale and in Japanese; `metadata.links` point at the files that answer them, and the cursors are `null`. `jsonplaceholder/` holds JSONPlaceholder's shapes and lengths as bare arrays (100 posts, 500 comments, 200 todos, 10 users, and `posts/1/comments.json`, `users/1/posts.json`), so a JSONPlaceholder tutorial works by changing the base address and adding `.json`.
+- The playground's top bar links to it ("Static API", in English and Japanese). [docs/static-api.md](docs/static-api.md) has every path and limit, and the README has a "zero install" section with a `fetch` example.
+- Written by the Pages build from the same API in about a second: about 6,400 files and 6 MB. `apps/web/scripts/staticApi.test.ts` checks that every link leads to a file, that a record equals the API's answer and that files stay small; a Pages end-to-end test fetches it.
+
+Changed:
+
+- The README's Fixtures section moves to [docs/fixtures.md](docs/fixtures.md), leaving a short section and a link, to make room; its size is corrected to about 1,950 files and 157 MB (it said 1,120 and 76 MB).
+
 ## 2.20.0 - 2026-10-09
 
 ### Added

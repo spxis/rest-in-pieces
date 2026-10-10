@@ -81,6 +81,19 @@ const { results } = await (await fetch('/api/users?limit=10&seed=7')).json();
 
 `installInBrowserApi({ base: '/mock' })` moves it, `installInBrowserApi({ app: { session: true } })` keeps writes for as long as the tab is open, and the function it returns puts the original `fetch` back. The API loads on the first request, so the page pays nothing for it until then. Only `fetch` is answered; libraries built on `XMLHttpRequest` still go to the network. To answer those too, use the [Mock Service Worker handlers](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#mock-service-worker).
 
+### Nothing to install: a public static API
+
+For a tutorial, a CodePen or a classroom, the demo site also serves a small read-only copy of the API as plain files, with CORS open and no key. A page number is in the path, and every address ends in `.json`:
+
+```js
+const base = 'https://spxis.github.io/rest-in-pieces/api/';
+const { results } = await (await fetch(`${base}users.json`)).json(); // ten users
+const user = await (await fetch(`${base}users/1.json`)).json();      // one user
+// also products/page/2.json, users/1/orders.json, ja/products.json, jsonplaceholder/posts/1/comments.json
+```
+
+Every dataset is there, with its first 100 records at seed 1 in English (Canada) and Japanese, and a JSONPlaceholder-shaped tree. It cannot take a query string, filters, writes or a failure drill; those need the API itself (`npx`, Docker, Vite or MSW). [docs/static-api.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/static-api.md) has every path and limit.
+
 ## Use with
 
 Vite, Mock Service Worker, Storybook, Next.js, Playwright, Cypress, typed clients (openapi-fetch) and any origin: the setup for each, with code. The short version: `@johnmorrisdotca/rest-in-pieces/vite` serves the API from the Vite dev server under `/api`, `@johnmorrisdotca/rest-in-pieces/msw` answers it from a Mock Service Worker handler, and `createApp()` answers in-process in any test runner.
@@ -115,7 +128,7 @@ Most tools in this space either intercept requests and leave you to write the da
 | [Mirage JS](https://miragejs.com/) | A fake server in the tab, with models and factories you define | Mirage wants a schema and routes; REST in Pieces needs no setup. Both keep writes in memory (REST in Pieces with `session: true`) and both have relations: Mirage between the models you define, any shape you like; REST in Pieces between its own datasets only. |
 | [Prism](https://github.com/stoplightio/prism) | A mock server generated from your OpenAPI file | Use Prism when you have a contract to mock; use REST in Pieces when you do not, and want realistic data rather than examples. |
 | [Mockoon](https://mockoon.com/) | A desktop app and CLI for hand-templated mock routes | Better for people who prefer a GUI and per-route templates; REST in Pieces is code-first, with seeds and locales built in. |
-| [DummyJSON](https://dummyjson.com/), [JSONPlaceholder](https://jsonplaceholder.typicode.com/) | Hosted fake APIs at public URLs | Nothing to install, but fixed English data and no failure drills. Both answer writes without keeping them, as REST in Pieces does by default. JSONPlaceholder's posts, comments, todos and users have the same shapes here, and [`/jsonplaceholder`](#a-jsonplaceholder-tutorial-with-a-new-base-url) answers with its defaults, so its tutorials work by changing the base URL; its albums and photos have no counterpart. DummyJSON has more kinds of data (carts, recipes, quotes) and image URLs of its own; REST in Pieces has seeds, fifteen locales, safe values and self-hosted SVG avatars. DummyJSON's login, refresh and bearer-token routes match [REST in Pieces' sign-in](#sign-in-fake-auth) closely; REST in Pieces adds roles with `403`s, `?auth=` on any endpoint, tokens that expire on demand (`expiresIn=0`) and `WWW-Authenticate` headers. The [fixtures](#fixtures) and the live demo are the hosted side here. |
+| [DummyJSON](https://dummyjson.com/), [JSONPlaceholder](https://jsonplaceholder.typicode.com/) | Hosted fake APIs at public URLs | Nothing to install, but fixed English data and no failure drills. Both answer writes without keeping them, as REST in Pieces does by default. JSONPlaceholder's posts, comments, todos and users have the same shapes here, and [`/jsonplaceholder`](#a-jsonplaceholder-tutorial-with-a-new-base-url) answers with its defaults, so its tutorials work by changing the base URL; its albums and photos have no counterpart. DummyJSON has more kinds of data (carts, recipes, quotes) and image URLs of its own; REST in Pieces has seeds, fifteen locales, safe values and self-hosted SVG avatars. DummyJSON's login, refresh and bearer-token routes match [REST in Pieces' sign-in](#sign-in-fake-auth) closely; REST in Pieces adds roles with `403`s, `?auth=` on any endpoint, tokens that expire on demand (`expiresIn=0`) and `WWW-Authenticate` headers. The [static API](#nothing-to-install-a-public-static-api), the [fixtures](#fixtures) and the live demo are the hosted side here. |
 | [Mockaroo](https://www.mockaroo.com/) | A hosted generator: design a schema in the browser, download CSV, JSON, SQL and more | Mockaroo has far more field types, formulas, its own datasets and saved schemas, and limits rows and API calls on its free plan. REST in Pieces runs locally and free with no account; `/generate` takes Faker's types with [arguments, weighted choices and blank rates](#custom-fields-arguments-choices-and-blanks), and answers in NDJSON and SQL as well, seeded so the same URL gives the same file. It has no formulas between fields. |
 | [Synthea](https://synthetichealth.github.io/synthea/) | Synthetic patient records, simulated from published health statistics | A different job: Synthea models populations so its records are statistically plausible for health research. REST in Pieces makes rule-based fake data for building and testing user interfaces, and claims no statistical fidelity. |
 | [Faker](https://fakerjs.dev/) | A library of generators you call in code | REST in Pieces is built on it, and serves it over HTTP with paging, filters, formats, seeds and relations already done. Faker's own image and avatar URLs point at other hosts; REST in Pieces draws its own with `safe=true`. |
@@ -545,19 +558,7 @@ curl 'http://localhost:6800/products?locale=ja&sortBy=price:numeric&format=csv'
 
 ## Fixtures
 
-The live demo also serves every dataset as static files, written by the API when the site is built, so a plain URL works from `curl`, a `<script>`, a tutorial or a test, with CORS and no server behind it:
-
-```sh
-curl https://spxis.github.io/rest-in-pieces/fixtures/users.json             # 1,000 users, seed 1, en-CA
-curl https://spxis.github.io/rest-in-pieces/fixtures/ja/products.page-1.csv  # the first 10 Japanese products, as CSV
-curl https://spxis.github.io/rest-in-pieces/fixtures/global/names/0.json    # one person from the global mix
-```
-
-- **What is there.** Every dataset at seed 1, in every locale and `global` (the synthetic FHIR resources, `/metrics` and `/logs` only in the default locale, since they are large or the same everywhere): all its records (`users.json`, `users.csv`: 1,000 records, or every country for `countries`), the first page of 10 (`users.page-1.json`, `users.page-1.csv`), and its first three records in item form (`users/1.json`).
-- **Where.** The default locale, `en-CA`, sits at the top of the folder, as it does in the API; every other locale has a folder of its own: `de/users.json`, `global/users.json`.
-- **Exactly the API's response.** Each file is what the API returns for the request it names: `users.page-1.json` is `/users?seed=1&locale=en-CA&limit=10`. The `metadata.links` in a JSON list are the API's own paths, which need a running API.
-- **Discoverable.** [`fixtures/index.json`](https://spxis.github.io/rest-in-pieces/fixtures/index.json) lists every file with its `url`, size in `bytes`, `contentType`, `dataset`, `locale`, `format`, `kind` (`all`, `page` or `item`) and the `request` it answers.
-- **Size.** About 1,120 files and 76 MB, before Pages compresses them. They are rebuilt with every deploy and never committed. For another seed, a filter or another format, use the API.
+The demo site also serves every dataset as static files, in every locale, as JSON and CSV, written when the site is built: `curl https://spxis.github.io/rest-in-pieces/fixtures/users.json` is 1,000 users at seed 1. [docs/fixtures.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/fixtures.md) lists what is there and where; [`fixtures/index.json`](https://spxis.github.io/rest-in-pieces/fixtures/index.json) lists every file. For a small, linked tree, use the [static API](#nothing-to-install-a-public-static-api).
 
 ## Architecture
 
@@ -609,7 +610,7 @@ Set `PORT` to move the API, and `VITE_API_BASE_URL` to point the playground else
 
 **Docker.** Every release publishes `ghcr.io/spxis/rest-in-pieces` for amd64 and arm64, tagged with its version (such as `:2.2.0`) and `latest`. The image serves everything from port 6800, runs as a non-root user and includes a health check.
 
-**GitHub Pages.** `.github/workflows/pages.yml` publishes the in-browser playground on every push to `main`. `pnpm --filter @rest-in-pieces/web build:pages` builds it locally into `apps/web/dist-pages`: the playground, the API bundled as a chunk it loads on the first request, static copies of `api/openapi.json` and `api/docs/`, and the [fixtures](#fixtures). Set `PAGES_BASE` to serve it from somewhere other than `/rest-in-pieces/`. [CONTRIBUTING.md](https://github.com/spxis/rest-in-pieces/blob/main/CONTRIBUTING.md#previewing-the-github-pages-build) shows how to preview it locally.
+**GitHub Pages.** `.github/workflows/pages.yml` publishes the in-browser playground on every push to `main`. `pnpm --filter @rest-in-pieces/web build:pages` builds it locally into `apps/web/dist-pages`: the playground, the API bundled as a chunk it loads on the first request, static copies of `api/openapi.json` and `api/docs/`, the [static API](#nothing-to-install-a-public-static-api) beside them in `api/`, and the [fixtures](#fixtures). Set `PAGES_BASE` to serve it from somewhere other than `/rest-in-pieces/`. [CONTRIBUTING.md](https://github.com/spxis/rest-in-pieces/blob/main/CONTRIBUTING.md#previewing-the-github-pages-build) shows how to preview it locally.
 
 ## License
 
