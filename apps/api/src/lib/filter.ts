@@ -16,6 +16,7 @@ const FILTER_KEY = /^([\w-]+)(?:\[(\w+)\])?$/;
  *   gender=female            equality (case-insensitive)
  *   province=Ontario,Quebec  any of several values
  *   age[gte]=30&age[lt]=40   ranges: eq, ne, gt, gte, lt, lte
+ *   borders=FR               a list field matches when any entry does
  * Unknown fields and reserved parameters are ignored.
  */
 export function parseFilters(query: Query, fields: ReadonlySet<string>): Filter[] {
@@ -42,6 +43,11 @@ function compare(actual: unknown, expected: string): number {
 function matches(record: Record<string, unknown>, { field, operator, values }: Filter): boolean {
   const actual = record[field];
   const [first = ''] = values;
+  // A list field (a country's `borders`, a grouping's `members`) matches when any entry does.
+  if (Array.isArray(actual) && (operator === 'eq' || operator === 'ne')) {
+    const has = (value: string) => actual.some((entry) => compare(entry, value) === 0);
+    return operator === 'eq' ? values.some(has) : !has(first);
+  }
   switch (operator) {
     case 'eq':
       return values.some((value) => compare(actual, value) === 0);

@@ -59,15 +59,17 @@ describe('the static API', () => {
     }
   });
 
-  it('holds the first hundred records of every dataset in pages of ten, in the default locale and Japanese', async () => {
-    const resources = (await (await app.request('/resources')).json()) as { name: string }[];
+  it('holds the first hundred records of every seeded dataset, and every record of the real ones, in pages of ten, in the default locale and Japanese', async () => {
+    const resources = (await (await app.request('/resources')).json()) as { name: string; seeded: boolean }[];
     expect(Object.keys(index.datasets)).toEqual([index.defaultLocale, ...STATIC_LOCALES]);
     for (const [locale, datasets] of Object.entries(index.datasets)) {
       const folder = index.folders[locale];
       const expected = resources.filter(({ name }) => locale === index.defaultLocale || !DEFAULT_LOCALE_ONLY.has(name));
       expect(datasets.map((dataset) => dataset.name)).toEqual(expected.map(({ name }) => name));
       for (const dataset of datasets) {
-        expect(dataset.records).toBeLessThanOrEqual(STATIC_RECORDS);
+        // Seeded data is cut to its first hundred; real reference data (countries, regions) is whole.
+        if (resources.find(({ name }) => name === dataset.name)?.seeded)
+          expect(dataset.records).toBeLessThanOrEqual(STATIC_RECORDS);
         expect(dataset.pages).toBe(Math.ceil(dataset.records / STATIC_PAGE_SIZE));
         const list = read(`${folder}${dataset.name}.json`);
         expect(list).toEqual(read(`${folder}${dataset.name}/page/1.json`));
@@ -113,7 +115,7 @@ describe('the static API', () => {
     for (const [file, request] of [
       ['users/1.json', '/users/1?seed=1&locale=en-CA&max=100'],
       ['ja/products/7.json', '/products/7?seed=1&locale=ja&max=100'],
-      ['countries/AD.json', '/countries/AD?locale=en-CA&max=100'],
+      ['countries/AD.json', '/countries/AD?locale=en-CA'],
     ] as const) {
       expect(readFileSync(join(dir, file), 'utf8'), file).toBe(await (await app.request(request)).text());
     }

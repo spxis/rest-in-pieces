@@ -1,0 +1,43 @@
+meta {
+  name: List withdrawn
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/countries/withdrawn
+  body: none
+  auth: none
+}
+
+params:query {
+  limit: 10
+  ~offset: 0
+  ~page: 
+  ~pageSize: 
+  ~cursor: 
+  ~max: 
+  ~sortBy: 
+  ~sortDirection: 
+  ~q: 
+  ~metadata: 
+  ~resultsName: 
+  seed: 1
+  ~locale: 
+  ~messy: 
+  ~format: 
+  ~delay: 
+  ~trickle: 
+  ~status: 
+  ~fail: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+  ~expand: 
+}
+
+docs {
+  The countries ISO 3166-3 lists as withdrawn from ISO 3166-1 — the Soviet Union (`SU`), Yugoslavia (`YU`), Czechoslovakia (`CS`), East Germany (`DD`), Zaire (`ZR`), the Netherlands Antilles (`AN`) and the rest — each with the codes it held, its name in English and Japanese, the years its code was in force and the current countries that came after it (`successors`). Real reference data from Kuni (Wikidata, CC0), so `seed` has no effect. They are never in `/countries`. `/countries/withdrawn/SU` finds one by its four-letter code (`SUHH`), alpha-2, alpha-3 or numeric code; where two held a code (`CS`) it is the one withdrawn last.
+
+  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
+}

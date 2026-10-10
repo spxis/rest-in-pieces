@@ -5,9 +5,12 @@ import { requestedFormat, respond } from '../lib/format.ts';
 import { contentLanguage, parseLocale } from '../lib/locale.ts';
 import { parseMessy } from '../lib/messy.ts';
 import { intParam, pick } from '../lib/query.ts';
+import type { RelatedResource } from '../lib/relations.ts';
 import {
+  countriesOfRecords,
   expandable,
   expandRecords,
+  expandTargets,
   MAX_EMBEDDED,
   MAX_EXPAND_DEPTH,
   parseExpand,
@@ -64,7 +67,7 @@ export function collectionRoutes(
   }: CollectionRouteOptions = {},
 ) {
   const id = path.replaceAll('-', '_');
-  const tag = resource.name === 'countries' ? 'Reference data' : 'Datasets';
+  const tag = resource.seeded ? 'Datasets' : 'Reference data';
   const lookup = (name: string) => all.find((r) => r.name === name);
   const extraQuery = (target: Resource) => {
     const expand = expandDocs(target, all);
@@ -132,6 +135,14 @@ export function collectionRoutes(
     },
   });
 
+  /** Waits for what the datasets a request reads are made from (the family's packages), loaded once and kept. */
+  const prepare = async (
+    resources: readonly Pick<RelatedResource, 'ready'>[],
+    request: { query?: Record<string, string | undefined>; id?: string; hint?: readonly string[] },
+  ) => {
+    await Promise.all(resources.map((one) => one.ready?.(request)));
+  };
+
   /** One request's view of every dataset, with its seed, locale, session, safe values and mess. */
   const dataFor = (c: Context) => {
     const query = c.req.query();
@@ -144,7 +155,7 @@ export function collectionRoutes(
   };
 
   /** Lists `records` (with each one's position in its whole dataset) through the shared pipeline, then expands the page. */
-  const list = (c: Context, target: Resource, data: RequestData, records: object[], positions?: number[]) => {
+  const list = async (c: Context, target: Resource, data: RequestData, records: object[], positions?: number[]) => {
     requestedFormat(c);
     const tree = parseExpand(c.req.query(), target, lookup);
     contentLanguage(c, data.locale);
@@ -154,6 +165,7 @@ export function collectionRoutes(
       keep: target.keep ?? [target.idField],
       ...(positions ? { positions } : {}),
     });
+    if (tree) await prepare(expandTargets(tree, target, lookup), { hint: countriesOfRecords(page.records as never) });
     const expanded = tree ? { ...page, records: expandRecords(page.records as never, target, tree, data) } : page;
     const links = pageLinks(c, expanded);
     setPaginationHeaders(c, links, expanded.total);
@@ -163,36 +175,44 @@ export function collectionRoutes(
   };
 
   let routes = new OpenAPIHono()
-    .openapi(listRoute, (c) => {
+    .openapi(listRoute, async (c) => {
       const data = dataFor(c);
-      return list(c, resource, data, data.records(resource)) as never;
+      await prepare([resource], { query: c.req.query() });
+      return (await list(c, resource, data, data.records(resource))) as never;
     })
-    .openapi(itemRoute, (c) => {
+    .openapi(itemRoute, async (c) => {
       requestedFormat(c);
       const data = dataFor(c);
       const tree = parseExpand(c.req.query(), resource, lookup);
       contentLanguage(c, data.locale);
       const { id: recordId } = c.req.valid('param');
+      await prepare([resource], { query: c.req.query(), id: recordId });
       const records = data.records(resource);
       const found = resource.find(records, recordId);
       if (!found) return c.json({ error: `No ${resource.title.toLowerCase()} with id "${recordId}".` }, 404);
       // The same rewrites the list applies, so a record reads the same in its list and on its own.
       const record = data.present(resource, records.indexOf(found as never));
+      if (tree) {
+        await prepare(expandTargets(tree, resource, lookup), { hint: countriesOfRecords([record]) });
+      }
       const shown = tree ? (expandRecords([record], resource, tree, data)[0] as object) : record;
       return respond(c, shown, [shown], resource.name) as never;
     });
 
   // `/users/{id}/orders` and the like: the parent's children, through the same pipeline as any list.
   for (const [name, relation] of Object.entries(resource.relations ?? {})) {
-    const child = relation.kind === 'many' ? lookup(relation.target) : undefined;
-    if (deprecated || relation.kind !== 'many' || !child) continue;
+    const child = relation.kind === 'many' || relation.kind === 'list' ? lookup(relation.target) : undefined;
+    if (deprecated || (relation.kind !== 'many' && relation.kind !== 'list') || !child) continue;
     const nestedRoute = createRoute({
       method: 'get',
       path: `/{id}/${name}`,
       tags: [tag],
       operationId: `list_${id}_${name}`,
       summary: `List one ${resource.title.toLowerCase()}'s ${name}`,
-      description: `The ${name} whose \`${relation.key}\` is this ${resource.title.toLowerCase()}'s id, in id order: the same records \`/${child.name}?${relation.key}={id}\` returns, found without a scan. Paging, sorting, filters, search, formats, \`expand\`, \`messy\`, \`safe\` and the simulation all work as they do on \`/${child.name}\`.\n\n${FILTER_DOCS}`,
+      description:
+        relation.kind === 'list'
+          ? `The ${name} this ${resource.title.toLowerCase()} lists in its \`${relation.key}\`, in the order it lists them. Paging, sorting, filters, search, formats, \`expand\`, \`messy\`, \`safe\` and the simulation all work as they do on \`/${child.name}\`.\n\n${FILTER_DOCS}`
+          : `The ${name} whose \`${relation.key}\` is this ${resource.title.toLowerCase()}'s id, in id order: the same records \`/${child.name}?${relation.key}={id}\` returns, found without a scan. Paging, sorting, filters, search, formats, \`expand\`, \`messy\`, \`safe\` and the simulation all work as they do on \`/${child.name}\`.\n\n${FILTER_DOCS}`,
       security: OPTIONAL_BEARER,
       request: {
         params: z.object({ id: z.string().openapi({ description: resource.idDescription }) }),
@@ -214,21 +234,31 @@ export function collectionRoutes(
         ...AuthErrors,
       },
     });
-    routes = routes.openapi(nestedRoute, (c) => {
+    routes = routes.openapi(nestedRoute, async (c) => {
       const data = dataFor(c);
-      const { id: parentId } = c.req.valid('param');
-      if (data.indexOf(resource, parentId) < 0) {
-        return c.json({ error: `No ${resource.title.toLowerCase()} with id "${parentId}".` }, 404) as never;
+      const { id: asked } = c.req.valid('param');
+      await prepare([resource], { query: c.req.query(), id: asked });
+      // The id the route was given may be another spelling of the record's own (`CAN` for `CA`).
+      const parent = resource.find(data.records(resource), asked) as Record<string, unknown> | undefined;
+      const parentId = parent ? String(parent[resource.idField]) : asked;
+      if (!parent || data.indexOf(resource, parentId) < 0) {
+        return c.json({ error: `No ${resource.title.toLowerCase()} with id "${asked}".` }, 404) as never;
       }
-      const positions = data.childPositions(child, relation.key, parentId);
+      await prepare([child], { query: c.req.query(), hint: [parentId, ...countriesOfRecords([parent])] });
       const records = data.records(child);
-      return list(
+      const positions =
+        relation.kind === 'list'
+          ? (Array.isArray(parent[relation.key]) ? (parent[relation.key] as unknown[]) : [])
+              .map((one) => data.indexOf(child, one))
+              .filter((at) => at >= 0)
+          : data.childPositions(child, relation.key, parentId);
+      return (await list(
         c,
         child,
         data,
         positions.map((at) => records[at] as object),
         positions,
-      ) as never;
+      )) as never;
     }) as never;
   }
 

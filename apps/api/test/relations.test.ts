@@ -272,7 +272,7 @@ describe('expand', () => {
     expect((await request<{ error: string }>('/comments?expand=post.user.orders')).body.error).toContain('2 at most');
     expect((await request<{ error: string }>('/orders?expand=items')).body.error).toContain('items.product');
     expect((await request<{ error: string }>('/orders?expand=a,b,c,d,e,f,g')).body.error).toContain('at most 6');
-    expect((await request<{ error: string }>('/names?expand=user')).body.error).toContain('nothing to expand');
+    expect((await request<{ error: string }>('/invoices?expand=user')).body.error).toContain('nothing to expand');
     const big = await request<{ error: string }>('/users?limit=1000&expand=todos,orders,posts.comments');
     expect(big.status).toBe(400);
     expect(big.body.error).toContain(String(MAX_EMBEDDED));

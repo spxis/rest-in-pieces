@@ -83,7 +83,9 @@ export const PHRASES = {
   'dataset.todos': 'To-do items, each owned by a user.',
   'dataset.reviews': "Product reviews by users, with ratings close to the product's own.",
   'dataset.countries':
-    'Every country and territory with ISO codes, currencies, languages and calling codes. Real data, so `seed` has no effect. For compatibility it returns every country as a bare array unless `metadata=true` is given.',
+    'Every country and territory with ISO codes, names in English and Japanese, currencies, languages, calling codes, capital, time zones, population, area, coordinates, land borders and driving side. Real reference data from Kuni, so `seed` has no effect. For compatibility it returns every country as a bare array unless `metadata=true` is given. The codes ISO has withdrawn are at `/countries/withdrawn`.',
+  'dataset.withdrawn':
+    'The countries whose ISO 3166-3 codes were withdrawn: the Soviet Union (SU), Yugoslavia (YU), Czechoslovakia (CS), East Germany (DD), Zaire (ZR) and more. Each has the codes it held, names in English and Japanese, the years its code was in use and the countries that came after it. They are not in `/countries`. Real reference data, so `seed` has no effect.',
 
   'scenario.heading': 'REPEATABLE SCENARIOS',
   'scenario.share': 'Share link',

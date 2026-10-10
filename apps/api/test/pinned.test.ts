@@ -6,6 +6,9 @@ import { createApp } from '../src/core.ts';
  * A sample of what 2.13.0 served, as hashes of the records (never the metadata, which carries the time and the
  * version). New datasets, relations and safe values must leave every one of these unchanged: the same seed and URL
  * give the same records they always did. A change here is a breaking change and needs a major version.
+ *
+ * `/countries` is not here since it was made from Kuni: its old fields keep their names and types and are held by
+ * `countries.test.ts`, which compares them with the old data set for every code.
  */
 const PINNED: ReadonlyArray<[string, string]> = [
   ['/users?limit=1000', '33b668178386c776'],
@@ -19,7 +22,6 @@ const PINNED: ReadonlyArray<[string, string]> = [
   ['/companies?limit=1000&locale=ko', '0f003c6b59b7ec9f'],
   ['/names?limit=1000', 'c46b1adb95fa381c'],
   ['/names?limit=1000&locale=en-US&seed=9', 'ab8427b42c09bc24'],
-  ['/countries?limit=1000&locale=ja', '22ac0bbb1ade58de'],
   ['/users/42?seed=5', '2b4d4d2dd04058e0'],
   ['/users?messy=true&limit=200&seed=2', 'ea43c3932785ddc2'],
   [

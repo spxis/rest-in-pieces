@@ -19,6 +19,9 @@ export const FULL_SIZE = 1000;
 export const ITEM_COUNT = 3;
 export const INDEX_FILE = 'index.json';
 
+/** Where a dataset's routes are: `/users`, or the `path` the API gives (`/countries/withdrawn`). */
+const route = (resource: { name: string; path?: string }): string => resource.path ?? `/${resource.name}`;
+
 const FORMATS = ['json', 'csv'] as const;
 
 /**
@@ -71,6 +74,8 @@ export interface FixtureIndex {
 
 interface ResourceInfo {
   name: string;
+  /** Where the routes are (`/users`; `/countries/withdrawn` for the withdrawn countries). */
+  path?: string;
   idField: string;
   seeded: boolean;
 }
@@ -140,22 +145,22 @@ export async function writeFixtures(app: FetchApp, dir: string, baseUrl: string)
       const about = { dataset: resource.name, locale: locale.code };
       for (const format of FORMATS) {
         const suffix = format === 'json' ? '' : `&format=${format}`;
-        await write(`${folder}${resource.name}.${format}`, `/${resource.name}?${query}&limit=${FULL_SIZE}${suffix}`, {
+        await write(`${folder}${resource.name}.${format}`, `${route(resource)}?${query}&limit=${FULL_SIZE}${suffix}`, {
           ...about,
           format,
           kind: 'all',
         });
         await write(
           `${folder}${resource.name}.page-1.${format}`,
-          `/${resource.name}?${query}&limit=${PAGE_SIZE}${suffix}`,
+          `${route(resource)}?${query}&limit=${PAGE_SIZE}${suffix}`,
           { ...about, format, kind: 'page' },
         );
       }
       // The ids are the first records' own, so they exist in every dataset, whatever its id field.
-      const first = recordsOf(await json(app, `/${resource.name}?${query}&limit=${ITEM_COUNT}`));
+      const first = recordsOf(await json(app, `${route(resource)}?${query}&limit=${ITEM_COUNT}`));
       for (const record of first) {
         const id = String(record[resource.idField]);
-        await write(`${folder}${resource.name}/${id}.json`, `/${resource.name}/${encodeURIComponent(id)}?${query}`, {
+        await write(`${folder}${resource.name}/${id}.json`, `${route(resource)}/${encodeURIComponent(id)}?${query}`, {
           ...about,
           format: 'json',
           kind: 'item',

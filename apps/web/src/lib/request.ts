@@ -70,13 +70,13 @@ function buildWriteUrl(config: PlaygroundConfig, seeded: boolean): string {
   simulationParams(config, params);
   const path = named ? `/${encodeURIComponent(config.recordId.trim())}` : '';
   const query = params.toString();
-  return `${trimBase(config.apiBase)}/${config.endpoint}${path}${query ? `?${query}` : ''}`;
+  return `${trimBase(config.apiBase)}/${datasetPath(config.endpoint)}${path}${query ? `?${query}` : ''}`;
 }
 
 /** The path a read asks for: the dataset, or a list under one of its records (`/users/7/orders`). */
 export function readPath(config: Pick<PlaygroundConfig, 'endpoint' | 'nested' | 'parentId'>): string {
-  if (!config.nested || config.endpoint === 'generate') return `/${config.endpoint}`;
-  return `/${config.endpoint}/${encodeURIComponent(config.parentId.trim() || '1')}/${config.nested}`;
+  if (!config.nested || config.endpoint === 'generate') return `/${datasetPath(config.endpoint)}`;
+  return `/${datasetPath(config.endpoint)}/${encodeURIComponent(config.parentId.trim() || '1')}/${config.nested}`;
 }
 
 /** Whether the setup generates from a schema: a `POST /generate` whose paging, sorting and format still ride in the query. */
@@ -157,6 +157,12 @@ export function generateCommand(config: PlaygroundConfig): string | null {
   const command = parts.join(' \\\n  ');
   return schema ? `# Save the schema above as schema.json\n${command}` : command;
 }
+
+/** Datasets whose routes are not at `/{name}`: the withdrawn countries are a list inside `/countries`. */
+const DATASET_PATHS: Readonly<Record<string, string>> = { withdrawn: 'countries/withdrawn' };
+
+/** The path segment a dataset is served at, without the leading slash. */
+export const datasetPath = (endpoint: string): string => DATASET_PATHS[endpoint] ?? endpoint;
 
 /** Builds the request URL for a setup. Parameters at their API defaults are left out to keep URLs readable. */
 export function buildRequestUrl(config: PlaygroundConfig, seeded = true): string {

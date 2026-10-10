@@ -9,7 +9,7 @@
 
 [![Ask for seeded people, then break the backend on purpose: a request, the same five people every time, and a 503 drill](https://raw.githubusercontent.com/spxis/rest-in-pieces/main/docs/images/use-cases.svg)](https://spxis.github.io/rest-in-pieces/use-cases/)
 
-Seeded, realistic, localized data plus latency, error and messy-data drills, as a REST API, a function call or a patch on `fetch`.
+Seeded, realistic, localized data plus latency, error and messy-data drills, as a REST API, a function call or a patch on `fetch`. The people are invented; the places are real: countries and their withdrawn codes, from the same family of packages.
 
 A free, open-source **mock data generator and test data generator**: rule-based synthetic data (sample data, seed data and mock data for database seeding), and relational test data with **referential integrity** between users, products, orders, posts, comments, todos and reviews, plus invoices, transactions, events, messages, notifications, jobs, places, metrics and logs that each agree with themselves, **safe values** that cannot reach a real person, self-hosted **placeholder images** and **avatars**, and exports as JSON, CSV, YAML, XML, **NDJSON** and **SQL INSERT** statements. A **JSONPlaceholder alternative**, **DummyJSON alternative** and **Mockaroo alternative** that runs on your machine.
 
@@ -120,11 +120,12 @@ Vite, Mock Service Worker, Storybook, Next.js, Playwright, Cypress, typed client
 ## Why use it
 
 - **Repeatable data.** `?seed=42` always returns the same records. Screenshots, snapshot tests and bug reports stay stable.
-- **Realistic collections.** People, users, products, companies and countries, plus any shape you describe with 239 generator types, with arguments (`number.int(18,65)`), weighted choices (`pick(active,paused|80,20)`) and blank rates (`?blank=15`).
+- **Realistic collections.** People, users, products, companies and the real countries, plus any shape you describe with 239 generator types, with arguments (`number.int(18,65)`), weighted choices (`pick(active,paused|80,20)`) and blank rates (`?blank=15`).
 - **Related data with referential integrity.** Orders with line items, posts, comments, todos and reviews, joined to users and products by ids that always resolve. `/users/7/orders`, `/posts/1/comments` and `/products/3/reviews` list one record's children, `expand=user,items.product` embeds related records, order totals add up with the local tax in the local currency, and dates follow one another. See [Relations](#relations).
 - **Safe values.** `?safe=true` writes emails at `example.com`, phone numbers kept for fiction, test card numbers, documentation IP addresses and avatars served by the API itself, so seeded data never mails, rings or loads anything real. See [Safe values](#safe-values).
 - **Placeholder images and avatars, self-hosted.** `/avatars/{seed}.svg` and `/images/{w}x{h}.svg`, drawn from the URL alone. See [Images](#images-avatars-and-placeholders).
 - **Fifteen countries, and a global mix.** `?locale=de`, `?locale=pt-BR` or `?locale=ko` writes every dataset for that country: native names, addresses, postal codes and phone numbers, and prices in the local currency. `?locale=global` mixes them record by record, the way a real international user table looks, and still repeats per seed. See [Data locales](#data-locales).
+- **Real places, invented people.** `/countries` and `/countries/withdrawn` are real reference data (names in English and Japanese, capitals, population, borders, time zones, the Soviet Union's old code and its successors), served with the paging, filters and formats of the invented datasets. See [Real places, invented people](#real-places-invented-people).
 - **Hand-built Japanese data.** `?locale=ja` gives kanji names with katakana readings, real prefectures and cities, 〒 postal codes, mobile numbers, yen prices and Japanese country names.
 - **Everything a list screen needs.** Paging, sorting, field filters with ranges, free-text search, `X-Total-Count` and `Link` headers, and ETags.
 - **The unhappy path on demand.** `?delay=1500`, `?status=503` or `?fail=0.2` rehearse slow, failing and flaky backends without touching your client.
@@ -246,7 +247,8 @@ curl -N 'http://localhost:6800/users?delay=200-800&trickle=200'
 | `GET /users`               | Application users with profile, avatar, contact details and account status. |
 | `GET /products`            | Catalogue products with SKU, department, price in the locale's currency (`currency` is ISO 4217), rating and stock. |
 | `GET /companies`           | Companies with industry, website, size, founding year and location. |
-| `GET /countries`           | Every country and territory with ISO codes, currencies, languages and calling codes. |
+| `GET /countries`           | Every country and territory: ISO codes, names in English and Japanese, currencies, languages, calling codes, capital, time zones, population, area, borders. Real data from [Kuni](https://github.com/johnmorrisdotca/kuni). See [Real places, invented people](#real-places-invented-people). |
+| `GET /countries/withdrawn` | The 31 countries ISO 3166-3 withdrew (`SU`, `YU`, `CS`, `DD`, `ZR`…), with the codes they held, the years, and the countries that came after. |
 | `GET /orders`              | Orders with their line items, joined to `/users` by `userId` and each item to `/products` by `productId`, totals and tax in the buyer's currency. See [Relations](#relations). |
 | `GET /posts`               | Blog posts by users, in JSONPlaceholder's shape plus `createdAt`. |
 | `GET /comments`            | Comments on posts, each by a user who is not the post's author. |
@@ -423,6 +425,20 @@ await fetch(`${BASE}/posts`, {
 - **Writes** behave as they do on the ordinary routes: stateless by default, kept with the session on. A `DELETE` answers `204` where JSONPlaceholder answers `200 {}`.
 - **Not here:** `/albums` and `/photos`, which answer `404`. Post ids run past 100 and the text differs, since it is generated.
 
+## Real places, invented people
+
+People, companies and orders are invented; places are not. `/countries` serves the 250 ISO 3166-1 countries and territories with names in English and Japanese, ISO codes, capital, time zones, population, area, coordinates, land borders, driving side and calendar conventions, and `/countries/withdrawn` the 31 countries ISO 3166-3 withdrew, each with the codes it held, the years and the countries that came after it. Real reference data is public fact, not personal data; the rule stays that no real person is ever served.
+
+```sh
+curl 'http://localhost:6800/countries/JP?locale=ja'             # 日本, 東京, Asia/Tokyo, left-hand traffic
+curl 'http://localhost:6800/countries?borders=FR&limit=20'      # France's neighbours
+curl 'http://localhost:6800/countries/withdrawn/SU/successors'  # the fifteen countries that followed the USSR
+```
+
+The data is [Kuni](https://github.com/johnmorrisdotca/kuni)'s, loaded the first time a request asks for it; a reference dataset has no `seed` and is read-only. **[Fields, what changed from the old `country-data` list, and the licence of every source are in docs/reference-data.md.](https://github.com/spxis/rest-in-pieces/blob/main/docs/reference-data.md)**
+
+**Data sources.** Unicode CLDR (Unicode-3.0), Wikidata (CC0), countries-list (MIT), IANA time zones and top-level domains (public domain) and Natural Earth (public domain), all through Kuni; the full table is in the document above.
+
 ## Safe values
 
 `safe=true` writes contact details and addresses that cannot reach anybody, because each comes from a range set aside for examples or fiction. It is opt-in in 2.x so that existing seeded output does not change (a test pins a sample of it), and **it becomes the default in 3.0**.
@@ -433,28 +449,13 @@ await fetch(`${BASE}/posts`, {
 | The command line | `npx @johnmorrisdotca/rest-in-pieces --safe`, or `REST_IN_PIECES_SAFE=true` |
 | In-process, Vite, MSW, a browser tab | `createApp({ safe: true })`, or `app: { safe: true }` |
 
-| Value | With `safe=true` |
-| ----- | ---------------- |
-| Email | The part before the `@` kept, at `example.com`, `example.org` or `example.net` ([RFC 2606](https://www.rfc-editor.org/rfc/rfc2606)); the same address always maps the same way, so a comment's `email` still matches its author's. An email inside other text (a git commit entry) moves too. |
-| URL and domain | On those domains and their subdomains: a company's `website` is `https://koehlerhelplingundziegler.example.com`, its email `hello@` the same host. |
-| Phone | From the range the country's regulator keeps for fiction; see below. |
-| Payment card | Only the test numbers payment processors publish for sandboxes (Stripe, Braintree, PayPal): Luhn-valid, declined by live systems. `finance.creditCardNumber(amex)` picks a network's. |
-| IP address | Only the documentation ranges: `192.0.2.0/24`, `198.51.100.0/24` and `203.0.113.0/24` ([RFC 5737](https://www.rfc-editor.org/rfc/rfc5737)) and `2001:db8::/32` ([RFC 3849](https://www.rfc-editor.org/rfc/rfc3849)). |
-| Avatar and image | This API's own [`/avatars/{seed}.svg?name=`](#images-avatars-and-placeholders) and `/images/{w}x{h}.svg`, never another host. |
+What changes, and where each value comes from:
 
-Phone numbers by locale:
-
-| Locale | Range | Kept by |
-| ------ | ----- | ------- |
-| `en-CA`, `fr-CA`, `en-US` | `416-555-0100` to `…-555-0199`, with a real area code | The North American Numbering Plan Administrator: 555-0100 to 555-0199 are reserved for fiction |
-| `en-GB` | `07700 900000` to `07700 900999` | Ofcom's drama numbers |
-| `de` | `030 23125000`–`999` (Berlin), `069 90009…` (Frankfurt), `040 66969…` (Hamburg), `0221 4710…` (Cologne), `089 99998…` (Munich) | The Bundesnetzagentur's drama numbers |
-| `fr` | `01 99 00 xx xx`, `02 61 91 xx xx`, `03 53 01 xx xx`, `04 65 71 xx xx`, `05 36 49 xx xx`, `06 39 98 xx xx` | ARCEP's six fiction blocks |
-| `en-IN`, `zh-CN`, `pt-BR`, `ru`, `id`, `ja`, `ko`, `es-MX`, `vi` | `+1 555-0100` to `+1 555-0199` | No published fiction range was found for these countries, and a made-up number in their own format may belong to someone, so they get the North American one in international form. A Japanese user's `phone` then reads `+1 555-0109` rather than `090-…`; leave `safe` off where a layout test needs the national format. |
-
-- **In `/generate`**, these types change: `internet.email`, `internet.url`, `internet.domainName`, `internet.domainSuffix`, `internet.ip`, `internet.ipv4`, `internet.ipv6`, `finance.creditCardNumber`, `phone.number`, `image.avatar`, `image.avatarGitHub`, `image.url` and `image.urlPicsumPhotos`. Every other type is as it was, and any email inside a string moves to an example domain.
-- **Avatar links are absolute**, on the address the request came to, so a `PUT` of a record still validates. Behind a path prefix the API cannot see, send `X-Forwarded-Prefix: /api`; the Vite plugin, the MSW handlers and `installInBrowserApi` send it themselves.
+- **Email, URL and domain** move to `example.com`, `example.org` and `example.net` ([RFC 2606](https://www.rfc-editor.org/rfc/rfc2606)), the same address mapping the same way. **IP addresses** come only from the documentation ranges. **Payment cards** are only the test numbers payment processors publish. **Avatars and images** are this API's own [`/avatars/{seed}.svg`](#images-avatars-and-placeholders) and `/images/{w}x{h}.svg`.
+- **Phone numbers** come from the range the country's regulator keeps for fiction (the North American 555-0100 to 555-0199, Ofcom's drama numbers, the Bundesnetzagentur's, ARCEP's); a country with no published range gets `+1 555-01xx`.
 - **What it is not.** Safe values make data safe to send, call or load in a test. They are not anonymisation or de-identification: the data is fake to begin with, and nothing real goes in.
+
+**[Every value, every phone range and the `/generate` types it changes are in docs/safe-values.md.](https://github.com/spxis/rest-in-pieces/blob/main/docs/safe-values.md)**
 
 ## Images: avatars and placeholders
 

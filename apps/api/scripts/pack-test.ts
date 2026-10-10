@@ -80,10 +80,15 @@ async function checkCli(): Promise<void> {
     assert(health.status === 'ok' && health.version === version, `/health answered ${JSON.stringify(health)}`);
     const users = (await (await fetch(`${base}/users?limit=1`)).json()) as { results: unknown[] };
     assert(users.results.length === 1, `/users?limit=1 returned ${users.results.length} records`);
+    // The family's data packages are dependencies of the install and load on first use.
+    const japan = (await (await fetch(`${base}/countries/JP`)).json()) as { name: string; capital: { ja: string } };
+    assert(japan.name === 'Japan' && japan.capital.ja === '東京', `/countries/JP answered ${JSON.stringify(japan)}`);
+    const soviet = (await (await fetch(`${base}/countries/withdrawn/SU`)).json()) as { code: string };
+    assert(soviet.code === 'SUHH', `/countries/withdrawn/SU answered ${JSON.stringify(soviet)}`);
     const home = await (await fetch(`${base}/`)).text();
     assert(home.includes('<div id="root">'), 'The CLI did not serve the packed playground at /.');
     assert(output.includes(`REST in Pieces ${version} is running at ${base}`), `Unexpected start-up line: ${output}`);
-    step(`CLI on ${base}: /health, /users?limit=1 and the playground answered`);
+    step(`CLI on ${base}: /health, /users?limit=1, /countries/JP, /countries/withdrawn/SU and the playground answered`);
   } finally {
     cli.kill('SIGTERM');
   }

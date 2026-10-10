@@ -53,6 +53,7 @@ const DATASET_PHRASES: Record<string, PhraseKey> = {
   products: 'dataset.products',
   companies: 'dataset.companies',
   countries: 'dataset.countries',
+  withdrawn: 'dataset.withdrawn',
   orders: 'dataset.orders',
   posts: 'dataset.posts',
   comments: 'dataset.comments',

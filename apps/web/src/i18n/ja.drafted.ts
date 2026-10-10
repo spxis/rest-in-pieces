@@ -139,8 +139,12 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
     back: "Product reviews by users. Ratings come out close to the product's own rating.",
   },
   'dataset.countries': {
-    text: 'ISO コード・通貨・言語・国番号（国際電話）を持つ、すべての国と地域。実在のデータなので `seed` は影響しません。互換性のため、`metadata=true` を指定しない限り全件を配列のまま返します。',
-    back: 'Every country and region with ISO codes, currencies, languages and international calling country codes. It is real data, so `seed` has no effect. For compatibility it returns everything as a plain array unless `metadata=true` is given.',
+    text: 'ISO の国コード・日本語と英語の名前・通貨・言語・国番号（国際電話）・首都・タイムゾーン・人口・面積・座標・陸上の国境・通行区分を持つ、すべての国と地域。Kuni の実在のデータなので `seed` は影響しません。互換性のため、`metadata=true` を指定しない限り全件を配列のまま返します。ISO が廃止した国コードは `/countries/withdrawn` にあります。',
+    back: "Every country and region with its ISO country code, names in Japanese and English, currencies, languages, calling country codes (international phone), capital, time zones, population, area, coordinates, land borders and which side of the road traffic keeps to. It is Kuni's real data, so `seed` has no effect. For compatibility it returns everything as a plain array unless `metadata=true` is given. The country codes ISO has withdrawn are at `/countries/withdrawn`.",
+  },
+  'dataset.withdrawn': {
+    text: 'ISO 3166-3 で廃止された国コードを持つ国。ソビエト連邦（SU）、ユーゴスラビア（YU）、チェコスロバキア（CS）、東ドイツ（DD）、ザイール（ZR）など。各国が使っていたコード、日本語と英語の名前、そのコードが使われた期間、後継の国を持ちます。`/countries` には含まれません。実在のデータなので `seed` は影響しません。',
+    back: 'Countries whose country codes were withdrawn in ISO 3166-3: the Soviet Union (SU), Yugoslavia (YU), Czechoslovakia (CS), East Germany (DD), Zaire (ZR) and others. Each has the codes it used, names in Japanese and English, the period the code was in use, and its successor countries. They are not included in `/countries`. It is real data, so `seed` has no effect.',
   },
 
   'scenario.heading': { text: '再現できるシナリオ', back: 'Scenarios you can reproduce' },

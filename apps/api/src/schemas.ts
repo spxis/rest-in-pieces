@@ -246,19 +246,105 @@ export const Company = z
   })
   .openapi('Company');
 
+const Point = z
+  .object({ lat: z.number(), lon: z.number() })
+  .openapi('GeoPoint', { example: { lat: 35.6895, lon: 139.6917 } });
+
 export const Country = z
   .object({
-    alpha2: z.string(),
-    alpha3: z.string(),
-    name: z.string(),
-    status: z.string(),
-    ioc: z.string(),
-    emoji: z.string(),
-    currencies: z.array(z.string()),
-    languages: z.array(z.string()),
-    countryCallingCodes: z.array(z.string()),
+    alpha2: z.string().openapi({ description: 'ISO 3166-1 alpha-2 code.', example: 'JP' }),
+    alpha3: z
+      .string()
+      .openapi({ description: 'ISO 3166-1 alpha-3 code; empty for Kosovo, which has none.', example: 'JPN' }),
+    name: z.string().openapi({
+      description:
+        "The country's name in the request's `locale`: Kuni's English or Japanese, the runtime's CLDR for the other languages.",
+      example: 'Japan',
+    }),
+    status: z.string().openapi({
+      description:
+        '`assigned` for an ISO 3166-1 code and `user assigned` for Kosovo (XK). The withdrawn codes (`deleted`) are at `/countries/withdrawn`.',
+    }),
+    ioc: z.string().openapi({
+      description: "The Olympic committee's code (`GER` for Germany); empty where there is none.",
+      example: 'JPN',
+    }),
+    emoji: z.string().openapi({ description: 'The flag emoji; empty for Kosovo.', example: '🇯🇵' }),
+    currencies: z.array(z.string()).openapi({ description: 'ISO 4217 codes in use now.', example: ['JPY'] }),
+    languages: z
+      .array(z.string())
+      .openapi({ description: 'ISO 639-2/T language codes, most used first.', example: ['jpn'] }),
+    countryCallingCodes: z.array(z.string()).openapi({ example: ['+81'] }),
+    numeric: z.string().openapi({ description: 'ISO 3166-1 numeric code, three digits.', example: '392' }),
+    names: z
+      .object({ en: z.string(), ja: z.string(), native: z.string().nullable() })
+      .openapi({ description: "The name in English, Japanese and the country's own language." }),
+    shortName: z
+      .object({ en: z.string().nullable(), ja: z.string().nullable() })
+      .openapi({ description: 'CLDR\'s short form: "US" and アメリカ for the United States.' }),
+    reading: z
+      .string()
+      .nullable()
+      .openapi({ description: 'The Japanese name in hiragana, where it is written with kanji.', example: 'にほん' }),
+    aliases: z.array(z.string()).openapi({ description: 'Other names people type: Holland, UK, 米国.' }),
+    continent: z.string().openapi({ description: 'AF, AN, AS, EU, NA, OC or SA, from UN M49.', example: 'AS' }),
+    subregion: z.string().nullable().openapi({ description: 'The UN M49 subregion code.', example: '030' }),
+    callingCode: z.string().nullable().openapi({ description: 'The ITU country calling code.', example: '+81' }),
+    tld: z
+      .string()
+      .nullable()
+      .openapi({ description: 'The country-code top-level domain, without its dot.', example: 'jp' }),
+    capital: z.object({ en: z.string(), ja: z.string() }).nullable(),
+    timeZones: z.array(z.string()).openapi({ description: 'IANA time zones.', example: ['Asia/Tokyo'] }),
+    subdivisionType: z
+      .string()
+      .nullable()
+      .openapi({ description: 'What most of its first-level subdivisions are called.', example: 'prefecture' }),
+    population: z.number().nullable(),
+    populationYear: z.number().nullable(),
+    areaKm2: z.number().nullable(),
+    areaYear: z.number().nullable(),
+    location: Point.nullable().openapi({ description: "Wikidata's point for the whole country." }),
+    capitalLocation: Point.nullable(),
+    borders: z
+      .array(z.string())
+      .openapi({ description: 'Alpha-2 codes of the countries it shares a land border with.' }),
+    drivingSide: z.string().nullable().openapi({ description: '`left` or `right`.' }),
+    weekStart: z.string().openapi({ description: 'The first day of the week (CLDR): `mon`, `sun`, `sat` or `fri`.' }),
+    measurement: z.string().openapi({ description: '`metric`, `US` or `UK`.' }),
+    paper: z.string().openapi({ description: '`A4` or `US-Letter`.' }),
+    hourCycle: z.string().openapi({ description: '`h23` or `h12`.' }),
   })
   .openapi('Country');
+
+export const WithdrawnCountry = z
+  .object({
+    code: z.string().openapi({ description: 'The four-letter ISO 3166-3 code.', example: 'SUHH' }),
+    alpha2: z
+      .string()
+      .openapi({ description: 'The alpha-2 code it held; the first two letters of `code`.', example: 'SU' }),
+    alpha3: z.string().nullable().openapi({ example: 'SUN' }),
+    numeric: z.string().nullable().openapi({ example: '810' }),
+    name: z.string().openapi({
+      description: "Its name in the request's `locale`: Japanese for `ja`, English otherwise.",
+      example: 'Soviet Union',
+    }),
+    names: z.object({ en: z.string(), ja: z.string().nullable() }),
+    status: z.string().openapi({ description: 'Always `deleted`, as the old country list called it.' }),
+    since: z.string().openapi({
+      description: 'The year its code came into force (a full day where Wikidata gives one).',
+      example: '1974',
+    }),
+    until: z.string().openapi({ description: 'The year its code was withdrawn.', example: '1992' }),
+    successors: z
+      .array(z.string())
+      .openapi({ description: 'Alpha-2 codes of the current countries that came after it.' }),
+    reusedBy: z
+      .string()
+      .nullable()
+      .openapi({ description: 'Set when a current country now holds the alpha-2 code (BY, AI, BQ, GE, SK).' }),
+  })
+  .openapi('WithdrawnCountry');
 
 export const GeneratedRecord = z
   .object({ index: z.number().int() })

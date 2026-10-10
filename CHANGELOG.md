@@ -4,6 +4,26 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Countries from Kuni (one minor release)
+
+Added:
+
+- `/countries` is made from [Kuni](https://github.com/johnmorrisdotca/kuni) instead of `country-data`, which is dropped (it stays a dev dependency, for the test that compares the two). Every country now also has `numeric`, `names` (`{ en, ja, native }`), `shortName`, `reading`, `aliases`, `continent`, `subregion`, `callingCode`, `tld`, `capital` (`{ en, ja }`), `timeZones`, `subdivisionType`, `population`, `populationYear`, `areaKm2`, `areaYear`, `location`, `capitalLocation`, `borders`, `drivingSide`, `weekStart`, `measurement`, `paper` and `hourCycle`, and the Japanese locale names a country in Kuni's Japanese. Kuni is loaded the first time a country is asked for, not at start-up.
+- `GET /countries/withdrawn` and `/countries/withdrawn/{code}`: the 31 countries ISO 3166-3 withdrew (`SU`, `YU`, `CS`, `DD`, `ZR`, `TP`, `AN`, `BU` and the rest), each with the four-letter code, the alpha-2, alpha-3 and numeric codes it held, its name in English and Japanese, `since` and `until` (the years the code was in force), `successors` (`expand=successors` and `/countries/withdrawn/SU/successors` give the countries) and `reusedBy` where a current country holds the alpha-2 code now. They are never in `/countries`. A code is found by its four letters, alpha-2, alpha-3 or numeric code. The Olympic codes and the withdrawn countries are carried in `src/data/kuniLocal.ts`, made from Kuni's own build, until Kuni 1.3.0 is on npm; a test fails the day the installed Kuni has them and they differ.
+- A list field matches a filter when any entry does: `borders=FR`, `successors=RS`, `currencies=EUR`, `timeZones=Asia/Tokyo`. `/countries/{id}` takes a numeric code too (`/countries/392`).
+- A dataset can be made of something that loads on first use (`Resource.ready`), have routes of its own (`Resource.mount`) and list another dataset's records by a field of ids (`kind: 'list'`); `GET /resources` gives each dataset's `path`.
+- [docs/reference-data.md](docs/reference-data.md) says what `/countries` and `/countries/withdrawn` hold, what changed and where each source comes from; the README has a "Real places, invented people" section and the sources' licences; the playground has tabs for the new dataset, in English and Japanese.
+
+Changed:
+
+- `/countries` serves the 250 current countries, not the 289 records of `country-data` (which held 29 deleted codes and 10 reserved ones, so that `AI`, `BQ`, `BY`, `CS` and `GE` appeared twice). The deleted codes are at `/countries/withdrawn` with `status: "deleted"`. The nine fields it had keep their names, order and types for every code; `name` is CLDR's English name (`South Korea`) for 50 countries, `currencies` and `countryCallingCodes` are those in use now for 20 and 37, `languages` are still three-letter codes and `ioc` is Wikidata's (see [docs/reference-data.md](docs/reference-data.md#what-changed-from-the-country-data-list)).
+- The static API and the fixtures hold the whole of a reference dataset (250 countries), not its first hundred records; and the Postman and Bruno collections have the new routes.
+- The README's Safe values tables move to [docs/safe-values.md](docs/safe-values.md), leaving a summary and a link, to make room.
+
+Fixed:
+
+- The static API no longer repeats five country codes.
+
 ## 2.24.1 - 2026-10-09
 
 ### Fixed

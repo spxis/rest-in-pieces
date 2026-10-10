@@ -16,6 +16,7 @@ describe('service endpoints', () => {
       'products',
       'companies',
       'countries',
+      'withdrawn',
       'orders',
       'posts',
       'comments',

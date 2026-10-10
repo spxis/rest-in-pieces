@@ -5,6 +5,11 @@ import { MAX_EXPAND_PATHS, type PlaygroundConfig } from '../lib/config.ts';
 
 type Update = (patch: Partial<PlaygroundConfig>) => void;
 
+/** A record that has the lists under it, for a dataset whose ids are codes and not numbers. */
+const SAMPLE_PARENT: Readonly<Record<string, string>> = {
+  withdrawn: 'SU',
+};
+
 /**
  * Relations: a list under one record (`/users/7/orders`) and the records to embed with `expand=`. Shown for a
  * dataset that has either; the embeddable relations are the listed dataset's own.
@@ -46,7 +51,17 @@ export function RelationsControls({
             <select
               value={config.nested}
               // Embeds belong to the dataset being listed, so a new list starts with none.
-              onChange={(event) => onChange({ nested: event.target.value, expand: [], sortBy: '', filters: [] })}
+              onChange={(event) =>
+                onChange({
+                  nested: event.target.value,
+                  expand: [],
+                  sortBy: '',
+                  filters: [],
+                  ...(event.target.value && SAMPLE_PARENT[config.endpoint]
+                    ? { parentId: SAMPLE_PARENT[config.endpoint] }
+                    : {}),
+                })
+              }
             >
               <option value="">
                 /{config.endpoint} · {say('relations.whole')}
@@ -62,7 +77,6 @@ export function RelationsControls({
             <label className="control">
               <span>{say('relations.parent')}</span>
               <input
-                inputMode="numeric"
                 value={config.parentId}
                 spellCheck={false}
                 onChange={(event) => onChange({ parentId: event.target.value.replace(/[^\w-]/g, '').slice(0, 40) })}

@@ -30,7 +30,7 @@ GitHub Pages serves files, and cannot read a query string, so the page number is
 | `api/ja/…` | The same tree with Japanese data (`?locale=ja`) |
 | `api/jsonplaceholder/…` | The JSONPlaceholder-shaped tree, below |
 
-Every dataset is here: `names`, `users`, `products`, `companies`, `countries`, `orders`, `posts`, `comments`, `todos`, `reviews`, `invoices`, `transactions`, `events`, `messages`, `notifications`, `jobs`, `places`, `metrics`, `logs` and the four synthetic-patient sets. `api/index.json` lists them with their relations, so a script can discover the tree instead of hard-coding it:
+Every dataset is here: `names`, `users`, `products`, `companies`, `countries` (all 250), `withdrawn` (the 31 withdrawn countries, at `withdrawn.json`: a file cannot be under `countries/`, whose folder holds a file for each country), `orders`, `posts`, `comments`, `todos`, `reviews`, `invoices`, `transactions`, `events`, `messages`, `notifications`, `jobs`, `places`, `metrics`, `logs` and the four synthetic-patient sets. `api/index.json` lists them with their relations, so a script can discover the tree instead of hard-coding it:
 
 ```js
 const index = await (await fetch(`${base}index.json`)).json();
@@ -56,11 +56,10 @@ Albums and photos have no counterpart, as with the [`/jsonplaceholder`](https://
 
 - **Read-only.** There is no `POST`, `PUT`, `PATCH` or `DELETE`, no sign-in and no failure drills: a file cannot do any of them. Use the [in-browser demo](https://spxis.github.io/rest-in-pieces/) (the API runs inside the page, and keeps writes in the tab when asked), `npx`, Docker or the Vite plugin for those.
 - **No query string.** `?limit=`, `?sortBy=`, filters, `?q=`, `?format=`, `?locale=` and `?seed=` are ignored. The choices are the paths above. For another seed, a filter, another format or another locale, run the API: `npx @johnmorrisdotca/rest-in-pieces`.
-- **Small on purpose.** Each dataset holds its first **100 records** (ten pages of ten) at seed 1, in the default locale (`en-CA`) and in Japanese (`ja`). The metrics, logs and synthetic-patient datasets are in the default locale only, because they are large or the same everywhere. A hundred records is a tutorial-sized table; for all 1,000 records, other locales and CSV, use the [fixtures](https://github.com/spxis/rest-in-pieces#fixtures).
+- **Small on purpose.** Each seeded dataset holds its first **100 records** (ten pages of ten) at seed 1; the real reference data (`countries` and the withdrawn countries) is whole, as it is small and has no seed, in the default locale (`en-CA`) and in Japanese (`ja`). The metrics, logs and synthetic-patient datasets are in the default locale only, because they are large or the same everywhere. A hundred records is a tutorial-sized table; for all 1,000 records, other locales and CSV, use the [fixtures](https://github.com/spxis/rest-in-pieces#fixtures).
 - **Rebuilt with every release.** The files are written when the site is built, from the API of that version. A release can change what a seed produces, so a tutorial that must never change should keep its own copy of the files. `index.json` names the version. The `timestamp` and `lastUpdated` in a response are the build's, and `nextCursor` and `prevCursor` are `null`, since a cursor needs a running API.
 - **Shared and cached.** GitHub serves it for nothing, and caches each file for ten minutes. It is meant for tutorials and prototypes, not for an application's production traffic.
 - **Fetch it from another page.** On the demo site's own pages, the API running in the tab answers `api/` first (it does not know these file names), so call the files from your own page, `curl` or a script.
-- **Countries repeat five codes.** The country list the API is built on gives `AI`, `BQ`, `BY`, `CS` and `GE` twice. Each code has one file, holding the first.
 
 ## How it is made
 

@@ -1,7 +1,7 @@
 {
   "name": "@johnmorrisdotca/rest-in-pieces",
   "version": "2.24.1",
-  "description": "A mock REST API and test data generator with realistic, seeded fake data for building and testing frontends: related datasets with referential integrity, paging, sorting, filters, errors and delays on demand, safe values, SVG avatars, and NDJSON and SQL exports. Run it with npx, in Vite, through MSW or inside a browser tab.",
+  "description": "A mock REST API and test data generator with realistic, seeded fake data for building and testing frontends: related datasets with referential integrity, paging, sorting, filters, errors and delays on demand, safe values, SVG avatars, real country data (names in English and Japanese, ISO codes, withdrawn codes) and NDJSON and SQL exports. Run it with npx, in Vite, through MSW or inside a browser tab.",
   "keywords": [
     "mock-api",
     "fake-api",
@@ -91,7 +91,12 @@
     "static-api",
     "github-pages",
     "placeholder-images",
-    "avatar"
+    "avatar",
+    "iso-3166",
+    "country-codes",
+    "countries-api",
+    "reference-data",
+    "withdrawn-country-codes"
   ],
   "homepage": "https://spxis.github.io/rest-in-pieces/",
   "bugs": "https://github.com/spxis/rest-in-pieces/issues",
@@ -180,8 +185,8 @@
     "@hono/node-server": "^2.1.1",
     "@hono/zod-openapi": "^1.6.3",
     "@johnmorrisdotca/address-plus": "^1.1.0",
+    "@johnmorrisdotca/kuni": "^1.2.0",
     "@scalar/hono-api-reference": "^0.12.6",
-    "country-data": "^0.0.31",
     "fast-xml-parser": "^5.11.1",
     "hono": "^4.13.9",
     "yaml": "^2.9.1",
@@ -202,6 +207,7 @@
   "devDependencies": {
     "@types/node": "^26.6.3",
     "@vitest/coverage-v8": "^5.0.2",
+    "country-data": "^0.0.31",
     "msw": "^3.0.2",
     "openapi-typescript": "^7.13.0",
     "vite": "^8.3.1",

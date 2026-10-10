@@ -8,6 +8,7 @@
  * position plus one and a parent's children are a range worked out from the seed, so nothing is scanned; once
  * the session holds a copy, a lookup table is built once per request, over at most a few thousand records.
  */
+
 import { childRange, type OwnedDataset, ownership } from '../data/owners.ts';
 import type { Locale } from './locale.ts';
 import { messyRecord } from './messy.ts';
@@ -31,13 +32,20 @@ export interface ToMany {
   key: string;
 }
 
+/** A record that lists the ids of others in an array field: a grouping's `members` are country codes. */
+export interface ToList {
+  kind: 'list';
+  target: string;
+  key: string;
+}
+
 /** An array field whose entries point at other records: an order's `items`, each with a `productId`. */
 export interface Embedded {
   kind: 'items';
   relations: Record<string, ToOne>;
 }
 
-export type Relation = ToOne | ToMany | Embedded;
+export type Relation = ToOne | ToMany | ToList | Embedded;
 
 /** What the relations need to know about a dataset. `Resource` has all of it. */
 export interface RelatedResource extends SessionResource {
@@ -45,6 +53,12 @@ export interface RelatedResource extends SessionResource {
   /** Fields `messy` leaves alone: the id and the keys that join datasets. */
   keep?: readonly string[];
   relations?: Record<string, Relation>;
+  /**
+   * Loads what the dataset is made from, when it is made from something big enough to wait for (the family's packages).
+   * A route awaits it before reading the dataset. `hint` names the countries a request is about, so a dataset that
+   * is split by country loads only those; none means all of them.
+   */
+  ready?(request?: { query?: Query; id?: string; hint?: readonly string[] }): Promise<void>;
   /** The dataset is owned by a parent, so a parent's children are a range found by arithmetic. */
   owned?: { dataset: OwnedDataset; key: string };
 }
@@ -142,10 +156,14 @@ export class RequestData {
     if (!groups) {
       groups = new Map();
       this.records(child).forEach((record, i) => {
-        const value = String(record[key]);
-        const list = groups?.get(value);
-        if (list) list.push(i);
-        else groups?.set(value, [i]);
+        // An array field (a grouping's members) puts the record under each of its entries.
+        const field = record[key];
+        for (const one of Array.isArray(field) ? field : [field]) {
+          const value = String(one);
+          const list = groups?.get(value);
+          if (list) list.push(i);
+          else groups?.set(value, [i]);
+        }
       });
       this.byKey.set(id, groups);
     }
@@ -233,6 +251,47 @@ export function parseExpand(
   return tree.size > 0 ? tree : null;
 }
 
+/** The datasets a request with this `expand` reads besides its own, so a route can wait for what they are made from. */
+export function expandTargets(
+  tree: ExpandTree | null,
+  resource: RelatedResource,
+  lookup: (name: string) => RelatedResource | undefined,
+): RelatedResource[] {
+  const found = new Set<RelatedResource>();
+  const walk = (node: ExpandTree, at: RelatedResource, relations: Record<string, Relation>): void => {
+    for (const [name, subtree] of node) {
+      const relation = relations[name];
+      if (!relation) continue;
+      if (relation.kind === 'items') {
+        walk(subtree, at, relation.relations);
+        continue;
+      }
+      const target = lookup(relation.target);
+      if (!target) continue;
+      found.add(target);
+      walk(subtree, target, target.relations ?? {});
+    }
+  };
+  if (tree) walk(tree, resource, resource.relations ?? {});
+  return [...found];
+}
+
+/** The countries a page of records is about, for a dataset that loads its data country by country: `JP` for `JP-13`. */
+export function countriesOfRecords(records: readonly Fields[]): string[] {
+  const found = new Set<string>();
+  const note = (value: unknown): void => {
+    if (typeof value !== 'string') return;
+    const match = /^([A-Za-z]{2})(?:-|$)/.exec(value);
+    if (match) found.add((match[1] as string).toUpperCase());
+  };
+  for (const record of records) {
+    note(record.country);
+    note(record.code);
+    for (const value of Object.values(record)) if (Array.isArray(value)) for (const one of value) note(one);
+  }
+  return [...found];
+}
+
 /** Embeds the relations in `tree` into each record: a copy of each record, never the dataset's own. */
 export function expandRecords(
   records: readonly Fields[],
@@ -240,10 +299,11 @@ export function expandRecords(
   tree: ExpandTree,
   data: RequestData,
 ): Fields[] {
-  return records.map((record) => expandOne(record, resource.relations ?? {}, tree, data));
+  return records.map((record) => expandOne(record, resource, tree, data));
 }
 
-function expandOne(record: Fields, relations: Record<string, Relation>, tree: ExpandTree, data: RequestData): Fields {
+function expandOne(record: Fields, resource: RelatedResource, tree: ExpandTree, data: RequestData): Fields {
+  const relations = resource.relations ?? {};
   if (record === null || typeof record !== 'object') return record;
   const out: Fields = { ...record };
   for (const [name, subtree] of tree) {
@@ -253,7 +313,9 @@ function expandOne(record: Fields, relations: Record<string, Relation>, tree: Ex
       const items = record[name];
       if (Array.isArray(items)) {
         out[name] = items.map((item) =>
-          item && typeof item === 'object' ? expandOne(item as Fields, relation.relations, subtree, data) : item,
+          item && typeof item === 'object'
+            ? expandOne(item as Fields, { ...resource, relations: relation.relations }, subtree, data)
+            : item,
         );
       }
       continue;
@@ -263,13 +325,18 @@ function expandOne(record: Fields, relations: Record<string, Relation>, tree: Ex
       const key = record[relation.key];
       const at = key === null || key === undefined ? -1 : data.indexOf(target, key);
       data.spend(1);
-      out[name] = at < 0 ? null : expandOne(data.present(target, at), target.relations ?? {}, subtree, data);
+      out[name] = at < 0 ? null : expandOne(data.present(target, at), target, subtree, data);
+    } else if (relation.kind === 'list') {
+      const ids = record[relation.key];
+      const positions = (Array.isArray(ids) ? ids : []).map((one) => data.indexOf(target, one)).filter((at) => at >= 0);
+      data.spend(positions.length);
+      out[name] = positions.map((at) => expandOne(data.present(target, at), target, subtree, data));
     } else {
-      // Every dataset others point at (users, products, posts) is keyed by `id`.
-      const id = record.id;
+      // A dataset others point at is keyed by its id field: `id` for users, products and posts, `alpha2` for countries.
+      const id = record[resource.idField];
       const positions = id === null || id === undefined ? [] : data.childPositions(target, relation.key, id);
       data.spend(positions.length);
-      out[name] = positions.map((at) => expandOne(data.present(target, at), target.relations ?? {}, subtree, data));
+      out[name] = positions.map((at) => expandOne(data.present(target, at), target, subtree, data));
     }
   }
   return out;

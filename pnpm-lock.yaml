@@ -34,12 +34,12 @@ importers:
       '@johnmorrisdotca/address-plus':
         specifier: ^1.1.0
         version: 1.1.0
+      '@johnmorrisdotca/kuni':
+        specifier: ^1.2.0
+        version: 1.2.0
       '@scalar/hono-api-reference':
         specifier: ^0.12.6
         version: 0.12.6(hono@4.13.9)
-      country-data:
-        specifier: ^0.0.31
-        version: 0.0.31
       fast-xml-parser:
         specifier: ^5.11.1
         version: 5.11.1
@@ -59,6 +59,9 @@ importers:
       '@vitest/coverage-v8':
         specifier: ^5.0.2
         version: 5.0.2(vitest@5.0.2)
+      country-data:
+        specifier: ^0.0.31
+        version: 0.0.31
       msw:
         specifier: ^3.0.2
         version: 3.0.2(@types/node@26.6.3)(typescript@7.0.2)(vite@8.3.1(@types/node@26.6.3)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
@@ -491,6 +494,10 @@ packages:
   '@johnmorrisdotca/address-plus@1.1.0':
     resolution: {integrity: sha512-y7PLRjn9iyx4vBBiSdxfqz942xrBjQKzavT3wdCbbX4X6OQt5XGmNpCuKdyN4oYIt9RpzvgwFmTeXg5D/4h90A==}
     engines: {node: '>=18.0.0', pnpm: '>=8.0.0'}
+
+  '@johnmorrisdotca/kuni@1.2.0':
+    resolution: {integrity: sha512-dyLpDrQlsp8lY3BHNHjk9kqSxZltEWIurEQ+MhIWGVbkwTAMYK2aFXDjj5OQz9OeMliEo5GsRvVTwdx1LjyFFQ==}
+    engines: {node: '>=24'}
 
   '@jridgewell/resolve-uri@3.1.2':
     resolution: {integrity: sha512-bRISgCIjP20/tbWSPWMEi54QVPRZExkuD9lJL+UIxUKtwVJA8wW1Trb1jMs1RFXo1CBTNZ/5hpC9QvmKWdopKw==}
@@ -1841,6 +1848,8 @@ snapshots:
   '@johnmorrisdotca/address-plus@1.1.0':
     dependencies:
       fast-levenshtein: 3.0.0
+
+  '@johnmorrisdotca/kuni@1.2.0': {}
 
   '@jridgewell/resolve-uri@3.1.2': {}
 

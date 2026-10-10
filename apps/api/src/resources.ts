@@ -1,7 +1,6 @@
 import type { z } from '@hono/zod-openapi';
 import { build, type Makers } from './data/build.ts';
 import { cached } from './data/cache.ts';
-import { type CountryRecord, countries, findCountry, localizedCountries } from './data/countries.ts';
 import {
   makeEvent,
   makeInvoice,
@@ -12,6 +11,14 @@ import {
   makeTransaction,
 } from './data/domains.ts';
 import { FHIR_FIELDS, loadConditions, loadEncounters, loadObservations, loadPatients } from './data/fhir.ts';
+import {
+  type CountryRecord,
+  countryRecords,
+  findCountry,
+  findWithdrawn,
+  loadCountries,
+  withdrawnRecords,
+} from './data/kuni.ts';
 import { loadComments, loadOrders, loadPosts, loadReviews, loadTodos } from './data/related.ts';
 import { COMPANIES, PEOPLE, PRODUCTS, seededLoader, USERS } from './data/seeded.ts';
 import { logsFor, metricsFor } from './data/series.ts';
@@ -51,6 +58,7 @@ import {
   TodoInput,
   User,
   UserInput,
+  WithdrawnCountry,
 } from './schemas.ts';
 
 export const DEFAULT_SEED = 1;
@@ -59,6 +67,8 @@ export const MAX_SEED = 2 ** 32 - 1;
 export interface Resource extends RelatedResource {
   /** Path segment, e.g. `users`. */
   name: string;
+  /** Where the routes are mounted when that is not `/{name}`: the withdrawn countries are at `/countries/withdrawn`. */
+  mount?: string;
   /** Singular name used in docs. */
   title: string;
   description: string;
@@ -85,6 +95,10 @@ export interface Resource extends RelatedResource {
 }
 
 const STATIC_DATE = new Date('2026-09-27T00:00:00Z');
+
+const fieldsOf = (schema: z.ZodType): string[] => Object.keys((schema as z.ZodObject).shape);
+const COUNTRY_FIELDS = fieldsOf(Country);
+const WITHDRAWN_FIELDS = fieldsOf(WithdrawnCountry);
 
 function seededResource<T extends object>(
   name: string,
@@ -168,15 +182,33 @@ export const resources: Resource[] = [
     name: 'countries',
     title: 'Country',
     description:
-      'Every country and territory with ISO codes, currencies, languages and calling codes. Real data, so `seed` has no effect. For compatibility it returns every country as a bare array unless `metadata=true` is given.',
+      "Every country and territory with ISO codes, names in English and Japanese (and the request's `locale`), currencies, languages, calling codes, capital, time zones, top-level domain, population, area, coordinates, land borders, driving side and calendar conventions: real reference data from Kuni (Unicode CLDR, Wikidata, IANA, countries-list), so `seed` has no effect. For compatibility it returns every country as a bare array unless `metadata=true` is given. The codes ISO has withdrawn (the Soviet Union, Yugoslavia, Zaire) are at `/countries/withdrawn`.",
     schema: Country,
     idField: 'alpha2',
-    idDescription: 'ISO 3166 alpha-2 or alpha-3 code, e.g. `CA` or `CAN`.',
+    idDescription: 'ISO 3166 alpha-2, alpha-3 or numeric code, e.g. `CA`, `CAN` or `124`.',
     seeded: false,
     defaults: { limit: MAX_RECORDS, metadata: false },
-    load: (_, locale) => ({ records: localizedCountries(locale) as object[], generatedAt: STATIC_DATE }),
-    fields: () => Object.keys(countries[0] ?? {}),
+    ready: () => loadCountries(),
+    load: (_, locale) => ({ records: countryRecords(locale) as object[], generatedAt: STATIC_DATE }),
+    fields: () => COUNTRY_FIELDS,
     find: (records, id) => findCountry(records as readonly CountryRecord[], id),
+  },
+  {
+    name: 'withdrawn',
+    mount: 'countries/withdrawn',
+    title: 'Withdrawn country',
+    description:
+      'The countries ISO 3166-3 lists as withdrawn from ISO 3166-1 — the Soviet Union (`SU`), Yugoslavia (`YU`), Czechoslovakia (`CS`), East Germany (`DD`), Zaire (`ZR`), the Netherlands Antilles (`AN`) and the rest — each with the codes it held, its name in English and Japanese, the years its code was in force and the current countries that came after it (`successors`). Real reference data from Kuni (Wikidata, CC0), so `seed` has no effect. They are never in `/countries`. `/countries/withdrawn/SU` finds one by its four-letter code (`SUHH`), alpha-2, alpha-3 or numeric code; where two held a code (`CS`) it is the one withdrawn last.',
+    schema: WithdrawnCountry,
+    idField: 'code',
+    idDescription:
+      'The four-letter ISO 3166-3 code, or the alpha-2, alpha-3 or numeric code a withdrawn country held, e.g. `SUHH` or `SU`.',
+    seeded: false,
+    defaults: { limit: MAX_RECORDS, metadata: true },
+    load: (_, locale) => ({ records: withdrawnRecords(locale) as object[], generatedAt: STATIC_DATE }),
+    fields: () => WITHDRAWN_FIELDS,
+    find: (records, id) => findWithdrawn(records as never, id),
+    relations: { successors: { kind: 'list', target: 'countries', key: 'successors' } },
   },
   ...related(),
   ...domains(),
@@ -276,6 +308,9 @@ function related(): Resource[] {
     }),
   ];
 }
+
+/** Where a dataset's routes are mounted: `/users`, and `/countries/withdrawn` for the withdrawn countries. */
+export const mountOf = (resource: Pick<Resource, 'name' | 'mount'>): string => `/${resource.mount ?? resource.name}`;
 
 /** Looks a dataset up by name. */
 export const resourceNamed = (name: string): Resource | undefined => resources.find((r) => r.name === name);

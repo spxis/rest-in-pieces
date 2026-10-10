@@ -4,7 +4,7 @@ import { generatorModules, generatorParameters, generatorTypes } from '../data/g
 import { EXPRESSION_FUNCTIONS, EXPRESSION_LIMITS } from '../lib/expression.ts';
 import { DEFAULT_LOCALE, GLOBAL, GLOBAL_NAME, LOCALE_CODES, LOCALES } from '../lib/locale.ts';
 import { expandable } from '../lib/relations.ts';
-import { resourceNamed, resources } from '../resources.ts';
+import { mountOf, resourceNamed, resources } from '../resources.ts';
 
 const started = Date.now();
 
@@ -150,7 +150,7 @@ const healthRoute = createRoute({
 
 const catalog = resources.map((resource) => ({
   name: resource.name,
-  path: `/${resource.name}`,
+  path: mountOf(resource),
   description: resource.description,
   idField: resource.idField,
   seeded: resource.seeded,
@@ -158,7 +158,7 @@ const catalog = resources.map((resource) => ({
   fields: resource.fields(DEFAULT_LOCALE),
   expand: expandable(resource, resourceNamed),
   nested: Object.entries(resource.relations ?? {})
-    .filter(([, relation]) => relation.kind === 'many')
+    .filter(([, relation]) => relation.kind === 'many' || relation.kind === 'list')
     .map(([name]) => name),
   locales: Object.fromEntries(LOCALE_CODES.map((locale) => [locale, { fields: resource.fields(locale) }])),
 }));

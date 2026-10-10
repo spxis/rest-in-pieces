@@ -39,6 +39,9 @@ export const PLACEHOLDER_NESTED: Readonly<Record<string, readonly string[]>> = {
 };
 export const STATIC_INDEX_FILE = 'index.json';
 
+/** Where a dataset's routes are: `/users`, or the `path` the API gives (`/countries/withdrawn`). */
+const route = (resource: { name: string; path?: string }): string => resource.path ?? `/${resource.name}`;
+
 /** A file name made from a record id must be a plain word; anything else would need escaping in a URL. */
 const SAFE_ID = /^[A-Za-z0-9_-]{1,40}$/;
 
@@ -48,6 +51,8 @@ interface FetchApp {
 
 interface ResourceInfo {
   name: string;
+  /** Where the routes are (`/users`; `/countries/withdrawn` for the withdrawn countries). */
+  path?: string;
   idField: string;
   seeded: boolean;
   nested: string[];
@@ -156,13 +161,14 @@ export async function writeStaticApi(app: FetchApp, dir: string, baseUrl: string
     datasets[code] = [];
     for (const resource of resources) {
       if (code !== defaultLocale && DEFAULT_LOCALE_ONLY.has(resource.name)) continue;
-      const query = `${resource.seeded ? `seed=${FIXTURE_SEED}&` : ''}locale=${code}&max=${STATIC_RECORDS}`;
+      // A seeded dataset is cut to its first records; real reference data (countries, regions) is whole, as it is small.
+      const query = `${resource.seeded ? `seed=${FIXTURE_SEED}&` : ''}locale=${code}${resource.seeded ? `&max=${STATIC_RECORDS}` : ''}`;
       const name = resource.name;
       const pageFile = (page: number) => `${folder}${name}/page/${page}.json`;
-      const first = await ok(app, `/${name}?${query}&limit=${STATIC_PAGE_SIZE}&offset=0`);
+      const first = await ok(app, `${route(resource)}?${query}&limit=${STATIC_PAGE_SIZE}&offset=0`);
       const total = Number(first.headers.get('X-Total-Count'));
       if (!Number.isInteger(total) || total < 1) throw new Error(`${name} has no X-Total-Count`);
-      const records = Math.min(total, STATIC_RECORDS);
+      const records = resource.seeded ? Math.min(total, STATIC_RECORDS) : total;
       const pages = Math.ceil(records / STATIC_PAGE_SIZE);
       const held = (page: number) => (page >= 1 && page <= pages ? url(pageFile(page)) : null);
       const ids: string[] = [];
@@ -170,7 +176,10 @@ export async function writeStaticApi(app: FetchApp, dir: string, baseUrl: string
         const response =
           page === 1
             ? first
-            : await ok(app, `/${name}?${query}&limit=${STATIC_PAGE_SIZE}&offset=${(page - 1) * STATIC_PAGE_SIZE}`);
+            : await ok(
+                app,
+                `${route(resource)}?${query}&limit=${STATIC_PAGE_SIZE}&offset=${(page - 1) * STATIC_PAGE_SIZE}`,
+              );
         const body = relink(await response.json(), held);
         for (const record of recordsOf(body)) ids.push(String(record[resource.idField]));
         const text = JSON.stringify(body);
@@ -181,9 +190,9 @@ export async function writeStaticApi(app: FetchApp, dir: string, baseUrl: string
       // A dataset may repeat an id (the country list repeats five codes); the API answers an id with its first record.
       for (const id of new Set(ids)) {
         if (!SAFE_ID.test(id)) throw new Error(`${name} has an id that cannot be a file name: ${id}`);
-        write(`${folder}${name}/${id}.json`, await (await ok(app, `/${name}/${id}?${query}`)).text());
+        write(`${folder}${name}/${id}.json`, await (await ok(app, `${route(resource)}/${id}?${query}`)).text());
         for (const list of resource.nested) {
-          const response = await ok(app, `/${name}/${id}/${list}?${query}&limit=1000`);
+          const response = await ok(app, `${route(resource)}/${id}/${list}?${query}&limit=1000`);
           const body = (await response.json()) as { metadata?: { total?: number } };
           const own = `${folder}${name}/${id}/${list}.json`;
           const count = recordsOf(body).length;

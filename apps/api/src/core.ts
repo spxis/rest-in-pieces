@@ -17,7 +17,7 @@ import { JsonSchemaError } from './lib/jsonschema.ts';
 import { UnsupportedLocaleError } from './lib/locale.ts';
 import { ExpandError } from './lib/relations.ts';
 import { createSession, type SessionOption } from './lib/session.ts';
-import { resources } from './resources.ts';
+import { mountOf, resources } from './resources.ts';
 import { authRoutes } from './routes/auth.ts';
 import { collectionRoutes } from './routes/collection.ts';
 import { compatRoutes } from './routes/compat.ts';
@@ -83,7 +83,7 @@ export function createApp({
   );
 
   // Simulation and caching apply to data endpoints only, never to docs or health checks.
-  const dataPaths = [...resources.map((r) => `/${r.name}`), '/random-names', '/generate', '/fhir'];
+  const dataPaths = [...resources.map(mountOf), '/random-names', '/generate', '/fhir'];
   // `/names/*` also matches `/names` itself, so one registration covers lists and items.
   for (const path of dataPaths) app.use(`${path}/*`, simulate(), etag());
   for (const path of ['/avatars', '/images']) app.use(`${path}/*`, etag());
@@ -99,8 +99,9 @@ export function createApp({
   // `?auth=` turns any data request into a protected route, after the simulation has had its say.
   for (const path of dataPaths) app.use(`${path}/*`, requireAuth());
 
-  for (const resource of resources) {
-    app.route(`/${resource.name}`, collectionRoutes(resource, { session, all: resources, safe }));
+  // A dataset with a path of its own (`/countries/withdrawn`) goes first, or `/countries/{id}` would take its list for an id.
+  for (const resource of [...resources].sort((a, b) => Number(b.mount !== undefined) - Number(a.mount !== undefined))) {
+    app.route(mountOf(resource), collectionRoutes(resource, { session, all: resources, safe }));
   }
   const names = resources.find((r) => r.name === 'names');
   if (names) {
