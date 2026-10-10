@@ -156,8 +156,8 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
   },
 
   'dataset.features': {
-    text: '世界の主な自然地名：大洋・海・海峡・湖・川・砂漠・山脈・半島・山。約 2,800 件で、種類・日本語と英語の名前（読みがなも）・位置の点・それを囲む範囲・その地図に載っている国・Wikidata の項目を持ちます。Chizu が持つ実在のデータ（Natural Earth、パブリックドメイン）なので `seed` は影響しません。`kind`、`group`、`countries` で絞り込め、`q` で名前を検索でき、各カードの地図にはその国の地図の上でその地名が強調して描かれます。',
-    back: "The main named natural features of the world: oceans, seas, straits, lakes, rivers, deserts, mountain ranges, peninsulas and mountains. About 2,800 entries, each with a kind, names in Japanese and English (with the reading in kana), a point for its position, the range that encloses it, the countries whose map it appears on, and its Wikidata item. Real data held by Chizu (Natural Earth, public domain), so `seed` has no effect. You can narrow by `kind`, `group` and `countries` and search names with `q`; the map on each card draws that feature highlighted on its country's map.",
+    text: '世界の主な自然地名：大洋・海・海峡・湖・川・砂漠・山脈・半島・山など、約 2,800 件。種類・日本語と英語の名前（読みがなつき）・位置を示す点・それを囲む範囲・その地名が載る国・Wikidata の項目を持ちます。Chizu が持つ実在のデータ（Natural Earth、パブリックドメイン）なので `seed` は影響しません。`kind`、`group`、`countries` で絞り込め、`q` で名前を検索できます。各カードの地図では、その国の地図の上に地名の場所が強調して表示されます。',
+    back: "The main named natural features of the world: oceans, seas, straits, lakes, rivers, deserts, mountain ranges, peninsulas, mountains and the like, about 2,800 entries. Each has a kind, names in Japanese and English (with the reading in kana), a point showing its position, the range that encloses it, the countries it appears in, and its Wikidata item. Real data held by Chizu (Natural Earth, public domain), so `seed` has no effect. You can narrow by `kind`, `group` and `countries`, and search names with `q`. The map on each card shows the feature's location highlighted on top of its country's map.",
   },
   'dataset.addresses': {
     text: 'アメリカ・カナダ・日本・オーストラリア・イギリス・フランス・ドイツの住所。それぞれの国の郵便の書式で書かれ、郵便番号はその地域に実在するものです。通りの名前は作り物で（日本の町名はよくある町名の短い一覧から選びます）、実在の人物の住所ではありません。`country=JP` で絞り込め、`regionCode` は `/subdivisions` につながります。`/addresses/validate` と `/addresses/format` は、渡した住所を検証・整形します。',

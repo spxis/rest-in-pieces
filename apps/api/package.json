@@ -210,7 +210,7 @@
     "zod": "^4.6.5"
   },
   "peerDependencies": {
-    "@johnmorrisdotca/chizu": ">=1",
+    "@johnmorrisdotca/chizu": ">=1.2.0",
     "@johnmorrisdotca/hata": ">=1",
     "msw": ">=2",
     "vite": ">=5"
