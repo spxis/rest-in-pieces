@@ -66,6 +66,10 @@
     "derived-fields",
     "zipf",
     "data-distributions",
+    "time-series",
+    "mock-invoices",
+    "mock-transactions",
+    "geojson",
     "sql-insert",
     "placeholder-images",
     "avatar"

@@ -4,6 +4,13 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Added
+
+- Nine read-only datasets: `/invoices` (line items that add up, tax in the locale's currency, due and paid dates in order), `/transactions` (money out negative, money in positive, posted after they happened), `/events` (calendar events that end after they start, IANA time zones, recurrence rules), `/messages` (replies after the message they answer, with `Re:` and the chain's subject), `/notifications` (addressed to `/users`), `/jobs` (salary ranges that rise with seniority, closing dates in order), `/places` (within 15 km of the locale's best-known city, with a GeoJSON `geometry` and `distanceKm`), and the time series `/metrics` (a point every five minutes, a daily wave, incidents) and `/logs` (a line about every fifteen seconds). Each takes the seed, locale, paging, sorting, filters, search, formats, `messy`, `safe` and the simulation; `/metrics` and `/logs` are a pure function of the seed and the index, the same in every locale. Status fields are `invoiceStatus`, `transactionStatus`, `eventStatus` and `jobStatus`, because `status` is the request parameter that simulates an error. [docs/domains.md](docs/domains.md) is the reference.
+- `safe=true` moves the emails in invoices, messages and events to example domains.
+- Playground: a tab, icon and UI-preview card for each, in English and Japanese.
+- The live demo's fixtures cover the new datasets.
+
 ## 2.15.0 - 2026-10-09
 
 ### Added

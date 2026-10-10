@@ -9,7 +9,7 @@
 
 Seeded, realistic, localized data plus latency, error and messy-data drills, as a REST API, a function call or a patch on `fetch`.
 
-A free, open-source **mock data generator and test data generator**: rule-based synthetic data (sample data, seed data and mock data for database seeding), and relational test data with **referential integrity** between users, products, orders, posts, comments, todos and reviews, **safe values** that cannot reach a real person, self-hosted **placeholder images** and **avatars**, and exports as JSON, CSV, YAML, XML, **NDJSON** and **SQL INSERT** statements. A **JSONPlaceholder alternative**, **DummyJSON alternative** and **Mockaroo alternative** that runs on your machine.
+A free, open-source **mock data generator and test data generator**: rule-based synthetic data (sample data, seed data and mock data for database seeding), and relational test data with **referential integrity** between users, products, orders, posts, comments, todos and reviews, plus invoices, transactions, events, messages, notifications, jobs, places, metrics and logs that each agree with themselves, **safe values** that cannot reach a real person, self-hosted **placeholder images** and **avatars**, and exports as JSON, CSV, YAML, XML, **NDJSON** and **SQL INSERT** statements. A **JSONPlaceholder alternative**, **DummyJSON alternative** and **Mockaroo alternative** that runs on your machine.
 
 **Try it: [spxis.github.io/rest-in-pieces](https://spxis.github.io/rest-in-pieces/).** The live demo runs the whole API inside the page, so there is no server behind it and nothing to install.
 
@@ -212,6 +212,8 @@ curl -N 'http://localhost:6800/users?delay=200-800&trickle=200'
 | `GET /comments`            | Comments on posts, each by a user who is not the post's author. |
 | `GET /todos`               | To-do items, each owned by a user, with an optional `dueOn`. |
 | `GET /reviews`             | Product reviews by users, rated close to the product's own `rating`. |
+| `GET /invoices`, `/transactions`, `/events`, `/messages`, `/notifications`, `/jobs`, `/places` | More domains, each record agreeing with itself: invoices that add up with dates in order, transactions that post after they happen, events that end after they start, replies after their messages, jobs with salary ranges, places within 15 km of their city with GeoJSON. See [docs/domains.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/domains.md). |
+| `GET /metrics`, `/logs`   | Time series and log lines that are a pure function of the seed and the index, with incidents to find. See [docs/domains.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/domains.md#time-series-a-pure-function-of-the-seed-and-the-index). |
 | `GET /{dataset}/{id}`      | One record: `/names/0`, `/users/1`, `/countries/CA` or `/countries/CAN`. `/orders/{id}` carries its items. |
 | `GET /users/{id}/orders`, `/users/{id}/posts`, `/users/{id}/todos`, `/posts/{id}/comments`, `/products/{id}/reviews` | One record's children, with every list parameter. `404` for a parent that does not exist. |
 | `GET /avatars/{seed}.svg`  | A deterministic SVG avatar; `?name=` puts initials on it. See [Images](#images-avatars-and-placeholders). |
