@@ -1,6 +1,6 @@
 # Use cases
 
-Ten jobs REST in Pieces does, each with the problem in plain words and the request that solves it. [Back to the README](https://github.com/spxis/rest-in-pieces#readme).
+Eleven jobs REST in Pieces does, each with the problem in plain words and the request that solves it. [Back to the README](https://github.com/spxis/rest-in-pieces#readme).
 
 Every one of these has a live, animated version on the **[use cases page of the demo](https://spxis.github.io/rest-in-pieces/use-cases/)**, in English and 日本語. The animations are not recordings: each sends the requests written here to the API running inside the page and draws what comes back. The requests below are written for `http://localhost:6800`, where `npx @johnmorrisdotca/rest-in-pieces` serves.
 
@@ -14,6 +14,7 @@ Every one of these has a live, animated version on the **[use cases page of the 
 8. [Mock shapes from your own schema](#8-mock-shapes-from-your-own-schema)
 9. [Test an international app](#9-test-an-international-app)
 10. [Healthcare and fintech prototypes](#10-healthcare-and-fintech-prototypes)
+11. [Country, region and flag pickers](#11-country-region-and-flag-pickers)
 
 ## 1. Build a front end before the backend exists
 
@@ -204,3 +205,24 @@ curl 'http://localhost:6800/transactions?limit=4&seed=2'
 ```
 
 **Everything here is invented.** No patient, invoice or transaction comes from, is learned from or is anonymised from a real person or record. It is **not de-identified data**, because it was never identified data, and it claims no statistical resemblance to any population. Every patient carries a `synthetic` tag, contact details are always of the kind nobody answers, and the clinical codes are this project's own, not SNOMED CT, LOINC, ICD or CPT. It is for building and testing software, never for research or clinical use. See [Synthetic patients](https://github.com/spxis/rest-in-pieces/blob/main/docs/synthetic-patients.md) for the whole disclaimer and [Domains](https://github.com/spxis/rest-in-pieces/blob/main/docs/domains.md) for invoices and transactions.
+
+## 11. Country, region and flag pickers
+
+**The problem.** Your sign-up form needs a country select that fills a state or province select, with the flag and a map of the place beside them, and a made-up list of places is a bug waiting to be shipped.
+
+**The fix.** Countries, their states, provinces and prefectures, and the groups they belong to are real data in English and Japanese. A record carries the address of its flag, `/maps` draws the place, and a person's `province` links to its region.
+
+```sh
+# the country select: the G7, as countries with a flag emoji and a name in either language
+curl 'http://localhost:6800/groupings/g7/countries?limit=7'
+# the region select, once Canada is chosen
+curl 'http://localhost:6800/countries/CA/subdivisions?limit=10&sortBy=code'
+# the place: its names, capital, population and the address of its flag
+curl 'http://localhost:6800/subdivisions/CA-ON'
+curl 'http://localhost:6800/maps/CA-ON.svg?color=2f6b4f' > ontario.svg
+curl 'http://localhost:6800/flags/ca-on.svg' -L > ontario-flag.svg
+# a person's province, as its ISO 3166-2 record
+curl 'http://localhost:6800/names?limit=2&seed=1&expand=subdivision'
+```
+
+Every option, name and figure is real reference data, so the lists are right the day the form ships; the people the forms are tested with are still invented. For a page with no server, `fetch` the [static API](https://github.com/spxis/rest-in-pieces/blob/main/docs/static-api.md): `api/countries.json`, `api/countries/CA/subdivisions.json` and `api/subdivisions/CA-ON.json` hold the same lists, and the CSV beside each reads in a spreadsheet. See [Real places, invented people](https://github.com/spxis/rest-in-pieces/blob/main/docs/reference-data.md).

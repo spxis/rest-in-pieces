@@ -11,6 +11,7 @@ export const USE_CASE_IDS = [
   'from-schema',
   'international',
   'healthcare-fintech',
+  'places-pickers',
 ] as const;
 
 /** What the browser logs for the answers some examples ask for on purpose: a 500, a 503 and a 401. */
@@ -28,7 +29,7 @@ export function watchErrors(page: Page): string[] {
 
 /** Scrolls every illustration into view, as a reader would, and waits for each to play to its end. */
 export async function playAll(page: Page) {
-  // The page is a lazy chunk: wait for all ten stages to exist before asking which are done.
+  // The page is a lazy chunk: wait for all the stages to exist before asking which are done.
   await expect(page.locator('[data-testid^=uc-stage-]')).toHaveCount(USE_CASE_IDS.length);
   for (const stage of await page.locator('[data-testid^=uc-stage-]').all()) {
     await stage.scrollIntoViewIfNeeded();

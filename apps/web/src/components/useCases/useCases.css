@@ -957,3 +957,51 @@
     display: none;
   }
 }
+
+/* Use case 11: a country select that fills a region select, and the place they name. */
+.uc-places {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.uc-places label {
+  display: grid;
+  gap: 3px;
+  font-size: 11px;
+}
+.uc-places select {
+  width: 100%;
+  min-width: 0;
+}
+.uc-place {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+.uc-place-text {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  font-size: 12px;
+}
+.uc-place-flag {
+  flex: none;
+  font-size: 34px;
+  line-height: 1;
+}
+.uc-place-links {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: 11px;
+}
+@media (max-width: 560px) {
+  .uc-places {
+    grid-template-columns: 1fr;
+  }
+}

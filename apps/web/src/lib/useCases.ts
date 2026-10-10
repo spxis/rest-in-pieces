@@ -47,7 +47,12 @@ export const R = {
   patient: { path: '/patients?limit=1&seed=1' },
   invoice: { path: '/invoices?limit=1&seed=2' },
   transactions: { path: '/transactions?limit=4&seed=2' },
-} satisfies Record<string, UseCaseRequest | ((locale: LocaleChoice) => UseCaseRequest)>;
+  g7: { path: '/groupings/g7/countries?limit=7' },
+  regions: (code: string): UseCaseRequest => ({ path: `/countries/${code}/subdivisions?limit=10&sortBy=code` }),
+  region: (code: string): UseCaseRequest => ({ path: `/subdivisions/${code}` }),
+  map: (code: string): UseCaseRequest => ({ path: `/maps/${code}.svg?color=2f6b4f` }),
+  province: { path: '/names?limit=2&seed=1&expand=subdivision' },
+} satisfies Record<string, UseCaseRequest | ((arg: never) => UseCaseRequest)>;
 
 export { LOCALES };
 
@@ -272,6 +277,34 @@ test('the people table matches its snapshot', async ({ page }) => {
       {
         label: 'curl',
         code: `curl '${url(R.patient.path)}'\ncurl '${url(R.invoice.path)}'\ncurl '${url(R.transactions.path)}'`,
+      },
+    ],
+  },
+  {
+    id: 'places-pickers',
+    title: 'uc.places-pickers.title',
+    problem: 'uc.places-pickers.problem',
+    how: 'uc.places-pickers.how',
+    playground: { endpoint: 'subdivisions', limit: 8, seed: 1 },
+    snippets: [
+      {
+        label: 'fetch',
+        code: `const BASE = '${DISPLAY_BASE}';
+
+// the country select: real countries, with a flag emoji and a name in either language
+const countries = await (await fetch(\`\${BASE}${R.g7.path}\`)).json();
+
+// when one is chosen, the region select: its states, provinces or prefectures
+const { results: regions } = await (await fetch(\`\${BASE}${R.regions('CA').path}\`)).json();
+
+// and the place itself: its name in both languages, capital, population and the address of its flag
+const ontario = await (await fetch(\`\${BASE}${R.region('CA-ON').path}\`)).json();
+img.src = ontario.flag;                     // the flag on the CDN
+map.src = \`\${BASE}${R.map('CA-ON').path}\`; // a map, drawn by the API`,
+      },
+      {
+        label: 'curl',
+        code: `curl '${url(R.g7.path)}'\ncurl '${url(R.regions('CA').path)}'\ncurl '${url(R.region('CA-ON').path)}'\ncurl '${url(R.map('CA-ON').path)}' > ontario.svg\n# a person's province, as its ISO 3166-2 record\ncurl '${url(R.province.path)}'`,
       },
     ],
   },

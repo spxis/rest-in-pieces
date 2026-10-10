@@ -6,15 +6,15 @@ export const USE_CASE_JA: Record<keyof typeof USE_CASE_PHRASES, { text: string; 
   'topbar.playgroundTitle': { text: 'リクエストを自由に組み立てて送信', back: 'Freely build and send requests' },
   'uc.nav': { text: 'ユースケース', back: 'Use cases' },
   'uc.navTitle': {
-    text: '10 の用途を、リクエストとライブアニメーション付きで紹介',
-    back: 'Ten uses, shown with their requests and live animations',
+    text: '11 の用途を、リクエストとライブアニメーション付きで紹介',
+    back: 'Eleven uses, shown with their requests and live animations',
   },
   'uc.documentTitle': { text: 'ユースケース · REST in Pieces', back: 'Use cases · REST in Pieces' },
   'uc.eyebrow': { text: 'ユースケース', back: 'Use cases' },
   'uc.title': { text: '使いどころ', back: 'Where to use it' },
   'uc.intro': {
-    text: 'REST in Pieces でできる 10 の用途です。それぞれに、そのままコピーできるリクエストと短いアニメーションを載せています。アニメーションは録画ではありません。横に示したリクエストを実際に送信し、返ってきた内容を描いています。',
-    back: 'Ten uses that REST in Pieces can do. Each has a request you can copy as it is and a short animation. The animations are not recordings. They actually send the requests shown beside them and draw what comes back.',
+    text: 'REST in Pieces でできる 11 の用途です。それぞれに、そのままコピーできるリクエストと短いアニメーションを載せています。アニメーションは録画ではありません。横に示したリクエストを実際に送信し、返ってきた内容を描いています。',
+    back: 'Eleven uses that REST in Pieces can do. Each has a request you can copy as it is and a short animation. The animations are not recordings. They actually send the requests shown beside them and draw what comes back.',
   },
   'uc.whereTab': {
     text: 'このアニメーションは、このページの中で動いている API を呼び出しています。',
@@ -225,4 +225,19 @@ export const USE_CASE_JA: Record<keyof typeof USE_CASE_PHRASES, { text: string; 
     back: 'The lines add up to the subtotal, and the subtotal plus tax gives the total.',
   },
   'uc.healthcare-fintech.doesNotAdd': { text: '明細の合計が合いません。', back: 'The lines do not add up.' },
+  'uc.places-pickers.title': { text: '国・地域・国旗の選択欄', back: 'Country, region and flag pickers' },
+  'uc.places-pickers.problem': {
+    text: '登録フォームには、選ぶと州や県の選択欄が埋まる国の選択欄が必要で、国旗や地図も添えたいところです。作り物の地名リストは、そのまま出荷すると不具合のもとになります。',
+    back: 'A sign-up form needs a country select that, once chosen, fills a state or prefecture select, and you also want a flag and a map beside them. A made-up list of place names becomes a cause of bugs if you ship it as it is.',
+  },
+  'uc.places-pickers.how': {
+    text: '国、その州・省・県などの行政区画、所属するグループは、日本語と英語の実在のデータです。各レコードに国旗のアドレスがあり、/maps がその場所の地図を描き、人物の province は expand=subdivision でその行政区画につながります。',
+    back: "Countries, their states, provinces, prefectures and other administrative divisions, and the groups they belong to are real data in Japanese and English. Each record has the address of its flag, /maps draws a map of the place, and a person's province connects to its administrative division with expand=subdivision.",
+  },
+  'uc.places.country': { text: '国', back: 'Country' },
+  'uc.places.region': { text: '地域', back: 'Region' },
+  'uc.places.choose': { text: '選択…', back: 'Choose…' },
+  'uc.places.population': { text: '人口 {count}', back: 'Population {count}' },
+  'uc.places.area': { text: '面積 {count} km²', back: 'Area {count} km²' },
+  'uc.places.flag': { text: 'CDN 上の国旗', back: 'flag on the CDN' },
 };

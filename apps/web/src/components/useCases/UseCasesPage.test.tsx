@@ -60,17 +60,17 @@ describe('the use cases page', () => {
     vi.unstubAllGlobals();
   });
 
-  it('draws ten cases, each with a heading, a stage and copyable code', () => {
+  it('draws eleven cases, each with a heading, a stage and copyable code', () => {
     page();
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('What it is for');
-    expect(screen.getAllByRole('article')).toHaveLength(10);
+    expect(screen.getAllByRole('article')).toHaveLength(11);
     for (const useCase of USE_CASES) {
       const card = screen.getByTestId(`uc-${useCase.id}`);
       expect(within(card).getByRole('heading', { level: 2 })).toBeTruthy();
       expect(within(card).getByTestId(`uc-stage-${useCase.id}`)).toBeTruthy();
       expect(within(card).getAllByRole('button', { name: /^Copy / }).length).toBeGreaterThan(0);
     }
-    expect(screen.getByRole('navigation', { name: 'Jump to a use case' }).querySelectorAll('a')).toHaveLength(10);
+    expect(screen.getByRole('navigation', { name: 'Jump to a use case' }).querySelectorAll('a')).toHaveLength(11);
   });
 
   it('plays every animation to its end from real answers when motion is reduced', async () => {
@@ -91,6 +91,9 @@ describe('the use cases page', () => {
     expect(screen.getByTestId('uc-adds').textContent).toContain('add up');
     expect(screen.getByTestId('uc-synthetic-tag').textContent).toBe('SYNTHETIC');
     expect(screen.getByTestId('uc-invented').textContent).toContain('Invented data');
+    expect(screen.getByTestId('uc-places-country').querySelectorAll('option')).toHaveLength(8);
+    expect((screen.getByTestId('uc-places-region') as HTMLSelectElement).value).toBe('CA-ON');
+    expect(screen.getByTestId('uc-places-card').textContent).toContain('オンタリオ州');
   });
 
   it('asks the API for the requests the snippets show', async () => {
@@ -100,6 +103,8 @@ describe('the use cases page', () => {
     expect(fetched).toContain(`${BASE}/users?limit=5&seed=7&safe=true`);
     expect(fetched).toContain(`${BASE}/orders/4?expand=user,items.product&safe=true`);
     expect(fetched).toContain(`${BASE}/names?limit=4&seed=42`);
+    expect(fetched).toContain(`${BASE}/groupings/g7/countries?limit=7`);
+    expect(fetched).toContain(`${BASE}/subdivisions/CA-ON`);
   });
 
   it('copies a snippet with one press', async () => {
@@ -125,7 +130,7 @@ describe('the use cases page', () => {
       vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))),
     );
     page();
-    await waitFor(() => expect(screen.getAllByRole('alert').length).toBe(10), { timeout: 20_000 });
+    await waitFor(() => expect(screen.getAllByRole('alert').length).toBe(11), { timeout: 20_000 });
     expect(screen.getAllByRole('alert')[0]?.textContent).toContain('could not reach the API');
     for (const stage of document.querySelectorAll('[data-testid^=uc-stage-]')) {
       expect(stage.getAttribute('data-state')).toBe('error');

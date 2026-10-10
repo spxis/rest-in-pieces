@@ -4,6 +4,13 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### The eleventh use case (docs only: rides with the next release)
+
+Added:
+
+- An eleventh use case on the use cases page and in [docs/use-cases.md](docs/use-cases.md): "Country, region and flag pickers": a country select that fills a region select and the place they name, drawn from three real requests (the G7 as countries, Canada's provinces, Ontario), with the `fetch` and `curl` that make it, in English and Japanese. The README, the page's jump list and its tests say eleven. The page needs no change to the API.
+- [docs/avatars-and-placeholders.md](docs/avatars-and-placeholders.md): the README's Images section moves there, leaving a summary, to make room.
+
 ### Countries from Kuni (one minor release)
 
 Added:

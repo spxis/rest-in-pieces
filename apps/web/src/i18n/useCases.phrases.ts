@@ -3,12 +3,12 @@ export const USE_CASE_PHRASES = {
   'topbar.playground': 'Playground',
   'topbar.playgroundTitle': 'Build and send any request',
   'uc.nav': 'Use cases',
-  'uc.navTitle': 'Ten jobs it does, each with its request and a live animation',
+  'uc.navTitle': 'Eleven jobs it does, each with its request and a live animation',
   'uc.documentTitle': 'Use cases · REST in Pieces',
   'uc.eyebrow': 'USE CASES',
   'uc.title': 'What it is for',
   'uc.intro':
-    'Ten jobs REST in Pieces does, each with the request that does it, ready to copy, and a short animation. The animations are not recordings: each one sends the real requests shown beside it and draws what comes back.',
+    'Eleven jobs REST in Pieces does, each with the request that does it, ready to copy, and a short animation. The animations are not recordings: each one sends the real requests shown beside it and draws what comes back.',
   'uc.whereTab': 'These animations call the API running inside this page.',
   'uc.whereServer': 'These animations call the API at {base}.',
   'uc.baseNote':
@@ -126,4 +126,15 @@ export const USE_CASE_PHRASES = {
   'uc.healthcare-fintech.transactions': 'Transactions',
   'uc.healthcare-fintech.adds': 'The lines add up to the subtotal, and the subtotal plus tax to the total.',
   'uc.healthcare-fintech.doesNotAdd': 'The lines do not add up.',
+  'uc.places-pickers.title': 'Country, region and flag pickers',
+  'uc.places-pickers.problem':
+    'Your sign-up form needs a country select that fills a state or province select, with the flag and a map of the place, and a made-up list of places is a bug waiting to be shipped.',
+  'uc.places-pickers.how':
+    "Countries, their states, provinces and prefectures, and the groups they belong to are real data, in English and Japanese. Each record carries the address of its flag, /maps draws the place, and a person's province links to its region with expand=subdivision.",
+  'uc.places.country': 'Country',
+  'uc.places.region': 'Region',
+  'uc.places.choose': 'Choose…',
+  'uc.places.population': 'Population {count}',
+  'uc.places.area': 'Area {count} km²',
+  'uc.places.flag': 'flag on the CDN',
 } as const;

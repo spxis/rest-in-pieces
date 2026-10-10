@@ -11,11 +11,13 @@ import {
 // The use cases page against the real API: every animation draws what the API answers, nothing recorded.
 test.describe.configure({ timeout: 90_000 });
 
-test('plays all ten animations from real answers, in English, with no errors and no endless loop', async ({ page }) => {
+test('plays all eleven animations from real answers, in English, with no errors and no endless loop', async ({
+  page,
+}) => {
   const errors = watchErrors(page);
   await page.goto('/?view=use-cases&lang=en');
   await expect(page.getByRole('heading', { level: 1, name: 'What it is for' })).toBeVisible();
-  await expect(page.locator('article.uc-card')).toHaveCount(10);
+  await expect(page.locator('article.uc-card')).toHaveCount(11);
   for (const id of USE_CASE_IDS) await expect(page.getByTestId(`uc-${id}`)).toBeAttached();
   await playAll(page);
 
@@ -46,7 +48,7 @@ test('plays all ten animations from real answers, in English, with no errors and
   // The sixth: the same seed twice is identical, another seed is not.
   await expect(page.getByTestId('uc-same')).toContainText('identical');
   await expect(page.getByTestId('uc-other')).toBeVisible();
-  // The seventh to the tenth.
+  // The seventh to the eleventh.
   await expect(page.getByTestId('uc-terminal-block').first()).toContainText('INSERT INTO "todos"');
   await expect(page.getByTestId('uc-terminal-block').nth(1)).toContainText('"title":');
   await expect(page.getByTestId('uc-generated').locator('tr')).toHaveCount(4);
@@ -54,6 +56,12 @@ test('plays all ten animations from real answers, in English, with no errors and
   await expect(page.getByTestId('uc-adds')).toContainText('add up');
   await expect(page.getByTestId('uc-synthetic-tag')).toHaveText('SYNTHETIC');
   await expect(page.getByTestId('uc-invented')).toContainText('Invented data');
+  // The eleventh: the G7 as a country select, Canada's provinces in the region select, and Ontario's card.
+  await expect(page.getByTestId('uc-places-country').locator('option')).toHaveCount(8);
+  await expect(page.getByTestId('uc-places-country')).toHaveValue('CA');
+  await expect(page.getByTestId('uc-places-region')).toHaveValue('CA-ON');
+  await expect(page.getByTestId('uc-places-card')).toContainText('オンタリオ州');
+  await expect(page.getByTestId('uc-places-card')).toContainText('Ontario');
 
   expect(await endlessAnimations(page)).toEqual([]);
   expect(errors).toEqual([]);

@@ -12,6 +12,7 @@ import { CodeBlock } from './useCases/CodeBlock.tsx';
 import { FrontEndScene } from './useCases/FrontEndScene.tsx';
 import { InternationalScene } from './useCases/InternationalScene.tsx';
 import { MessyScene } from './useCases/MessyScene.tsx';
+import { PlacesScene } from './useCases/PlacesScene.tsx';
 import { RepeatableScene } from './useCases/RepeatableScene.tsx';
 import { SchemaScene } from './useCases/SchemaScene.tsx';
 import { SeedScene } from './useCases/SeedScene.tsx';
@@ -32,6 +33,7 @@ const SCENES: Record<string, (props: { id: string; title: string }) => ReactNode
   'from-schema': SchemaScene,
   international: InternationalScene,
   'healthcare-fintech': SyntheticScene,
+  'places-pickers': PlacesScene,
 };
 
 function tryItHref(useCase: UseCase): string | null {
@@ -88,7 +90,7 @@ function Card({
   );
 }
 
-/** The use cases page: ten jobs, each with its request and an animation driven by the real API. */
+/** The use cases page: eleven jobs, each with its request and an animation driven by the real API. */
 export default function UseCasesPage() {
   const { say } = useSpeaker();
   const { copied, copy } = useCopy();

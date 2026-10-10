@@ -13,7 +13,7 @@ Seeded, realistic, localized data plus latency, error and messy-data drills, as 
 
 A free, open-source **mock data generator and test data generator**: rule-based synthetic data (sample data, seed data and mock data for database seeding), and relational test data with **referential integrity** between users, products, orders, posts, comments, todos and reviews, plus invoices, transactions, events, messages, notifications, jobs, places, metrics and logs that each agree with themselves, **safe values** that cannot reach a real person, self-hosted **placeholder images** and **avatars**, and exports as JSON, CSV, YAML, XML, **NDJSON** and **SQL INSERT** statements. A **JSONPlaceholder alternative**, **DummyJSON alternative** and **Mockaroo alternative** that runs on your machine.
 
-**Try it: [spxis.github.io/rest-in-pieces](https://spxis.github.io/rest-in-pieces/).** The live demo runs the whole API inside the page, so there is no server behind it and nothing to install. **Ten use cases**, each with the request and an animation drawn from the real API, are on the [use cases page](https://spxis.github.io/rest-in-pieces/use-cases/) and written out in [docs/use-cases.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-cases.md).
+**Try it: [spxis.github.io/rest-in-pieces](https://spxis.github.io/rest-in-pieces/).** The live demo runs the whole API inside the page, so there is no server behind it and nothing to install. **Eleven use cases**, each with the request and an animation drawn from the real API, are on the [use cases page](https://spxis.github.io/rest-in-pieces/use-cases/) and written out in [docs/use-cases.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-cases.md).
 
 **A repeatable test backend for frontend development.** Build tables, pagination, sorting, filters, loading states, empty states, error handling, CRUD forms and sign-in against realistic data, before a real backend exists.
 
@@ -435,17 +435,7 @@ What changes, and where each value comes from:
 
 ## Images: avatars and placeholders
 
-Two SVG endpoints, drawn from the URL alone: no proxy, no fetch, no other host, and `Cache-Control: public, max-age=31536000, immutable`.
-
-```sh
-curl 'http://localhost:6800/avatars/ada.svg?name=Ada%20Lovelace'     # "AL" on a colour the seed picks
-curl 'http://localhost:6800/avatars/7.svg'                           # a symmetric pattern from the seed
-curl 'http://localhost:6800/images/640x360.svg?text=Hero&bg=0f172a&fg=fff'
-```
-
-- **`/avatars/{seed}.svg`**: a 64 × 64 square tile in one of twelve colours the seed picks, white on a mid-tone so it reads on light and dark pages. `?name=` puts initials on it: the first letters of the first and last words (`Ada Lovelace` → `AL`, `Нонна Журавлева` → `НЖ`); a Japanese name, written family name first with a space, shows a family name of one or two characters whole (`佐藤 美穂` → `佐藤`) and the first character of a longer one (`長谷川 翔` → `長`); a Chinese or Korean name with no space shows its first character (`王`). Without a name it draws a five-by-five pattern.
-- **`/images/{w}x{h}.svg`**: a flat rectangle with its size, or `?text=`, in the middle. Sides clamp to 8–4,000 pixels and text to 120 characters, and is escaped; `bg` and `fg` take hex with or without `#`, and anything else falls back to the defaults. A path that is not `{w}x{h}` is a `400`.
-- **In code.** `@johnmorrisdotca/rest-in-pieces/images` exports `avatarSvg(seed, name)` and `placeholderSvg(w, h, { text, bg, fg })`, the functions the routes use, so a page can draw the same pictures with no request; the playground's UI preview does, which is how its cards show avatars on GitHub Pages and offline.
+Two SVG endpoints, drawn from the URL alone: no proxy, no fetch, no other host, and cached for a year. `/avatars/{seed}.svg?name=Ada%20Lovelace` is a square tile with initials on a colour the seed picks, and `/images/{w}x{h}.svg?text=Hero&bg=0f172a&fg=fff` a flat rectangle of any size; `@johnmorrisdotca/rest-in-pieces/images` exports `avatarSvg` and `placeholderSvg`, so a page can draw the same pictures with no request. **[How initials are chosen (Japanese names too), the limits and the code are in docs/avatars-and-placeholders.md.](https://github.com/spxis/rest-in-pieces/blob/main/docs/avatars-and-placeholders.md)** Flags and maps are the same kind of picture: see [Real places, invented people](#real-places-invented-people).
 
 ## Formats: NDJSON and SQL
 

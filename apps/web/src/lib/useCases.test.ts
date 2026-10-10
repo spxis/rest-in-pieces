@@ -14,17 +14,21 @@ const EXPECTED = [
   'from-schema',
   'international',
   'healthcare-fintech',
+  'places-pickers',
 ];
 
 const everySnippet = USE_CASES.flatMap((useCase) => useCase.snippets.map((snippet) => snippet.code)).join('\n');
 
 /** Every request an illustration sends, with the paths a reader's snippets must show for it. */
-const requests = Object.values(R).flatMap((request) =>
-  typeof request === 'function' ? LOCALES.map((locale) => request(locale)) : [request],
-);
+const requests = Object.entries(R).flatMap(([name, request]) => {
+  if (typeof request !== 'function') return [request];
+  const call = request as (arg: string) => (typeof R)['people'];
+  const args: Record<string, string[]> = { locale: [...LOCALES], regions: ['CA'], region: ['CA-ON'], map: ['CA-ON'] };
+  return (args[name] ?? []).map((arg) => call(arg));
+});
 
-describe('the ten use cases', () => {
-  it('are these ten, in this order, each with copyable code', () => {
+describe('the eleven use cases', () => {
+  it('are these eleven, in this order, each with copyable code', () => {
     expect(USE_CASES.map((useCase) => useCase.id)).toEqual(EXPECTED);
     for (const useCase of USE_CASES) {
       expect(useCase.snippets.length, useCase.id).toBeGreaterThan(0);
