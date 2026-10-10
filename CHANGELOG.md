@@ -4,6 +4,13 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Added
+
+- `POST /generate` takes `{ "schema": {…} }` (a JSON Schema) or `{ "openapi": {…}, "component": "Pet" }` (an OpenAPI 3.x or Swagger 2 document) instead of `fields`, and returns seeded records that match: `type` (one or a list), `enum`, `const`, `nullable`, `properties`, `required`, `items`, `prefixItems`, `minItems`, `maxItems`, `uniqueItems`, `minLength`, `maxLength`, `pattern`, `format`, `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `multipleOf`, `allOf`, `oneOf`, `anyOf`, `writeOnly`, and local `$ref`s. Properties called `email`, `name`, `city` and the like get matching values, and `x-generator` names any generator type. The same seed, locale and schema give the same records; paging, sorting, filters, formats, `locale`, `safe`, `messy` and the simulation work as on every list.
+- `pattern` is made by a hand-written parser (`[A-Z]{3}-\d{4}`, groups, alternation, repeats) and never run as a regular expression, so no pattern can hang the server; lookahead, backreferences and the like answer `400`.
+- Bounded: 2,000 schema parts, 8 levels of nesting, 20 items per array, 256 characters per string, 500 values per record, 200,000 values and 4,000,000 characters per request. A `$ref` must point inside the document: a URL, file or relative path is a `400` and nothing is fetched. A reference loop is cut where a property is optional and a list may be empty, and refused (`400`, naming the path) where it cannot end. A keyword the generator does not honour (`not`, `if`, `patternProperties` and others) is a `400` naming it, never ignored.
+- Playground: a "JSON Schema" mode in the Generate tab that sends the typed schema or OpenAPI document as a `POST`, with the schema to use, in English and Japanese. [docs/schema-generation.md](docs/schema-generation.md) is the reference.
+
 ## 2.16.0 - 2026-10-09
 
 ### Added
