@@ -75,3 +75,31 @@ export function build<T>(makers: Makers<T>, count: number, seed: number, locale:
     return makerFor(info)(info, index);
   });
 }
+
+/**
+ * The same records as `build`, made one at a time as they are asked for, so any number of them can be written out
+ * without holding them. Nothing else may draw from the locale's Faker while this is being read, or the sequence
+ * changes: it is for a process that does one thing, such as the `generate` command.
+ */
+export function* iterate<T>(makers: Makers<T>, count: number, seed: number, locale: Locale): Generator<T> {
+  const makerFor = (info: CountryLocale) => makers[info.code as CountryLocaleCode] ?? makers.default;
+  if (locale !== GLOBAL) {
+    const info = countryLocale(locale);
+    seedLocale(info, seed);
+    const make = makerFor(info);
+    for (let index = 0; index < count; index++) yield make(info, index);
+    return;
+  }
+  // The same draws `globalLocales` makes, one at a time.
+  const picker = new Faker({ locale: base });
+  picker.seed([seed, hash(GLOBAL)]);
+  const seeded = new Set<CountryLocale>();
+  for (let index = 0; index < count; index++) {
+    const info = picker.helpers.weightedArrayElement(MIX);
+    if (!seeded.has(info)) {
+      seedLocale(info, seed);
+      seeded.add(info);
+    }
+    yield makerFor(info)(info, index);
+  }
+}

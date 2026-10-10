@@ -90,6 +90,49 @@ async function checkCli(): Promise<void> {
   assert((await exited) === 0, 'The CLI did not stop cleanly on SIGTERM.');
 }
 
+/** Runs the installed `generate` command, which needs no port and no server, and checks what it writes. */
+function checkGenerate(): void {
+  const bin = join(consumer, 'node_modules', '.bin', 'rest-in-pieces');
+  const schemaFile = join(work, 'schema.json');
+  writeFileSync(
+    schemaFile,
+    JSON.stringify({
+      type: 'object',
+      required: ['id', 'email'],
+      properties: { id: { type: 'integer', minimum: 1 }, email: { type: 'string', format: 'email' } },
+    }),
+  );
+  const generate = (...args: string[]) => run(bin, ['generate', ...args], consumer);
+  const lines = generate('--schema', schemaFile, '--count', '25', '--seed', '4').trimEnd().split('\n');
+  assert(lines.length === 25, `generate wrote ${lines.length} lines, not 25.`);
+  const first = JSON.parse(lines[0] as string) as { index: number; id: number; email: string };
+  assert(first.index === 0 && Number.isInteger(first.id) && first.email.includes('@'), `generate wrote ${lines[0]}`);
+  assert(
+    generate('--schema', schemaFile, '--count', '25', '--seed', '4').trimEnd() === lines.join('\n'),
+    'generate is not repeatable.',
+  );
+  const sql = generate(
+    '--fields',
+    'name:person.fullName,age:number.int(18,65)',
+    '--count',
+    '3',
+    '--format',
+    'sql',
+    '--table',
+    'people',
+  );
+  assert(
+    sql
+      .split('\n')
+      .filter(Boolean)
+      .every((line) => line.startsWith('INSERT INTO "people" ("index", "name", "age") VALUES (')),
+    `generate wrote ${sql}`,
+  );
+  const csv = generate('--schema', schemaFile, '--count', '2', '--format', 'csv');
+  assert(csv.startsWith('index,id,email\r\n'), `generate wrote ${csv}`);
+  step('generate wrote 25 repeatable records, and SQL and CSV, with no server');
+}
+
 try {
   // `npm pack` runs prepack, which builds the playground and dist/ first; its log shares stdout,
   // so the JSON report is the array at the end.
@@ -131,6 +174,7 @@ try {
   step('installed the tarball into an empty folder');
 
   await checkCli();
+  checkGenerate();
 
   writeFileSync(
     join(consumer, 'check.ts'),

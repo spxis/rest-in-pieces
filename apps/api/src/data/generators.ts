@@ -18,7 +18,7 @@ import {
   safePhone,
   TEST_CARDS,
 } from '../lib/safe.ts';
-import { build } from './build.ts';
+import { build, iterate } from './build.ts';
 
 /** Faker modules offered to custom schemas. Helpers, seeding and locale internals are left out on purpose. */
 const MODULES = [
@@ -894,7 +894,44 @@ export function generateRecords(
   context: GenerateContext = UNSAFE,
   constraints: readonly string[] = [],
 ): Record<string, unknown>[] {
-  const schema = compileSchema(fields, constraints);
+  const { make, finish } = recordMaker(compileSchema(fields, constraints), context);
+  try {
+    return build({ default: make }, count, seed, locale);
+  } finally {
+    finish();
+  }
+}
+
+/**
+ * The same records as `generateRecords`, made one at a time, for output too large to hold. The field list is checked
+ * before the first record is asked for.
+ */
+export function streamRecords(
+  fields: readonly FieldSpec[],
+  count: number,
+  seed: number,
+  locale: Locale = DEFAULT_LOCALE,
+  context: GenerateContext = UNSAFE,
+  constraints: readonly string[] = [],
+): IterableIterator<Record<string, unknown>> {
+  const { make, finish } = recordMaker(compileSchema(fields, constraints), context);
+  function* records(): IterableIterator<Record<string, unknown>> {
+    try {
+      yield* iterate({ default: make }, count, seed, locale);
+    } finally {
+      finish();
+    }
+  }
+  return records();
+}
+
+/** The columns a field list writes, in order: `index`, then each field. */
+export const columnsOfFields = (fields: readonly FieldSpec[]): string[] => [
+  'index',
+  ...fields.map((field) => field.name),
+];
+
+function recordMaker(schema: CompiledSchema, context: GenerateContext) {
   const keep = (value: unknown) => (context.safe && typeof value === 'string' ? safeEmailsIn(value) : value);
   // Faker measures `date.past`, `date.birthdate` and the like from the moment it is asked, down to the
   // millisecond, so two requests a moment apart would differ. Every one measures from the start of today (UTC) instead,
@@ -912,10 +949,9 @@ export function generateRecords(
     for (const field of schema.derived) record[field.name] = keep((field.derive as CompiledExpression).run(record));
     return record;
   };
-  try {
-    return build({ default: make }, count, seed, locale);
-  } finally {
-    // The Fakers are shared with the datasets, which measure from the clock as they always did.
+  // The Fakers are shared with the datasets, which measure from the clock as they always did.
+  const finish = () => {
     for (const source of touched) source.faker.setDefaultRefDate();
-  }
+  };
+  return { make, finish };
 }

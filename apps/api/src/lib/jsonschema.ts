@@ -12,7 +12,7 @@
  * cut where a property is optional and an array may be empty, or refused. This module reads no clock and fetches nothing.
  */
 import type { Faker } from '@faker-js/faker';
-import { build } from '../data/build.ts';
+import { build, iterate } from '../data/build.ts';
 import { type CompiledField, compileField, type GenerateContext } from '../data/generators.ts';
 import { startOfToday } from './expression.ts';
 import type { CountryLocale, Locale } from './locale.ts';
@@ -764,8 +764,38 @@ export interface SchemaSource {
 }
 
 export interface PreparedSchema {
+  /** The columns its records have, in order, for output with a fixed header: `index`, then every property it may make. */
+  columns: string[];
   /** One value matching the schema, drawn from the locale's seeded Faker; also how many values it took. */
   make(locale: CountryLocale, context: GenerateContext): { value: Value; nodes: number; chars: number };
+}
+
+/** `index` and every property a schema may make, so output with a fixed header (CSV, SQL) has a column for each. */
+function columnsOf(source: Source, root: Schema): string[] {
+  const columns = new Set<string>(['index']);
+  let wrapped = false;
+  const visit = (schema: Schema, depth: number): void => {
+    if (depth > SCHEMA_LIMITS.refs) return;
+    const node = flatten(source, schema, '');
+    const branches = (node.oneOf ?? node.anyOf) as Schema[] | undefined;
+    if (branches) {
+      const { oneOf: _oneOf, anyOf: _anyOf, ...rest } = node;
+      for (const branch of branches) visit(merge(rest, flatten(source, branch, '')), depth + 1);
+      return;
+    }
+    const types = typesOf(node);
+    if (types.length === 0 || types.some((type) => type !== 'object')) wrapped = true;
+    if (types.length === 0 || types.includes('object')) {
+      const properties = isNode(node.properties) ? node.properties : {};
+      for (const [name, child] of Object.entries(properties)) {
+        if (flatten(source, child as Schema, '').writeOnly !== true) columns.add(name);
+      }
+      if (Array.isArray(node.required)) for (const name of node.required as string[]) columns.add(name);
+    }
+  };
+  visit(root, 0);
+  if (wrapped) columns.add('value');
+  return [...columns];
 }
 
 /** Reads and checks a schema. Throws `JsonSchemaError`, naming the keyword or path, before any record is made. */
@@ -806,12 +836,55 @@ export function prepareSchema({ schema, openapi, component }: SchemaSource): Pre
   const caches: Caches = { patterns: new Map(), generators: new Map() };
   check(source, root, caches);
   return {
+    columns: columnsOf(source, root),
     make(locale, context) {
       const state: State = { faker: locale.faker, locale, context, source, caches, nodes: 0, chars: 0 };
       const value = draw(state, root, '', 0, undefined, false);
       return { value: value === OMIT ? null : value, nodes: state.nodes, chars: state.chars };
     },
   };
+}
+
+/** How a run of schema records is held to account: a request on the hosted API is, a command on your own machine is not. */
+export interface RunLimits {
+  /** Whether the values and characters of all the records together are capped. A single record always is. */
+  request: boolean;
+}
+
+function schemaMaker(prepared: PreparedSchema, context: GenerateContext, count: number, limits: RunLimits) {
+  const reference = startOfToday();
+  const touched = new Set<CountryLocale>();
+  let total = 0;
+  let written = 0;
+  const make = (source: CountryLocale, index: number): Record<string, unknown> => {
+    if (!touched.has(source)) {
+      source.faker.setDefaultRefDate(reference);
+      touched.add(source);
+    }
+    const { value, nodes, chars } = prepared.make(source, context);
+    total += nodes;
+    written += chars;
+    if (limits.request && written > SCHEMA_LIMITS.requestChars) {
+      throw new JsonSchemaError(
+        `this schema makes more than ${SCHEMA_LIMITS.requestChars.toLocaleString('en-US')} characters for ${count} records, more than a response may carry. Ask for fewer records, or use a smaller schema.`,
+      );
+    }
+    if (limits.request && total > SCHEMA_LIMITS.requestNodes) {
+      throw new JsonSchemaError(
+        `this schema makes more than ${SCHEMA_LIMITS.requestNodes} values for ${count} records. Ask for fewer records, or use a smaller schema.`,
+      );
+    }
+    if (isNode(value)) {
+      if ('index' in value)
+        throw new JsonSchemaError('"index" is reserved; every generated record already has one. Rename that property.');
+      return { index, ...value };
+    }
+    return { index, value };
+  };
+  const finish = () => {
+    for (const source of touched) source.faker.setDefaultRefDate();
+  };
+  return { make, finish };
 }
 
 /**
@@ -826,38 +899,29 @@ export function generateFromSchema(
   locale: Locale,
   context: GenerateContext,
 ): Record<string, unknown>[] {
-  const reference = startOfToday();
-  const touched = new Set<CountryLocale>();
-  let total = 0;
-  let written = 0;
-  const make = (source: CountryLocale, index: number): Record<string, unknown> => {
-    if (!touched.has(source)) {
-      source.faker.setDefaultRefDate(reference);
-      touched.add(source);
-    }
-    const { value, nodes, chars } = prepared.make(source, context);
-    total += nodes;
-    written += chars;
-    if (written > SCHEMA_LIMITS.requestChars) {
-      throw new JsonSchemaError(
-        `this schema makes more than ${SCHEMA_LIMITS.requestChars.toLocaleString('en-US')} characters for ${count} records, more than a response may carry. Ask for fewer records, or use a smaller schema.`,
-      );
-    }
-    if (total > SCHEMA_LIMITS.requestNodes) {
-      throw new JsonSchemaError(
-        `this schema makes more than ${SCHEMA_LIMITS.requestNodes} values for ${count} records. Ask for fewer records, or use a smaller schema.`,
-      );
-    }
-    if (isNode(value)) {
-      if ('index' in value)
-        throw new JsonSchemaError('"index" is reserved; every generated record already has one. Rename that property.');
-      return { index, ...value };
-    }
-    return { index, value };
-  };
+  const { make, finish } = schemaMaker(prepared, context, count, { request: true });
   try {
     return build({ default: make }, count, seed, locale);
   } finally {
-    for (const source of touched) source.faker.setDefaultRefDate();
+    finish();
+  }
+}
+
+/**
+ * The same records as `generateFromSchema`, made one at a time for output too large to hold, and without the caps on a
+ * whole request: one record is still capped, so a schema that runs away is stopped, but a million records may be asked for.
+ */
+export function* streamFromSchema(
+  prepared: PreparedSchema,
+  count: number,
+  seed: number,
+  locale: Locale,
+  context: GenerateContext,
+): Generator<Record<string, unknown>> {
+  const { make, finish } = schemaMaker(prepared, context, count, { request: false });
+  try {
+    yield* iterate({ default: make }, count, seed, locale);
+  } finally {
+    finish();
   }
 }

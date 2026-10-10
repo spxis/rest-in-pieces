@@ -1,20 +1,28 @@
 import { serve } from '@hono/node-server';
 import pkg from '../package.json' with { type: 'json' };
 import { createNodeApp } from './app.ts';
-import { CliError, displayUrl, parseCliArgs, usage } from './cli.ts';
+import { CliError, displayUrl, generateUsage, parseCliArgs, usage } from './cli.ts';
+import { runGenerateCommand } from './offline.ts';
 
-function main(): void {
+async function main(): Promise<void> {
   let command: ReturnType<typeof parseCliArgs>;
   try {
     command = parseCliArgs(process.argv.slice(2), process.env);
   } catch (error) {
     if (!(error instanceof CliError)) throw error;
-    console.error(`${error.message}\n\n${usage}`);
+    console.error(`${error.message}\n\n${process.argv[2] === 'generate' ? generateUsage : usage}`);
     process.exitCode = 2;
     return;
   }
+  if (command.kind === 'generate') {
+    process.exitCode = await runGenerateCommand(command, {
+      stdout: process.stdout,
+      stderr: (text) => process.stderr.write(text),
+    });
+    return;
+  }
   if (command.kind !== 'serve') {
-    console.log(command.kind === 'help' ? usage : pkg.version);
+    console.log(command.kind === 'help' ? usage : command.kind === 'help-generate' ? generateUsage : pkg.version);
     return;
   }
 
@@ -37,4 +45,4 @@ function main(): void {
   }
 }
 
-main();
+await main();

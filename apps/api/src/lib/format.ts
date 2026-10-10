@@ -48,7 +48,7 @@ export function plain(value: unknown): unknown {
   return value;
 }
 
-function csvCell(value: unknown): string {
+export function csvCell(value: unknown): string {
   if (value === null || value === undefined) return '';
   const text = typeof value === 'object' ? JSON.stringify(value) : String(value);
   return /[",\r\n]/.test(text) || text !== text.trim() ? `"${text.replaceAll('"', '""')}"` : text;

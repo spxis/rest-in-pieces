@@ -1,5 +1,9 @@
 /** Argument parsing for the `rest-in-pieces` command, kept apart from the server so it can be tested alone. */
 
+/** The most records `generate` writes in one run. They are made one at a time, so the limit is a safeguard, not memory. */
+export const MAX_OFFLINE_RECORDS = 10_000_000;
+export const MAX_SEED = 2 ** 32 - 1;
+
 export const DEFAULT_PORT = 6800;
 export const DEFAULT_HOST = 'localhost';
 
@@ -15,11 +19,42 @@ Options:
                    fiction-range phone numbers, test card numbers, documentation IPs, self-hosted
                    avatars (default: $REST_IN_PIECES_SAFE, then off; the default from 3.0)
   -v, --version    Print the version
-  -h, --help       Print this help`;
+  -h, --help       Print this help
+
+Offline data, with no server to run or pay for:
+  rest-in-pieces generate --schema people.json --count 100000 --format sql > people.sql
+  rest-in-pieces generate --help       Everything generate takes`;
+
+export const generateUsage = `Usage: rest-in-pieces generate (--schema <file> | --fields <list>) [options]
+
+Writes seeded records to a file or to standard output, one at a time, so any number fit: nothing is held in memory.
+The same seed, locale and schema give the same records as POST /generate, and the same on every machine.
+
+Input (one of):
+  --schema <file>      A JSON Schema, or an OpenAPI document, as JSON or YAML (.yaml, .yml)
+  --fields <list>      A field list, as for GET /generate: name:person.fullName,age:number.int(18,65)
+
+Options:
+  --component <name>   The schema to use in an OpenAPI document's components.schemas (optional when there is one)
+  --constraints <list> With --fields: end>start,total>=subtotal
+  --count <n>          Records to write, 1 to ${MAX_OFFLINE_RECORDS.toLocaleString('en-US')} (default 1000)
+  --seed <n>           Seed, 0 to ${MAX_SEED.toLocaleString('en-US')} (default 1)
+  --format <name>      ndjson (default), json, csv or sql
+  --table <name>       sql: the table to insert into (default records)
+  --batch <n>          sql: records per INSERT, 1 to 1000 (default 1: one INSERT per record)
+  --transaction        sql: wrap the statements in BEGIN; and COMMIT;
+  --bom                csv: start with a UTF-8 byte-order mark, which Excel needs for non-ASCII text
+  --locale <code>      The data locale, as GET /locales lists them (default en-CA; global mixes them)
+  --safe               Safe values: example-domain emails, fiction-range phones, test card numbers
+  --base-url <url>     With --safe: where avatar and image links point (default http://localhost:6800)
+  --output <file>      Write here instead of standard output (a summary then goes to standard error)
+  -h, --help           Print this help`;
 
 export type CliCommand =
   | { kind: 'serve'; port: number; host: string; session: boolean; safe: boolean }
+  | ({ kind: 'generate' } & GenerateOptions)
   | { kind: 'help' }
+  | { kind: 'help-generate' }
   | { kind: 'version' };
 
 /**
@@ -54,6 +89,7 @@ function parsePort(value: string, from: string): number {
 }
 
 export function parseCliArgs(argv: readonly string[], env: CliEnv = {}): CliCommand {
+  if (argv[0] === 'generate') return parseGenerateArgs(argv.slice(1));
   let port: number | undefined;
   let host = DEFAULT_HOST;
   let session = sessionFromEnv(env);
@@ -87,4 +123,125 @@ export function parseCliArgs(argv: readonly string[], env: CliEnv = {}): CliComm
 export function displayUrl(host: string, port: number): string {
   const name = host === '0.0.0.0' || host === '::' ? 'localhost' : host.includes(':') ? `[${host}]` : host;
   return `http://${name}:${port}`;
+}
+
+export const OFFLINE_FORMATS = ['ndjson', 'json', 'csv', 'sql'] as const;
+export type OfflineFormat = (typeof OFFLINE_FORMATS)[number];
+
+/** What `rest-in-pieces generate` was asked for. */
+export interface GenerateOptions {
+  /** A schema file; or `fields`, never both. */
+  schema?: string;
+  fields?: string;
+  constraints: string[];
+  component?: string;
+  count: number;
+  seed: number;
+  format: OfflineFormat;
+  table: string;
+  batch: number;
+  transaction: boolean;
+  bom: boolean;
+  locale: string;
+  safe: boolean;
+  baseUrl: string;
+  /** A file to write; standard output when absent. */
+  output?: string;
+}
+
+const VALUE_OPTIONS = new Set([
+  '--schema',
+  '--openapi',
+  '--fields',
+  '--constraints',
+  '--component',
+  '--count',
+  '--seed',
+  '--format',
+  '--table',
+  '--batch',
+  '--locale',
+  '--base-url',
+  '--output',
+]);
+const FLAG_OPTIONS = new Set(['--transaction', '--bom', '--safe']);
+
+function wholeNumber(name: string, text: string, min: number, max: number): number {
+  const value = Number(text);
+  if (!/^\d+$/.test(text) || value < min || value > max) {
+    throw new CliError(
+      `${name} must be a whole number from ${min.toLocaleString('en-US')} to ${max.toLocaleString('en-US')}.`,
+    );
+  }
+  return value;
+}
+
+/** Reads the arguments after `generate`. Throws `CliError` for anything it cannot use. */
+export function parseGenerateArgs(argv: readonly string[]): CliCommand {
+  const values = new Map<string, string>();
+  const flags = new Set<string>();
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i] as string;
+    if (arg === '-h' || arg === '--help') return { kind: 'help-generate' };
+    const [name, inline] = arg.startsWith('--') && arg.includes('=') ? arg.split(/=(.*)/s, 2) : [arg, undefined];
+    if (name !== undefined && FLAG_OPTIONS.has(name) && inline === undefined) {
+      flags.add(name);
+      continue;
+    }
+    if (name === undefined || !VALUE_OPTIONS.has(name)) throw new CliError(`Unknown option: ${arg}`);
+    const value = inline ?? argv[++i];
+    if (value === undefined || value === '' || (inline === undefined && value.startsWith('-') && value.length > 1)) {
+      throw new CliError(`${name} needs a value.`);
+    }
+    // `--openapi` is another name for `--schema`: the file says which it is.
+    const key = name === '--openapi' ? '--schema' : name;
+    if (values.has(key)) throw new CliError(`${name} was given twice.`);
+    values.set(key, value);
+  }
+  const schema = values.get('--schema');
+  const fields = values.get('--fields');
+  if ((schema === undefined) === (fields === undefined)) {
+    throw new CliError('Give one of --schema <file> or --fields <list>.');
+  }
+  if (fields === undefined && values.has('--constraints')) {
+    throw new CliError('--constraints works with --fields; a schema states its own rules.');
+  }
+  if (schema === undefined && values.has('--component')) throw new CliError('--component works with --schema.');
+  const format = values.get('--format') ?? 'ndjson';
+  if (!(OFFLINE_FORMATS as readonly string[]).includes(format)) {
+    throw new CliError(`--format must be one of ${OFFLINE_FORMATS.join(', ')}; got "${format}".`);
+  }
+  const table = values.get('--table') ?? 'records';
+  if (!/^[A-Za-z_][A-Za-z0-9_]{0,62}$/.test(table)) {
+    throw new CliError(
+      `--table "${table}" is not a name sql can write: a letter or "_", then letters, digits or "_", up to 63.`,
+    );
+  }
+  for (const option of ['--table', '--batch', '--transaction'] as const) {
+    if (format !== 'sql' && (values.has(option) || flags.has(option)))
+      throw new CliError(`${option} works with --format sql.`);
+  }
+  if (format !== 'csv' && flags.has('--bom')) throw new CliError('--bom works with --format csv.');
+  const constraints = (values.get('--constraints') ?? '')
+    .split(',')
+    .map((part) => part.trim())
+    .filter((part) => part !== '');
+  return {
+    kind: 'generate',
+    ...(schema === undefined ? {} : { schema }),
+    ...(fields === undefined ? {} : { fields }),
+    constraints,
+    ...(values.has('--component') ? { component: values.get('--component') as string } : {}),
+    count: wholeNumber('--count', values.get('--count') ?? '1000', 1, MAX_OFFLINE_RECORDS),
+    seed: wholeNumber('--seed', values.get('--seed') ?? '1', 0, MAX_SEED),
+    format: format as OfflineFormat,
+    table,
+    batch: wholeNumber('--batch', values.get('--batch') ?? '1', 1, 1000),
+    transaction: flags.has('--transaction'),
+    bom: flags.has('--bom'),
+    locale: values.get('--locale') ?? 'en-CA',
+    safe: flags.has('--safe'),
+    baseUrl: (values.get('--base-url') ?? 'http://localhost:6800').replace(/\/+$/, ''),
+    ...(values.has('--output') ? { output: values.get('--output') as string } : {}),
+  };
 }
