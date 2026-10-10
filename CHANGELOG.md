@@ -4,6 +4,8 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+## 2.17.0 - 2026-10-09
+
 ### Added
 
 - `POST /generate` takes `{ "schema": {…} }` (a JSON Schema) or `{ "openapi": {…}, "component": "Pet" }` (an OpenAPI 3.x or Swagger 2 document) instead of `fields`, and returns seeded records that match: `type` (one or a list), `enum`, `const`, `nullable`, `properties`, `required`, `items`, `prefixItems`, `minItems`, `maxItems`, `uniqueItems`, `minLength`, `maxLength`, `pattern`, `format`, `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `multipleOf`, `allOf`, `oneOf`, `anyOf`, `writeOnly`, and local `$ref`s. Properties called `email`, `name`, `city` and the like get matching values, and `x-generator` names any generator type. The same seed, locale and schema give the same records; paging, sorting, filters, formats, `locale`, `safe`, `messy` and the simulation work as on every list.
