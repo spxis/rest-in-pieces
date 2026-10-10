@@ -4,6 +4,8 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+## 3.0.0 - 2026-10-09
+
 A major release: `/countries` now comes from Kuni and safe values are on by default. Every breaking change, and how to keep the 2.x behaviour, is in [docs/upgrading-to-3.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/upgrading-to-3.md).
 
 ### Countries from Kuni
