@@ -1,8 +1,30 @@
 import type { z } from '@hono/zod-openapi';
 import { build, type Makers } from './data/build.ts';
+import { cached } from './data/cache.ts';
 import { type CountryRecord, countries, findCountry, localizedCountries } from './data/countries.ts';
+import {
+  makeEvent,
+  makeInvoice,
+  makeJob,
+  makeMessage,
+  makeNotification,
+  makePlace,
+  makeTransaction,
+} from './data/domains.ts';
 import { loadComments, loadOrders, loadPosts, loadReviews, loadTodos } from './data/related.ts';
 import { COMPANIES, PEOPLE, PRODUCTS, seededLoader, USERS } from './data/seeded.ts';
+import { logsFor, metricsFor } from './data/series.ts';
+import {
+  AppNotification,
+  CalendarEvent,
+  Invoice,
+  Job,
+  LogLine,
+  Message,
+  Metric,
+  Place,
+  Transaction,
+} from './domains.schemas.ts';
 import { type CollectionDefaults, MAX_RECORDS } from './lib/collection.ts';
 import { type Derive, deriveOrder } from './lib/integrity.ts';
 import { GLOBAL, LOCALES, type Locale } from './lib/locale.ts';
@@ -155,6 +177,7 @@ export const resources: Resource[] = [
     find: (records, id) => findCountry(records as readonly CountryRecord[], id),
   },
   ...related(),
+  ...domains(),
 ];
 
 /** A related dataset: seeded, keyed by `id`, its fields the same in every locale. */
@@ -253,3 +276,116 @@ function related(): Resource[] {
 
 /** Looks a dataset up by name. */
 export const resourceNamed = (name: string): Resource | undefined => resources.find((r) => r.name === name);
+
+/** A bundled domain read-only dataset: seeded, keyed by `id`, from Faker in the locale. */
+function domainResource<T extends object>(
+  name: string,
+  title: string,
+  description: string,
+  schema: z.ZodType,
+  make: Makers<T>['default'],
+): Resource {
+  return {
+    name,
+    title,
+    description,
+    schema,
+    idField: 'id',
+    idDescription: `One-based \`id\` of the ${title.toLowerCase()}.`,
+    defaults: { limit: 10, metadata: true },
+    find: byNumericField('id'),
+    ...seededResource(name, { default: make }),
+  };
+}
+
+/** A series that is a pure function of the seed and the index: the same in every locale. */
+function seriesResource(
+  name: string,
+  title: string,
+  description: string,
+  schema: z.ZodType,
+  records: (seed: number) => object[],
+): Resource {
+  const fields = Object.keys((schema as z.ZodObject).shape);
+  return {
+    name,
+    title,
+    description,
+    schema,
+    idField: 'id',
+    idDescription: `One-based \`id\` of the ${title.toLowerCase()}, which is also its position in time.`,
+    seeded: true,
+    defaults: { limit: 10, metadata: true },
+    load: (seed) => cached(`${name}:${seed}`, () => records(seed)),
+    fields: () => fields,
+    find: byNumericField('id'),
+  };
+}
+
+function domains(): Resource[] {
+  return [
+    domainResource(
+      'invoices',
+      'Invoice',
+      "Invoices with line items, in the locale's currency. Lines add up (`quantity × unitPrice`, then `subtotal`, `tax` at the locale's headline rate and `total`, exact to the currency's smallest unit), and dates follow one another: issued, due after the terms, paid between issue and a little after the due date. A `sent` invoice is not yet due, an `overdue` one is, a `draft` has no dates, and only a `paid` one has a `paidAt`.",
+      Invoice,
+      makeInvoice,
+    ),
+    domainResource(
+      'transactions',
+      'Transaction',
+      "Bank-style transactions in the locale's currency: card payments, transfers, deposits, withdrawals, fees, refunds and interest. `amount` is negative for money out and positive for money in; a transaction posts after it happened, and a pending or declined one has no `postedAt`.",
+      Transaction,
+      makeTransaction,
+    ),
+    domainResource(
+      'events',
+      'Event',
+      "Calendar events around 2026-01-01: meetings, conferences, appointments, socials, deadlines and holidays, with an IANA `timeZone` for the locale's country. Every event ends after it starts; an all-day event runs from midnight to midnight, and only meetings recur.",
+      CalendarEvent,
+      makeEvent,
+    ),
+    domainResource(
+      'messages',
+      'Message',
+      'Inbox messages between two people. Messages are sent in id order, and a reply (`inReplyTo`) answers a lower id, comes after it and takes its subject with `Re: ` in front. A read message has a `readAt` after it was sent.',
+      Message,
+      makeMessage,
+    ),
+    domainResource(
+      'notifications',
+      'Notification',
+      'App notifications addressed to `/users` by `userId`: mentions, comments, follows, orders, billing, security and system notices, each with a title, body, channel and a path on this API it is about. A read one has a `readAt` after it was created.',
+      AppNotification,
+      makeNotification,
+    ),
+    domainResource(
+      'jobs',
+      'Job',
+      "Job postings with a yearly salary range in the locale's currency (`salaryMin` below `salaryMax`, higher for senior roles), skills, workplace and status. A posting closes after it was posted: a `closed` or `filled` one closed in the past, an `open` or `paused` one has not yet, and applicants grow with how long it has been open.",
+      Job,
+      makeJob,
+    ),
+    domainResource(
+      'places',
+      'Place',
+      "Points of interest in the locale's best-known city, with `latitude`, `longitude` and the same point as a GeoJSON `geometry`. Every place is within 15 km of the city centre, and `distanceKm` says how far, so a list can be sorted nearest first.",
+      Place,
+      makePlace,
+    ),
+    seriesResource(
+      'metrics',
+      'Metric',
+      'A server metrics time series, one point every five minutes ending at 2026-01-01: CPU, memory, requests per second, median latency and error rate, with a daily wave, noise and now and then an `incident` where latency and errors jump. Each point is a pure function of the `seed` and its position, so it is the same in every locale and any point can be worked out without the ones before it.',
+      Metric,
+      metricsFor,
+    ),
+    seriesResource(
+      'logs',
+      'Log line',
+      'Application log lines about every fifteen seconds, ending at 2026-01-01: a level, a service, a message, a trace id, and for `api` lines a status code and duration. Timestamps always increase, and each line is a pure function of the `seed` and its position, so it is the same in every locale.',
+      LogLine,
+      logsFor,
+    ),
+  ];
+}

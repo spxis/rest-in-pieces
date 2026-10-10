@@ -146,6 +146,15 @@ type Rewrite = (record: Fields, context: SafeContext) => Fields;
 
 const text = (value: unknown) => (typeof value === 'string' ? value : '');
 
+/** A dataset whose only unsafe values are the emails in these fields. */
+const emailsIn =
+  (...fields: string[]): Rewrite =>
+  (record) => {
+    const safe = { ...record };
+    for (const field of fields) if (typeof safe[field] === 'string') safe[field] = safeEmail(safe[field]);
+    return safe;
+  };
+
 const REWRITES: Record<string, Rewrite> = {
   users: (user, { base }) => {
     const key = hashOf(`${text(user.username)}:${String(user.id)}`);
@@ -176,6 +185,9 @@ const REWRITES: Record<string, Rewrite> = {
   },
   comments: (comment) =>
     typeof comment.email === 'string' ? { ...comment, email: safeEmail(comment.email) } : comment,
+  invoices: emailsIn('customerEmail'),
+  messages: emailsIn('fromEmail', 'toEmail'),
+  events: emailsIn('organizerEmail'),
 };
 
 /** Whether a dataset has anything for `safe=true` to rewrite. */
