@@ -87,6 +87,20 @@ test('generates derived fields, a distribution and constrained numbers', async (
   }
 });
 
+test('lists a bundled domain whose records agree with themselves', async ({ page }) => {
+  await page.getByRole('tab', { name: /Invoices/ }).click();
+  await page.getByRole('button', { name: /Send request/ }).click();
+  await expect(page.getByTestId('response-status')).toHaveText(/200/);
+  await page.getByRole('tab', { name: /Table/ }).click();
+  await expect(page.getByRole('cell', { name: 'INV-2025-00001' })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'invoiceStatus' })).toBeVisible();
+  await page.getByRole('tab', { name: /Places/ }).click();
+  await page.getByRole('combobox', { name: 'Sort field' }).selectOption('distanceKm');
+  await page.getByRole('button', { name: /Send request/ }).click();
+  await expect(snippet(page)).toContainText('sortBy=distanceKm');
+  await expect(page.getByRole('columnheader', { name: 'geometry' })).toBeVisible();
+});
+
 test('rehearses a create, a validation error and a delete', async ({ page }) => {
   await page.getByRole('tab', { name: /Users/ }).click();
   await page.getByRole('button', { name: 'POST', exact: true }).click();

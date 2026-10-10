@@ -89,6 +89,82 @@ export function cardOf(row: Row): {
       ...author,
     };
   }
+  if ('invoiceStatus' in row) {
+    return {
+      title: [text('number'), text('customer')].filter(Boolean).join(' · '),
+      subtitle: text('invoiceStatus'),
+      aside: [text('total'), text('currency')].filter(Boolean).join(' '),
+      avatar: null,
+      thing: true,
+    };
+  }
+  if ('transactionStatus' in row) {
+    return {
+      title: text('counterparty'),
+      subtitle: [text('category'), text('occurredAt').slice(0, 10)].filter(Boolean).join(' · '),
+      aside: [text('amount'), text('currency')].filter(Boolean).join(' '),
+      avatar: null,
+      thing: true,
+    };
+  }
+  if ('eventStatus' in row) {
+    return {
+      title: text('title'),
+      subtitle: text('startsAt').slice(0, 16).replace('T', ' '),
+      aside: text('category'),
+      avatar: null,
+      thing: true,
+    };
+  }
+  if ('fromEmail' in row) {
+    return {
+      title: text('subject'),
+      subtitle: [text('fromName'), text('toName')].filter(Boolean).join(' → '),
+      aside: row.read === true ? '' : '●',
+      avatar: null,
+      thing: false,
+      person: text('fromName'),
+    };
+  }
+  if ('actionPath' in row) {
+    return { title: text('title'), subtitle: firstLine('body'), aside: text('type'), avatar: null, thing: true };
+  }
+  if ('jobStatus' in row) {
+    return {
+      title: text('title'),
+      subtitle: [text('company'), text('city')].filter(Boolean).join(' · '),
+      aside: `${text('salaryMin')}–${text('salaryMax')} ${text('currency')}`.trim(),
+      avatar: null,
+      thing: true,
+    };
+  }
+  if ('geometry' in row) {
+    return {
+      title: text('name'),
+      subtitle: [text('category'), `${text('distanceKm')} km`].join(' · '),
+      aside: STARS(Math.round(Number(row.rating) || 0)),
+      avatar: null,
+      thing: true,
+    };
+  }
+  if ('cpuPercent' in row) {
+    return {
+      title: text('timestamp').slice(0, 16).replace('T', ' '),
+      subtitle: [text('host'), `${text('latencyMs')} ms`].join(' · '),
+      aside: `${text('cpuPercent')}% CPU`,
+      avatar: null,
+      thing: true,
+    };
+  }
+  if ('traceId' in row) {
+    return {
+      title: text('message'),
+      subtitle: [text('service'), text('level')].join(' · '),
+      aside: text('statusCode'),
+      avatar: null,
+      thing: true,
+    };
+  }
   const title =
     text('name') || [text('firstName'), text('lastName')].filter(Boolean).join(' ') || text('username') || text('sku');
   const subtitle =
