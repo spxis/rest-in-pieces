@@ -63,6 +63,9 @@
     "dummyjson-alternative",
     "mockaroo-alternative",
     "ndjson",
+    "derived-fields",
+    "zipf",
+    "data-distributions",
     "sql-insert",
     "placeholder-images",
     "avatar"

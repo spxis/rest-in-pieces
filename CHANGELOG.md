@@ -4,6 +4,22 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Added
+
+- `/generate` derived fields: `age:=age(born)`, `end:=addDays(start, days)`, `email:=concat(lower(first), '.', lower(last), '@example.com')`. A field written `=` and an expression over the record's other fields is worked out last, in dependency order, in a hand-written expression language with numbers, text, dates, comparisons, `&& || !`, `a ? b : c` and 35 functions (`GET /generators` lists them under `functions`). No `eval`, no property access, no loops, no assignment: at most 400 characters, 150 tokens, 12 deep and 100 parts per expression and 10 derived fields per schema, with a `400` that names the field for anything unreadable, unknown, circular or over a limit. A step that cannot be worked out (a division by zero, a missing source value) gives `null`. Adding a derived field leaves every other field's values as they were.
+- `constraints=end>start,total>=subtotal` (also `end after start`, `start<end`) on `GET` and `"constraints": ["end > start"]` on `POST /generate` put two fields in order by swapping them, and move the later one on when a strict constraint finds them equal. At most 10; a field the schema lacks, a derived field, a field against itself and contradicting constraints answer `400`.
+- Distributions: `number.normal(mean,sd,min?,max?,dec?)`, `number.lognormal(median,sigma,min?,max?,dec?)`, `number.exponential(mean,max?,dec?)` and `number.zipf(n,s?)` (n up to 10,000), drawn from the seed with `422` errors that name the field. They are textbook shapes, not a model of any real population.
+- `GET /generators` adds `functions` (the expression functions) and `limits`. The OpenAPI document describes `constraints` and the new `400` answers.
+- Playground: a "= derived from other fields" type with an expression box, a Constraints box, and the distributions in the type list, in English and Japanese. [docs/coherent-records.md](docs/coherent-records.md) is the reference.
+
+### Fixed
+
+- `/generate`'s `date.past`, `date.future`, `date.recent`, `date.soon` and `date.birthdate` measured from the current millisecond, so the same seed gave different dates on every request. They now measure from the start of today (UTC), so a seed gives the same dates all day. Other datasets are unchanged.
+
+### Changed
+
+- The README moves its long reference to `docs/`: Use with (Vite, MSW, Storybook, Next.js, Playwright, Cypress, typed clients), and Writes, Sessions and Sign-in. It keeps a short section and a link for each, so existing anchors still work.
+
 ## 2.14.0 - 2026-10-09
 
 ### Added
