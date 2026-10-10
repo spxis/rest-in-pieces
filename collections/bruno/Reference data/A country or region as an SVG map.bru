@@ -1,0 +1,22 @@
+meta {
+  name: A country or region as an SVG map
+  type: http
+  seq: 16
+}
+
+get {
+  url: {{baseUrl}}/maps/JP-13.svg
+  body: none
+  auth: none
+}
+
+params:query {
+  ~color: 2f6b4f
+  ~capital: 
+  ~dot: 
+  ~lang: 
+}
+
+docs {
+  A country's outline (`JP`, `JPN`, `392`: 238 countries, from Natural Earth, by Chizu) or a subdivision lit on its country (`JP-13`, `CA-ON`, `DE-BY`: the regions of 32 countries), drawn as one standalone SVG in the family's colours. `capital=true` puts a dot on a country's capital. A country or region Chizu has no map of is `404`. Drawn by `@johnmorrisdotca/chizu`, a dependency loaded the first time a map is asked for.
+}

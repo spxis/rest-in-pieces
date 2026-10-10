@@ -17,7 +17,11 @@ describe("the family's data packages", () => {
       for (const line of text.split('\n')) {
         if (!FAMILY.test(line)) continue;
         // A type import is erased; a dynamic import() runs when it is reached.
-        const erased = /^\s*import type\b/.test(line) || /\bimport\(\s*['"]/.test(line);
+        // A name held in a variable (`const specifier = …`, `names`) is imported by `import(name)`, which a bundler leaves alone.
+        const erased =
+          /^\s*import type\b/.test(line) ||
+          /\bimport\(\s*['"]/.test(line) ||
+          /^\s*(const|let)\s+(specifier|names)\b/.test(line);
         expect(erased, `${file}: ${line.trim()}`).toBe(true);
       }
     }

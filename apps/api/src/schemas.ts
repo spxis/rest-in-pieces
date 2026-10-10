@@ -314,6 +314,11 @@ export const Country = z
     measurement: z.string().openapi({ description: '`metric`, `US` or `UK`.' }),
     paper: z.string().openapi({ description: '`A4` or `US-Letter`.' }),
     hourCycle: z.string().openapi({ description: '`h23` or `h12`.' }),
+    flag: z.string().nullable().openapi({
+      description:
+        "The address of the flag's SVG on the jsDelivr CDN (Hata); `null` where Hata has none. `/flags/{code}.svg` serves it from this API.",
+      example: 'https://cdn.jsdelivr.net/npm/@johnmorrisdotca/hata@1/dist/svg/jp.svg',
+    }),
   })
   .openapi('Country');
 
@@ -370,6 +375,10 @@ export const Subdivision = z
     areaYear: z.number().nullable(),
     location: Point.nullable(),
     capitalLocation: Point.nullable(),
+    flag: z.string().nullable().openapi({
+      description:
+        "The address of the subdivision's flag on the jsDelivr CDN (Hata); `null` where Hata has none (most have none).",
+    }),
   })
   .openapi('Subdivision');
 

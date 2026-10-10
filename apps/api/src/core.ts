@@ -26,6 +26,7 @@ import { generateRoutes } from './routes/generate.ts';
 import { home } from './routes/home.ts';
 import { imageRoutes } from './routes/images.ts';
 import { meta } from './routes/meta.ts';
+import { placeRoutes } from './routes/places.ts';
 import { sessionRoutes } from './routes/session.ts';
 import { documentStreams, streamRoutes } from './routes/streams.ts';
 import { SqlTableError } from './serialize.ts';
@@ -56,6 +57,11 @@ export interface AppOptions {
    * An open stream is a held connection (at most 60 seconds each), so a host that bills by connection time can turn it off.
    */
   streams?: boolean | undefined;
+  /**
+   * Where `/flags/{code}.svg` gets a flag: `auto` (the default) draws it with `@johnmorrisdotca/hata` when that is installed beside
+   * this package and redirects to the CDN when it is not, and `cdn` always redirects. The server fetches nothing either way.
+   */
+  flags?: 'auto' | 'cdn' | undefined;
 }
 
 /**
@@ -69,6 +75,7 @@ export function createApp({
   session: option,
   safe = false,
   streams = true,
+  flags = 'auto',
 }: AppOptions = {}): OpenAPIHono {
   const app = new OpenAPIHono();
   const session = createSession(option);
@@ -86,7 +93,7 @@ export function createApp({
   const dataPaths = [...resources.map(mountOf), '/random-names', '/generate', '/fhir'];
   // `/names/*` also matches `/names` itself, so one registration covers lists and items.
   for (const path of dataPaths) app.use(`${path}/*`, simulate(), etag());
-  for (const path of ['/avatars', '/images']) app.use(`${path}/*`, etag());
+  for (const path of ['/avatars', '/images', '/flags', '/maps']) app.use(`${path}/*`, etag());
   // A slow or failing sign-in is worth rehearsing too.
   app.use('/auth/*', simulate());
 
@@ -114,6 +121,7 @@ export function createApp({
   }
   app.route('/fhir', fhirRoutes());
   imageRoutes(app);
+  placeRoutes(app, { flags });
   compatRoutes(app);
   const users = resources.find((r) => r.name === 'users');
   if (users) app.route('/auth', authRoutes(users, session));
@@ -138,7 +146,7 @@ export function createApp({
         'JSON, CSV, YAML, XML, NDJSON and SQL output; and simulated latency and errors.\n\n' +
         'Orders, posts, comments, todos and reviews are joined to users and products by ids that always resolve: ' +
         "`/users/{id}/orders` lists one user's, and `expand=` embeds related records. `safe=true` writes values " +
-        'that cannot reach anybody, and `/avatars` and `/images` draw pictures with no other host.\n\n' +
+        'that cannot reach anybody, and `/avatars` and `/images` draw pictures with no other host. Real reference data (countries, subdivisions, groupings, withdrawn country codes) carries flags, and `/flags` and `/maps` draw them.\n\n' +
         'Writes are rehearsals by default, and kept in memory until `POST /reset` with the session on. ' +
         '`POST /auth/login` signs in with fake tokens, and `?auth=` makes any data request a protected route.',
       license: { name: 'MIT', url: 'https://opensource.org/licenses/MIT' },

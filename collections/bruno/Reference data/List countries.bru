@@ -37,7 +37,7 @@ params:query {
 }
 
 docs {
-  Every country and territory with ISO codes, names in English and Japanese (and the request's `locale`), currencies, languages, calling codes, capital, time zones, top-level domain, population, area, coordinates, land borders, driving side and calendar conventions: real reference data from Kuni (Unicode CLDR, Wikidata, IANA, countries-list), so `seed` has no effect. For compatibility it returns every country as a bare array unless `metadata=true` is given. Its subdivisions are at `/countries/{code}/subdivisions` and its groupings (the EU, the G7) at `/countries/{code}/groupings`; the codes ISO has withdrawn (the Soviet Union, Yugoslavia, Zaire) are at `/countries/withdrawn`.
+  Every country and territory with ISO codes, names in English and Japanese (and the request's `locale`), currencies, languages, calling codes, capital, time zones, top-level domain, population, area, coordinates, land borders, driving side, calendar conventions and the address of its flag (`flag`): real reference data from Kuni (Unicode CLDR, Wikidata, IANA, countries-list) and Hata, so `seed` has no effect. `/flags/{code}.svg` serves the flag and `/maps/{code}.svg` the country's outline. For compatibility it returns every country as a bare array unless `metadata=true` is given. Its subdivisions are at `/countries/{code}/subdivisions` and its groupings (the EU, the G7) at `/countries/{code}/groupings`; the codes ISO has withdrawn (the Soviet Union, Yugoslavia, Zaire) are at `/countries/withdrawn`.
 
   Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
 }

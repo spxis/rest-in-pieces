@@ -14,6 +14,7 @@ import type { CountryFacts, LatLon } from '@johnmorrisdotca/kuni/facts';
 import type { Grouping } from '@johnmorrisdotca/kuni/groupings';
 import type { SubdivisionFacts } from '@johnmorrisdotca/kuni/subdivision-facts';
 import { type Locale, localeTag } from '../lib/locale.ts';
+import { flagUrlOf } from './flags.ts';
 import { ISO_639_3 } from './iso639.ts';
 import { IOC_CODES, WITHDRAWN } from './kuniLocal.ts';
 
@@ -54,6 +55,7 @@ export interface CountryRecord {
   measurement: string;
   paper: string;
   hourCycle: string;
+  flag: string | null;
 }
 
 /** A subdivision (a state, a province, a prefecture, a county, a Land) as `/subdivisions` serves it. */
@@ -74,6 +76,7 @@ export interface SubdivisionRecord {
   areaYear: number | null;
   location: Point | null;
   capitalLocation: Point | null;
+  flag: string | null;
 }
 
 /** A grouping of countries (the EU, the G7, ASEAN, a continent) or of the subdivisions inside one country. */
@@ -160,6 +163,7 @@ const countryRecord = (country: KuniCountry, facts: CountryFacts | null): Countr
   measurement: facts?.measurement ?? 'metric',
   paper: facts?.paper ?? 'A4',
   hourCycle: facts?.hourCycle ?? 'h23',
+  flag: flagUrlOf(country.alpha2),
 });
 
 /** Imports Kuni's countries and their facts, once. */
@@ -339,6 +343,7 @@ const subdivisionRecord = (
   areaYear: facts?.areaYear ?? null,
   location: pointOf(facts?.point),
   capitalLocation: pointOf(facts?.capitalPoint),
+  flag: flagUrlOf(one.code),
 });
 
 /** Every subdivision loaded so far, country by country in Kuni's order, named in Japanese for `ja` and in English otherwise. */

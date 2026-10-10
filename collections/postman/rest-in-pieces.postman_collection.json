@@ -573,7 +573,7 @@
                 }
               ]
             },
-            "description": "Every country and territory with ISO codes, names in English and Japanese (and the request's `locale`), currencies, languages, calling codes, capital, time zones, top-level domain, population, area, coordinates, land borders, driving side and calendar conventions: real reference data from Kuni (Unicode CLDR, Wikidata, IANA, countries-list), so `seed` has no effect. For compatibility it returns every country as a bare array unless `metadata=true` is given. Its subdivisions are at `/countries/{code}/subdivisions` and its groupings (the EU, the G7) at `/countries/{code}/groupings`; the codes ISO has withdrawn (the Soviet Union, Yugoslavia, Zaire) are at `/countries/withdrawn`.\n\nAny other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`)."
+            "description": "Every country and territory with ISO codes, names in English and Japanese (and the request's `locale`), currencies, languages, calling codes, capital, time zones, top-level domain, population, area, coordinates, land borders, driving side, calendar conventions and the address of its flag (`flag`): real reference data from Kuni (Unicode CLDR, Wikidata, IANA, countries-list) and Hata, so `seed` has no effect. `/flags/{code}.svg` serves the flag and `/maps/{code}.svg` the country's outline. For compatibility it returns every country as a bare array unless `metadata=true` is given. Its subdivisions are at `/countries/{code}/subdivisions` and its groupings (the EU, the G7) at `/countries/{code}/groupings`; the codes ISO has withdrawn (the Soviet Union, Yugoslavia, Zaire) are at `/countries/withdrawn`.\n\nAny other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`)."
           }
         },
         {
@@ -1137,7 +1137,7 @@
                 }
               ]
             },
-            "description": "The states, provinces, prefectures, counties, regions and Länder of 200 countries — 5,050 ISO 3166-2 subdivisions — with their code, kind, level, parent, name in English and Japanese, capital, population, area and coordinates: real reference data from Kuni (Unicode CLDR, Wikidata), so `seed` has no effect. Filter by `country=JP`, `type=prefecture` or `level=1`; `/countries/{code}/subdivisions` lists one country's. The first request for a country loads its data; one without a `country` loads all of them. A record's `province` links here: `expand=subdivision` on `/users` or `/names`.\n\nAny other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`)."
+            "description": "The states, provinces, prefectures, counties, regions and Länder of 200 countries — 5,050 ISO 3166-2 subdivisions — with their code, kind, level, parent, name in English and Japanese, capital, population, area, coordinates and, for 219 of them, the address of its flag: real reference data from Kuni (Unicode CLDR, Wikidata) and Hata, so `seed` has no effect. `/maps/JP-13.svg` draws one lit on its country. Filter by `country=JP`, `type=prefecture` or `level=1`; `/countries/{code}/subdivisions` lists one country's. The first request for a country loads its data; one without a `country` loads all of them. A record's `province` links here: `expand=subdivision` on `/names` or `/companies`.\n\nAny other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`)."
           }
         },
         {
@@ -1943,6 +1943,88 @@
               ]
             },
             "description": "The subdivisions this grouping lists in its `members`, in the order it lists them. Paging, sorting, filters, search, formats, `expand`, `messy`, `safe` and the simulation all work as they do on `/subdivisions`.\n\nAny other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`)."
+          }
+        },
+        {
+          "name": "A flag as an SVG",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/flags/jp-13.svg",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "flags",
+                "jp-13.svg"
+              ],
+              "query": [
+                {
+                  "key": "shape",
+                  "value": "",
+                  "description": "The frame: the flag's own proportions (default), `4:3`, `1:1` or `round`. Needs Hata installed.",
+                  "disabled": true
+                },
+                {
+                  "key": "fit",
+                  "value": "",
+                  "description": "How the flag fills a frame: `whole`, `crop` (at the side chosen for the flag), `cover`, `hoist`, `contain` or `auto`. Needs Hata installed.",
+                  "disabled": true
+                },
+                {
+                  "key": "variant",
+                  "value": "",
+                  "description": "Which of the place's flags in real use to draw. Needs Hata installed.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "The flag of a country (`JP`, any case, or its alpha-3 or numeric code is not taken: use the alpha-2) or of a subdivision (`jp-13`, `CA-ON`, `de-by`), from Hata: 464 flags. A record's `flag` field is the same picture's address on the jsDelivr CDN. When `@johnmorrisdotca/hata` is installed beside this package, the flag is drawn here and `shape` (`4:3`, `1:1`, `round`), `fit` (`whole`, `crop`, `cover`, `hoist`, `contain`) and `variant` (a flag in real use besides the default: `de-facto`, `stripes`, `local`) work, so a square or round flag never stretches or misrepresents it. When it is not installed, a plain request is answered with a redirect to the CDN, which the client follows, and the server fetches nothing; a request for a shape, fit or variant is `501`, which says to install it. `404` for a code with no flag."
+          }
+        },
+        {
+          "name": "A country or region as an SVG map",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/maps/JP-13.svg",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "maps",
+                "JP-13.svg"
+              ],
+              "query": [
+                {
+                  "key": "color",
+                  "value": "2f6b4f",
+                  "description": "A fill for the country or the lit region, hex: `2f6b4f`.",
+                  "disabled": true
+                },
+                {
+                  "key": "capital",
+                  "value": "",
+                  "description": "`true` puts a dot on the capital of a country's map.",
+                  "disabled": true
+                },
+                {
+                  "key": "dot",
+                  "value": "",
+                  "description": "The capital's dot, hex. Default `b5452c`.",
+                  "disabled": true
+                },
+                {
+                  "key": "lang",
+                  "value": "",
+                  "description": "The language of the map's label for a screen reader.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "A country's outline (`JP`, `JPN`, `392`: 238 countries, from Natural Earth, by Chizu) or a subdivision lit on its country (`JP-13`, `CA-ON`, `DE-BY`: the regions of 32 countries), drawn as one standalone SVG in the family's colours. `capital=true` puts a dot on a country's capital. A country or region Chizu has no map of is `404`. Drawn by `@johnmorrisdotca/chizu`, a dependency loaded the first time a map is asked for."
           }
         }
       ]

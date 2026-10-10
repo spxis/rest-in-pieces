@@ -34,6 +34,9 @@ importers:
       '@johnmorrisdotca/address-plus':
         specifier: ^1.1.0
         version: 1.1.0
+      '@johnmorrisdotca/chizu':
+        specifier: ^1.4.0
+        version: 1.4.0
       '@johnmorrisdotca/kuni':
         specifier: ^1.2.0
         version: 1.2.0
@@ -53,6 +56,9 @@ importers:
         specifier: ^4.6.5
         version: 4.6.5
     devDependencies:
+      '@johnmorrisdotca/hata':
+        specifier: ^1.4.0
+        version: 1.4.0
       '@types/node':
         specifier: ^26.6.3
         version: 26.6.3
@@ -494,6 +500,14 @@ packages:
   '@johnmorrisdotca/address-plus@1.1.0':
     resolution: {integrity: sha512-y7PLRjn9iyx4vBBiSdxfqz942xrBjQKzavT3wdCbbX4X6OQt5XGmNpCuKdyN4oYIt9RpzvgwFmTeXg5D/4h90A==}
     engines: {node: '>=18.0.0', pnpm: '>=8.0.0'}
+
+  '@johnmorrisdotca/chizu@1.4.0':
+    resolution: {integrity: sha512-tlfHQ9bL0Sim3SNuDRw7YNAjdnlrmWDzFZve9DIF9SNngHN3KQQj7r+zsSI0xAAzQ+dyOiZSbHHZ1jM15ZkoDA==}
+    engines: {node: '>=22'}
+
+  '@johnmorrisdotca/hata@1.4.0':
+    resolution: {integrity: sha512-HmJiAPe/7g/NhXv6npbwlzHC05Ans8JnaIV8magED2jVXek5aun0yNW70suH0AHuv5FWoipUnxa50NSXFm7rCg==}
+    engines: {node: '>=24'}
 
   '@johnmorrisdotca/kuni@1.2.0':
     resolution: {integrity: sha512-dyLpDrQlsp8lY3BHNHjk9kqSxZltEWIurEQ+MhIWGVbkwTAMYK2aFXDjj5OQz9OeMliEo5GsRvVTwdx1LjyFFQ==}
@@ -1848,6 +1862,10 @@ snapshots:
   '@johnmorrisdotca/address-plus@1.1.0':
     dependencies:
       fast-levenshtein: 3.0.0
+
+  '@johnmorrisdotca/chizu@1.4.0': {}
+
+  '@johnmorrisdotca/hata@1.4.0': {}
 
   '@johnmorrisdotca/kuni@1.2.0': {}
 

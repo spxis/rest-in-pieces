@@ -1,0 +1,21 @@
+meta {
+  name: A flag as an SVG
+  type: http
+  seq: 15
+}
+
+get {
+  url: {{baseUrl}}/flags/jp-13.svg
+  body: none
+  auth: none
+}
+
+params:query {
+  ~shape: 
+  ~fit: 
+  ~variant: 
+}
+
+docs {
+  The flag of a country (`JP`, any case, or its alpha-3 or numeric code is not taken: use the alpha-2) or of a subdivision (`jp-13`, `CA-ON`, `de-by`), from Hata: 464 flags. A record's `flag` field is the same picture's address on the jsDelivr CDN. When `@johnmorrisdotca/hata` is installed beside this package, the flag is drawn here and `shape` (`4:3`, `1:1`, `round`), `fit` (`whole`, `crop`, `cover`, `hoist`, `contain`) and `variant` (a flag in real use besides the default: `de-facto`, `stripes`, `local`) work, so a square or round flag never stretches or misrepresents it. When it is not installed, a plain request is answered with a redirect to the CDN, which the client follows, and the server fetches nothing; a request for a shape, fit or variant is `501`, which says to install it. `404` for a code with no flag.
+}

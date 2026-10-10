@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { serveStatic } from '@hono/node-server/serve-static';
-import { safeFromEnv, sessionFromEnv, streamsFromEnv } from './cli.ts';
+import { flagsFromEnv, safeFromEnv, sessionFromEnv, streamsFromEnv } from './cli.ts';
 import { type AppOptions, createApp } from './core.ts';
 
 // The playground is served from the same origin when it has been built alongside the API: `WEB_ROOT`
@@ -15,12 +15,18 @@ const serveWeb =
   process.env.SERVE_WEB !== 'false' && process.env.NODE_ENV !== 'test' && existsSync(`${webRoot}/index.html`);
 
 /** The API as the Node server runs it: logging, and the playground on the same origin when it has been built. */
-export function createNodeApp({ session, safe, streams }: Pick<AppOptions, 'session' | 'safe' | 'streams'> = {}) {
+export function createNodeApp({
+  session,
+  safe,
+  streams,
+  flags,
+}: Pick<AppOptions, 'session' | 'safe' | 'streams' | 'flags'> = {}) {
   return createApp({
     log: process.env.NODE_ENV !== 'test',
     session,
     safe,
     streams,
+    flags,
     mount:
       serveWeb && webRoot
         ? (app) => {
@@ -40,4 +46,5 @@ export const app = createNodeApp({
   session: sessionFromEnv(process.env),
   safe: safeFromEnv(process.env),
   streams: streamsFromEnv(process.env),
+  flags: flagsFromEnv(process.env),
 });

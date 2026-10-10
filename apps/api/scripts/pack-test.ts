@@ -89,11 +89,22 @@ async function checkCli(): Promise<void> {
     assert(tokyo.names.ja === '東京都', `/subdivisions/JP-13 answered ${JSON.stringify(tokyo)}`);
     const eu = (await (await fetch(`${base}/groupings/eu`)).json()) as { memberCount: number };
     assert(eu.memberCount === 27, `/groupings/eu answered ${JSON.stringify(eu)}`);
+    // Hata is an optional peer dependency and is not in the install, so a flag is a redirect to the CDN, fetched by nobody here.
+    const flag = await fetch(`${base}/flags/jp.svg`, { redirect: 'manual' });
+    assert(
+      flag.status === 302 && (flag.headers.get('location') ?? '').includes('/hata@1/dist/svg/jp.svg'),
+      `/flags/jp.svg answered ${flag.status}`,
+    );
+    const map = await fetch(`${base}/maps/JP.svg`);
+    assert(
+      map.status === 200 && (await map.text()).includes('data-map="country-jp"'),
+      `/maps/JP.svg answered ${map.status}`,
+    );
     const home = await (await fetch(`${base}/`)).text();
     assert(home.includes('<div id="root">'), 'The CLI did not serve the packed playground at /.');
     assert(output.includes(`REST in Pieces ${version} is running at ${base}`), `Unexpected start-up line: ${output}`);
     step(
-      `CLI on ${base}: /health, /users?limit=1, /countries/JP, /countries/withdrawn/SU, /subdivisions/JP-13, /groupings/eu and the playground answered`,
+      `CLI on ${base}: /health, /users?limit=1, /countries/JP, /countries/withdrawn/SU, /subdivisions/JP-13, /groupings/eu, a flag redirect, a map and the playground answered`,
     );
   } finally {
     cli.kill('SIGTERM');

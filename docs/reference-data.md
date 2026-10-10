@@ -35,6 +35,7 @@ curl 'http://localhost:6800/countries?format=csv'
 | `borders` | The alpha-2 codes of the countries it shares a land border with (`[]` for an island). |
 | `drivingSide`, `weekStart`, `measurement`, `paper`, `hourCycle` | `left`, the first day of the week, the measurement system, the paper size and the clock (CLDR). |
 | `subdivisionType` | What most of its first-level subdivisions are: `prefecture`, `state`, `province`. |
+| `flag` | The address of its flag's SVG on the jsDelivr CDN, or `null` where Hata has none. See [Flags and maps](#flags-and-maps). |
 
 A country's lists are `/countries/{code}/subdivisions` and `/countries/{code}/groupings`.
 
@@ -75,6 +76,7 @@ curl 'http://localhost:6800/subdivisions/FR-69?expand=country,parent'
 | `name`, `names` | The name in the locale (Japanese for `ja`, English otherwise) and `{ en, ja }`; `ja` is `null` where no source has one, never an English name copied in. |
 | `reading` | The name in hiragana, for Japan's prefectures (`とうきょうと`). |
 | `capital`, `population`, `populationYear`, `areaKm2`, `areaYear`, `location`, `capitalLocation` | Wikidata's figures with their years, where it has them: complete for Japan's 47 prefectures, patchy elsewhere, `null` where it has none. |
+| `flag` | The address of its flag's SVG on the CDN: 219 subdivisions have one (Japan's prefectures but Hiroshima and Kagawa, Canada's provinces, the American states, and more). |
 
 `expand=country`, `parent` and `children` embed the related records, and `/subdivisions/{code}/children` lists them.
 
@@ -113,6 +115,45 @@ curl 'http://localhost:6800/groupings/jp-kanto?expand=subdivisions'
 
 `/groupings/{id}/countries` and `/groupings/{id}/subdivisions` list the members, and `expand=countries` embeds them.
 
+## Flags and maps
+
+A country's or a subdivision's `flag` is the address of its SVG on the jsDelivr CDN (`https://cdn.jsdelivr.net/npm/@johnmorrisdotca/hata@1/dist/svg/jp.svg`), so no flag is in this package, and the major version is pinned, so a break in Hata does not reach you. 245 countries and 219 subdivisions have one; the rest are `null`, never a near miss. The flags are Wikimedia Commons' files and flag-icons' drawings, kept by Hata with the author and licence of each; [Hata's manifest](https://github.com/johnmorrisdotca/hata) has them.
+
+`GET /flags/{code}.svg` answers like `/avatars`: a standalone SVG, cached for a day. The code is an alpha-2 (`JP`) or an ISO 3166-2 code (`jp-13`, `CA-ON`, `de-by`) in any case.
+
+```sh
+curl -L 'http://localhost:6800/flags/jp-13.svg'
+curl 'http://localhost:6800/flags/ca.svg?shape=1:1&fit=whole'     # a square that shows all of the flag
+curl 'http://localhost:6800/flags/us.svg?shape=round'
+curl 'http://localhost:6800/flags/de.svg?variant=stripes'
+```
+
+| Parameter | What it does |
+| --------- | ------------ |
+| `shape` | `own` (the default: its own proportions), `4:3`, `1:1` or `round`. |
+| `fit` | `auto`, `whole`, `crop` (at the side chosen for the flag), `cover`, `hoist` or `contain`. |
+| `variant` | Which of a place's flags in real use to draw, by its id from Hata (`de-facto`, `stripes`, `local`). |
+
+**Where the SVG comes from, and what the server fetches.** The server never fetches a flag while a request waits. If `@johnmorrisdotca/hata` is installed beside this package (`npm install @johnmorrisdotca/hata`; it is an optional peer dependency, 27 MB of flags, so `npx` does not install it), the flag is read from it and drawn here, with every parameter above. If it is not, a plain request is answered `302` with the CDN address, which a browser or `curl -L` follows, and a request for a `shape`, `fit` or `variant` is `501`, which says to install it. `REST_IN_PIECES_FLAGS=cdn` (or `createApp({ flags: 'cdn' })`) always redirects, even where Hata is installed. A code with no flag is `404`; a `shape` or `fit` that is not one of the above is `400`.
+
+`GET /maps/{code}.svg` draws a map with Chizu, in the family's colours, as one standalone SVG:
+
+```sh
+curl 'http://localhost:6800/maps/JP.svg'                           # Japan's outline (alpha-2, alpha-3 or numeric code)
+curl 'http://localhost:6800/maps/JP.svg?capital=true&dot=b5452c'   # with a dot on Tokyo
+curl 'http://localhost:6800/maps/JP-13.svg?color=2f6b4f&lang=ja'   # Tokyo lit on Japan's prefectures, in green
+curl 'http://localhost:6800/maps/CA-ON.svg'
+```
+
+| Parameter | What it does |
+| --------- | ------------ |
+| `color` | A fill for the country or the lit region, hex (`2f6b4f`). |
+| `capital` | `true` puts a dot on a country's capital. A region's projection is its own, so a region has no capital dot. |
+| `dot` | The capital's dot, hex. |
+| `lang` | `en` or `ja`: the language of the map's label for a screen reader. |
+
+A country's map is its outline (Natural Earth 1:50m) for 238 countries; a subdivision's is its country's regions with that one lit and framed, for the regions of 32 countries (Japan, Canada, the United States, Australia, the United Kingdom, Germany, France and more). Any other code is `404`, and a colour that is not hex `400`. Chizu is a dependency, loaded the first time a map is asked for; each country's outline is its own small file. The copy of this API that runs inside a browser tab, as on the demo site, has no maps (`501`), because Chizu's data is not part of that page; `npx`, Docker and `createApp()` on Node have them.
+
 ## Withdrawn countries: `/countries/withdrawn`
 
 The 31 entries of ISO 3166-3, the list of country names removed from ISO 3166-1: the Soviet Union (`SU`), Yugoslavia (`YU`), Czechoslovakia (`CS`), East Germany (`DD`), Zaire (`ZR`), East Timor (`TP`), the Netherlands Antilles (`AN`), Burma (`BU`) and the rest. They are never in `/countries`, so a country picker does not offer the USSR.
@@ -144,6 +185,8 @@ Where two countries held a code (`CS` was Czechoslovakia and then Serbia and Mon
 | Own names, capitals and languages | countries-list, through Kuni | MIT |
 | Time zones and top-level domains | IANA, through Kuni | Public domain; a list of facts |
 | Land borders, confirmed | Natural Earth 1:50m, through Kuni | Public domain |
+| Flags of countries and subdivisions | Wikimedia Commons files and flag-icons, optimised by Hata, which keeps each file's author and licence | Each file's own, kept in Hata's manifest; Hata is MIT |
+| Country outlines and regions for maps | Natural Earth 1:50m, drawn by Chizu | Public domain; Chizu is MIT |
 | The few years, codes, names and successors of withdrawn countries that Wikidata lacks | Written for Kuni from the list ISO 3166-3 publishes | MIT; a list of facts |
 
 Kuni's `NOTICE.md` has the full text of each licence. Nothing under ODbL, CC BY-SA or the GPL is used.

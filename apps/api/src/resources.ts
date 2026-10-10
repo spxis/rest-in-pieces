@@ -195,7 +195,7 @@ export const resources: Resource[] = [
     name: 'countries',
     title: 'Country',
     description:
-      "Every country and territory with ISO codes, names in English and Japanese (and the request's `locale`), currencies, languages, calling codes, capital, time zones, top-level domain, population, area, coordinates, land borders, driving side and calendar conventions: real reference data from Kuni (Unicode CLDR, Wikidata, IANA, countries-list), so `seed` has no effect. For compatibility it returns every country as a bare array unless `metadata=true` is given. Its subdivisions are at `/countries/{code}/subdivisions` and its groupings (the EU, the G7) at `/countries/{code}/groupings`; the codes ISO has withdrawn (the Soviet Union, Yugoslavia, Zaire) are at `/countries/withdrawn`.",
+      "Every country and territory with ISO codes, names in English and Japanese (and the request's `locale`), currencies, languages, calling codes, capital, time zones, top-level domain, population, area, coordinates, land borders, driving side, calendar conventions and the address of its flag (`flag`): real reference data from Kuni (Unicode CLDR, Wikidata, IANA, countries-list) and Hata, so `seed` has no effect. `/flags/{code}.svg` serves the flag and `/maps/{code}.svg` the country's outline. For compatibility it returns every country as a bare array unless `metadata=true` is given. Its subdivisions are at `/countries/{code}/subdivisions` and its groupings (the EU, the G7) at `/countries/{code}/groupings`; the codes ISO has withdrawn (the Soviet Union, Yugoslavia, Zaire) are at `/countries/withdrawn`.",
     schema: Country,
     idField: 'alpha2',
     idDescription: 'ISO 3166 alpha-2, alpha-3 or numeric code, e.g. `CA`, `CAN` or `124`.',
@@ -231,7 +231,7 @@ export const resources: Resource[] = [
     name: 'subdivisions',
     title: 'Subdivision',
     description:
-      "The states, provinces, prefectures, counties, regions and Länder of 200 countries — 5,050 ISO 3166-2 subdivisions — with their code, kind, level, parent, name in English and Japanese, capital, population, area and coordinates: real reference data from Kuni (Unicode CLDR, Wikidata), so `seed` has no effect. Filter by `country=JP`, `type=prefecture` or `level=1`; `/countries/{code}/subdivisions` lists one country's. The first request for a country loads its data; one without a `country` loads all of them. A record's `province` links here: `expand=subdivision` on `/users` or `/names`.",
+      "The states, provinces, prefectures, counties, regions and Länder of 200 countries — 5,050 ISO 3166-2 subdivisions — with their code, kind, level, parent, name in English and Japanese, capital, population, area, coordinates and, for 219 of them, the address of its flag: real reference data from Kuni (Unicode CLDR, Wikidata) and Hata, so `seed` has no effect. `/maps/JP-13.svg` draws one lit on its country. Filter by `country=JP`, `type=prefecture` or `level=1`; `/countries/{code}/subdivisions` lists one country's. The first request for a country loads its data; one without a `country` loads all of them. A record's `province` links here: `expand=subdivision` on `/names` or `/companies`.",
     schema: Subdivision,
     idField: 'code',
     idDescription: 'ISO 3166-2 code, e.g. `JP-13` or `CA-ON`.',

@@ -150,6 +150,8 @@ Most tools in this space either intercept requests and leave you to write the da
 | [Mockaroo](https://www.mockaroo.com/) | A hosted generator: design a schema in the browser, download CSV, JSON, SQL and more | Mockaroo has far more field types, formulas, its own datasets and saved schemas, and limits rows and API calls on its free plan. REST in Pieces runs locally and free with no account; `/generate` takes Faker's types with [arguments, weighted choices and blank rates](#custom-fields-arguments-choices-and-blanks), and answers in NDJSON and SQL as well, seeded so the same URL gives the same file. It has no formulas between fields. |
 | [Synthea](https://synthetichealth.github.io/synthea/) | Synthetic patient records, simulated from published health statistics | A different job: Synthea models populations so its records are statistically plausible for health research. REST in Pieces makes rule-based fake data for building and testing user interfaces, and claims no statistical fidelity. |
 | [Faker](https://fakerjs.dev/) | A library of generators you call in code | REST in Pieces is built on it, and serves it over HTTP with paging, filters, formats, seeds and relations already done. Faker's own image and avatar URLs point at other hosts; REST in Pieces draws its own with `safe=true`. |
+| [REST Countries](https://restcountries.com/) | A hosted public API of country data: names, codes, capitals, currencies, languages, population, area, borders, flags | Nothing to install, and its country records hold more than REST in Pieces' (translations into many languages, demonyms, Gini, coats of arms, PNG flags); see its own documentation for the list. REST in Pieces serves country data as one part of a test backend rather than as the product: `/countries` with names in English and Japanese, capitals, population, area, borders, time zones and driving side, then what REST Countries does not hold, the states, provinces and prefectures of 200 countries, the EU and the G7 as groupings, the codes ISO has withdrawn, SVG flags and maps, with the paging, filters, formats, `expand` and failure drills of the invented datasets, offline and without a rate limit. Use REST Countries for its breadth of fields from a hosted address; use this where the places must sit beside fake people in one local API. |
+| [country-data](https://www.npmjs.com/package/country-data) | An npm package of ISO country codes, currencies, languages and calling codes | What `/countries` was made from until it moved to [Kuni](https://github.com/johnmorrisdotca/kuni), which has all of it and Japanese names, capitals, facts, regions and groupings. The nine fields it had keep their names and types (see [docs/reference-data.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/reference-data.md#what-changed-from-the-country-data-list)). |
 
 ## Quick start
 
@@ -250,6 +252,7 @@ curl -N 'http://localhost:6800/users?delay=200-800&trickle=200'
 | `GET /countries`           | Every country and territory: ISO codes, names in English and Japanese, currencies, languages, calling codes, capital, time zones, population, area, borders. Real data from [Kuni](https://github.com/johnmorrisdotca/kuni), with a country's `/subdivisions` and `/groupings` under it. See [Real places, invented people](#real-places-invented-people). |
 | `GET /subdivisions` | The 5,050 states, provinces, prefectures, counties and Länder of 200 countries (ISO 3166-2): code, kind, level, parent, names in English and Japanese, capital, population, area, coordinates. `/countries/{code}/subdivisions` lists one country's, and `expand=subdivision` on `/names` links a person's province. |
 | `GET /groupings` | 107 groupings of countries (the EU, the G7, ASEAN, continents, UN regions) and of subdivisions (Japan's 地方), with members, the dates they joined, and the definition each follows. `/groupings/{id}/countries`, `/countries/{code}/groupings`. |
+| `GET /flags/{code}.svg`, `/maps/{code}.svg` | A flag (`jp`, `jp-13`, `CA-ON`; `?shape=round`, `?fit=whole`) and a map (`JP`, `JP-13`; `?capital=true`, `?color=2f6b4f`) as SVG, like `/avatars`. A record's `flag` is the same flag's address on the CDN. See [Flags and maps](https://github.com/spxis/rest-in-pieces/blob/main/docs/reference-data.md#flags-and-maps). |
 | `GET /countries/withdrawn` | The 31 countries ISO 3166-3 withdrew (`SU`, `YU`, `CS`, `DD`, `ZR`…), with the codes they held, the years, and the countries that came after. |
 | `GET /orders`              | Orders with their line items, joined to `/users` by `userId` and each item to `/products` by `productId`, totals and tax in the buyer's currency. See [Relations](#relations). |
 | `GET /posts`               | Blog posts by users, in JSONPlaceholder's shape plus `createdAt`. |
@@ -393,7 +396,7 @@ await fetch(`${BASE}/posts`, {
 
 ## Real places, invented people
 
-People, companies and orders are invented; places are not. `/countries` serves the 250 ISO 3166-1 countries and territories with names in English and Japanese, ISO codes, capital, time zones, population, area, coordinates, land borders, driving side and calendar conventions; `/subdivisions` the 5,050 states, provinces, prefectures and counties inside them; `/groupings` the EU, the G7, ASEAN, the continents and Japan's regions; and `/countries/withdrawn` the 31 countries ISO 3166-3 withdrew, each with the codes it held, the years and the countries that came after it. Real reference data is public fact, not personal data; the rule stays that no real person is ever served.
+People, companies and orders are invented; places are not. `/countries` serves the 250 ISO 3166-1 countries and territories with names in English and Japanese, ISO codes, capital, time zones, population, area, coordinates, land borders, driving side and calendar conventions; `/subdivisions` the 5,050 states, provinces, prefectures and counties inside them; `/groupings` the EU, the G7, ASEAN, the continents and Japan's regions; `/flags/{code}.svg` and `/maps/{code}.svg` their flags and maps; and `/countries/withdrawn` the 31 countries ISO 3166-3 withdrew, each with the codes it held, the years and the countries that came after it. Real reference data is public fact, not personal data; the rule stays that no real person is ever served.
 
 ```sh
 curl 'http://localhost:6800/countries/JP?locale=ja'             # 日本, 東京, Asia/Tokyo, left-hand traffic
@@ -401,12 +404,13 @@ curl 'http://localhost:6800/countries?borders=FR&limit=20'      # France's neigh
 curl 'http://localhost:6800/subdivisions?country=JP&limit=3'      # 北海道, 青森県, 岩手県, with capital and population
 curl 'http://localhost:6800/names?limit=3&expand=subdivision'  # a person's province, as its ISO 3166-2 record
 curl 'http://localhost:6800/groupings/g7/countries'            # the seven
+curl -L 'http://localhost:6800/flags/jp-13.svg' > tokyo.svg      # a flag; /maps/JP-13.svg?color=2f6b4f is a map
 curl 'http://localhost:6800/countries/withdrawn/SU/successors'  # the fifteen countries that followed the USSR
 ```
 
 The data is [Kuni](https://github.com/johnmorrisdotca/kuni)'s, loaded the first time a request asks for it (a country's subdivisions when that country is asked for); a reference dataset has no `seed` and is read-only. **[Fields, what changed from the old `country-data` list, and the licence of every source are in docs/reference-data.md.](https://github.com/spxis/rest-in-pieces/blob/main/docs/reference-data.md)**
 
-**Data sources.** Unicode CLDR (Unicode-3.0), Wikidata (CC0), countries-list (MIT), IANA time zones and top-level domains (public domain) and Natural Earth (public domain), all through Kuni; the full table is in the document above.
+**Data sources.** Unicode CLDR (Unicode-3.0), Wikidata (CC0), countries-list (MIT), IANA time zones and top-level domains (public domain) and Natural Earth (public domain), through Kuni; flags from Wikimedia Commons and flag-icons through Hata (each file's own licence, kept by Hata); maps from Natural Earth through Chizu. The full table is in the document above.
 
 ## Safe values
 

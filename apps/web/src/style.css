@@ -1832,6 +1832,24 @@ kbd {
 .preview-picture.square {
   border-radius: 6px;
 }
+/* A flag keeps its proportions in its square, and a map sits beside the figure. */
+.preview-cards .preview-picture[src*="/hata@"] {
+  object-fit: contain;
+  border-radius: 3px;
+  background: none;
+}
+.preview-end {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.preview-cards .preview-map {
+  flex: none;
+  width: 56px;
+  height: 34px;
+  object-fit: contain;
+  border-radius: 6px;
+}
 @media (max-width: 560px) {
   .endpoint-tabs {
     grid-template-columns: repeat(3, 1fr);

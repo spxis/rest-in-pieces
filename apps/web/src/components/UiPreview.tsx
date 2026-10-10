@@ -138,6 +138,45 @@ export function cardOf(row: Row): {
       thing: true,
     };
   }
+  // Real reference data: a country, a subdivision, a grouping or a withdrawn country, with its flag where it has one.
+  const flag = picture(row.flag);
+  if ('alpha2' in row && 'continent' in row) {
+    const capital = (row.capital as Row | null | undefined)?.en;
+    return {
+      title: text('name'),
+      subtitle: [typeof capital === 'string' ? capital : '', text('continent')].filter(Boolean).join(' · '),
+      aside: text('alpha2'),
+      avatar: flag,
+      thing: true,
+    };
+  }
+  if ('shortCode' in row && 'level' in row) {
+    return {
+      title: text('name'),
+      subtitle: [text('code'), text('type')].filter(Boolean).join(' · '),
+      aside: row.population === null || row.population === undefined ? '' : Number(row.population).toLocaleString(),
+      avatar: flag,
+      thing: true,
+    };
+  }
+  if ('memberCount' in row && 'definition' in row) {
+    return {
+      title: text('name'),
+      subtitle: text('kind'),
+      aside: `${text('memberCount')}`,
+      avatar: null,
+      thing: true,
+    };
+  }
+  if ('successors' in row && 'since' in row) {
+    return {
+      title: text('name'),
+      subtitle: [text('code'), `${text('since')}–${text('until')}`].join(' · '),
+      aside: text('alpha2'),
+      avatar: null,
+      thing: true,
+    };
+  }
   if ('invoiceStatus' in row) {
     return {
       title: [text('number'), text('customer')].filter(Boolean).join(' · '),
@@ -324,6 +363,26 @@ const ERRORS: Record<number, [PhraseKey, PhraseKey]> = {
  * The response drawn the way an app would draw it: a skeleton while it loads, a card per record, and a
  * proper state for empty results and for each error, so the unhappy paths can be seen, not only read.
  */
+/**
+ * The address of the map of a country or subdivision on the API a response came from, or null for any other record:
+ * the request's address up to the dataset (`…/countries`, `…/subdivisions`), then `/maps/{code}.svg`.
+ */
+export function mapAddress(requestUrl: string, row: Row): string | null {
+  const code = 'shortCode' in row ? row.code : 'alpha2' in row && 'continent' in row ? row.alpha2 : null;
+  if (typeof code !== 'string') return null;
+  const root = /^(.*?)\/(?:countries|subdivisions|groupings|names|companies)(?:[/?]|$)/.exec(requestUrl)?.[1];
+  return root === undefined ? null : `${root}/maps/${encodeURIComponent(code)}.svg`;
+}
+
+/** A map beside a record, where the API that answered can draw one; nothing where it cannot (the copy inside the page). */
+function MapThumb({ src }: { src: string }) {
+  const [failed, setFailed] = useState(false);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a new map deserves a new try
+  useEffect(() => setFailed(false), [src]);
+  if (failed) return null;
+  return <img className="preview-map" src={src} alt="" height={34} loading="lazy" onError={() => setFailed(true)} />;
+}
+
 export function UiPreview({
   result,
   rows,
@@ -460,7 +519,15 @@ export function UiPreview({
                   <strong className="preview-title">{card.title}</strong>
                   {card.subtitle && <span className="preview-subtitle">{card.subtitle}</span>}
                 </span>
-                {card.aside && <span className="preview-aside">{card.aside}</span>}
+                {(() => {
+                  const map = mapAddress(result.url, row);
+                  return card.aside || map ? (
+                    <span className="preview-end">
+                      {map && <MapThumb src={map} />}
+                      {card.aside && <span className="preview-aside">{card.aside}</span>}
+                    </span>
+                  ) : null;
+                })()}
               </li>
             );
           })}

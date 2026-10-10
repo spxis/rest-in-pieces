@@ -41,3 +41,16 @@ test('links a person’s province to its subdivision, and lists a grouping’s c
   await page.getByRole('tab', { name: /Body/ }).click();
   await expect(page.locator('.response-body')).toContainText('"alpha2": "JP"');
 });
+
+test('shows a country with its flag and its map in the UI preview', async ({ page }) => {
+  await page.getByRole('tab', { name: /Countries/ }).click();
+  await send(page);
+  await page.getByRole('tab', { name: /UI preview/ }).click();
+  const cards = page.getByTestId('ui-cards');
+  await expect(cards).toContainText('Andorra');
+  await expect(cards.locator('img[src*="/hata@1/dist/svg/ad.svg"]')).toHaveCount(1);
+  // The map is drawn by the API (Chizu), so it loads from there, not from the CDN.
+  const map = cards.locator('img.preview-map').first();
+  await expect(map).toHaveAttribute('src', /\/maps\/AD\.svg$/);
+  await expect.poll(() => map.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+});

@@ -24,12 +24,6 @@ Fixed:
 
 - The static API no longer repeats five country codes.
 
-## 2.24.1 - 2026-10-09
-
-### Fixed
-
-- The test of `delay` and `trickle` together moves its fake clock only to the timers the response sets, never by a fixed step, which could carry it past the finish on a slow machine. That stopped the release run of 2.24.0 before publishing, so this release is the first on npm with the starters and the Postman and Bruno collections listed for 2.24.0.
-
 ### Regions: subdivisions and groupings (one minor release)
 
 Added:
@@ -44,6 +38,26 @@ Added:
 Changed:
 
 - The README's Relations section moves to [docs/relations.md](docs/relations.md), leaving a summary and a link, to make room.
+
+### Flags and maps (one minor release)
+
+Added:
+
+- `flag` on every country and subdivision: the address of its flag's SVG on the jsDelivr CDN from [Hata](https://github.com/johnmorrisdotca/hata) (`https://cdn.jsdelivr.net/npm/@johnmorrisdotca/hata@1/dist/svg/jp.svg`), or `null` where Hata has none (245 countries and 219 subdivisions have one). The package holds a 2 KB list of the codes Hata has and no flag; `scripts/hata-codes.ts` makes it and a test fails when it is not the installed Hata's own.
+- `GET /flags/{code}.svg`, answered like `/avatars`: a standalone SVG, cached for a day, by alpha-2 or ISO 3166-2 code in any case. `shape` (`own`, `4:3`, `1:1`, `round`), `fit` (`auto`, `whole`, `crop`, `cover`, `hoist`, `contain`) and `variant` are Hata's, so a square or round flag never stretches. The server fetches nothing while a request waits: with `@johnmorrisdotca/hata` installed beside this package (an optional peer dependency) the flag is drawn from it; without it a plain request is a `302` to the CDN and a framed one is `501`, saying to install it. `REST_IN_PIECES_FLAGS=cdn` and `createApp({ flags: 'cdn' })` always redirect. `404` for a code with no flag, `400` for an unknown shape or fit.
+- `GET /maps/{code}.svg`, drawn by [Chizu](https://github.com/johnmorrisdotca/chizu) (a dependency, loaded the first time a map is asked for): a country's outline by alpha-2, alpha-3 or numeric code (238 countries), or a subdivision lit on its country (`JP-13`, `CA-ON`, `DE-BY`: the regions of 32 countries). `color` fills it, `capital=true` and `dot` put a dot on a country's capital, `lang` sets the label. `404` for a map Chizu does not have, `400` for a colour that is not hex. The API inside a browser tab has no maps (`501`).
+- The playground's cards for countries and subdivisions show the flag, and a map beside it where the API can draw one; the tabs' descriptions say so, in English and Japanese.
+- [docs/reference-data.md](docs/reference-data.md) has the parameters, where the SVG comes from and the licences; `/flags` and `/maps` are in the OpenAPI document, the Postman and Bruno collections and the README.
+
+Changed:
+
+- Nothing a client relied on: the nine original country fields are as they were, and `flag` is new.
+
+## 2.24.1 - 2026-10-09
+
+### Fixed
+
+- The test of `delay` and `trickle` together moves its fake clock only to the timers the response sets, never by a fixed step, which could carry it past the finish on a slow machine. That stopped the release run of 2.24.0 before publishing, so this release is the first on npm with the starters and the Postman and Bruno collections listed for 2.24.0.
 
 ## 2.24.0 - 2026-10-09
 

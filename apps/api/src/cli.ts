@@ -71,6 +71,7 @@ export interface CliEnv {
   REST_IN_PIECES_SESSION?: string | undefined;
   REST_IN_PIECES_SAFE?: string | undefined;
   REST_IN_PIECES_STREAMS?: string | undefined;
+  REST_IN_PIECES_FLAGS?: string | undefined;
 }
 
 /** A switch in the environment: on for any value but empty, `0`, `false`, `no` or `off`. */
@@ -87,6 +88,10 @@ export const streamsFromEnv = (env: CliEnv): boolean => {
   const raw = env.REST_IN_PIECES_STREAMS?.trim();
   return raw === undefined || raw === '' || switchedOn(raw);
 };
+
+/** Where flags come from: `cdn` when `REST_IN_PIECES_FLAGS` is `cdn`, so a flag is never drawn here; otherwise `auto`. */
+export const flagsFromEnv = (env: CliEnv): 'auto' | 'cdn' =>
+  env.REST_IN_PIECES_FLAGS?.trim().toLowerCase() === 'cdn' ? 'cdn' : 'auto';
 
 /** Whether `REST_IN_PIECES_SAFE` turns safe values on, read the same way. */
 export const safeFromEnv = (env: CliEnv): boolean => switchedOn(env.REST_IN_PIECES_SAFE);
