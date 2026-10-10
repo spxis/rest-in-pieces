@@ -4,6 +4,8 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+## 2.19.0 - 2026-10-09
+
 ### Added
 
 - `/patients`, `/observations`, `/conditions` and `/encounters`: invented resources in the shape of FHIR R4's Patient, Observation, Condition and Encounter, seeded and localized, read-only, with every dataset feature (paging, sorting, filters, formats, `messy`, the simulation). Each resource carries a `synthetic` tag. **Synthetic, not de-identified: nothing was derived from a real person or record, no statistical resemblance is claimed, and the clinical codes are this project's own short lists in `urn:rest-in-pieces:synthetic:…` code systems, not SNOMED CT, LOINC, ICD or CPT** (HL7's own free code systems and UCUM units are used where FHIR defines them).
