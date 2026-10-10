@@ -4,6 +4,10 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Fixed
+
+- The release check's slowest test (every record of every locale accepted back as a `PUT` body) has the time it needs. It ran past vitest's 5-second default on GitHub's runner, so the release runs of 2.14.0 and 2.15.0 stopped before publishing, and 2.16.0 to 2.19.0 were never tagged on GitHub. This release is the first on npm since 2.13.0 and carries everything listed for 2.14.0 to 2.19.0.
+
 ## 2.19.0 - 2026-10-09
 
 ### Added
