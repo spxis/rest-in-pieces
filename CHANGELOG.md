@@ -4,6 +4,8 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+## 2.24.1 - 2026-10-09
+
 ### Fixed
 
 - The test of `delay` and `trickle` together moves its fake clock only to the timers the response sets, never by a fixed step, which could carry it past the finish on a slow machine. That stopped the release run of 2.24.0 before publishing, so this release is the first on npm with the starters and the Postman and Bruno collections listed for 2.24.0.
