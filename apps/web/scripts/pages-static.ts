@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { createApp } from '@johnmorrisdotca/rest-in-pieces/core';
 import apiPackage from '../../api/package.json' with { type: 'json' };
 import { checkFixtures, folderBytes, writeFixtures } from './fixtures.ts';
+import { writeStaticApi } from './staticApi.ts';
 
 const out = new URL('../dist-pages/api/', import.meta.url);
 // The reference page lives at api/docs/, so the document is one folder up.
@@ -43,3 +44,8 @@ const problems = checkFixtures(fixtures);
 if (problems.length > 0) throw new Error(`The fixtures disagree with index.json:\n${problems.join('\n')}`);
 const megabytes = (folderBytes(fixtures) / 1024 / 1024).toFixed(1);
 console.log(`Wrote ${index.files.length} fixtures and index.json to ${fixtures} (${megabytes} MB)`);
+
+// The static API beside the OpenAPI document: a small linked copy at paths a tutorial can fetch (see staticApi.ts).
+const apiDir = fileURLToPath(out);
+const staticApi = await writeStaticApi(app, apiDir, `${site}api/`);
+console.log(`Wrote ${staticApi.files} static API files and index.json to ${apiDir}`);

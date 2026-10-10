@@ -94,4 +94,33 @@ test('opens the use cases from its own address, in Japanese, on a phone', async 
   await playAll(page);
   expect(await sidewaysOverflow(page)).toBe(0);
   expect(errors).toEqual([]);
+
+// The static API: plain files with the page number in the path, so any client can fetch them with no server.
+test('serves the static API as plain JSON files that link to each other', async ({ request }) => {
+  const index = await request.get('./api/index.json');
+  expect(index.ok()).toBe(true);
+  const { base, files } = (await index.json()) as { base: string; files: number };
+  expect(files).toBeGreaterThan(1000);
+  expect(base).toMatch(/\/api\/$/);
+
+  const second = await request.get('./api/users/page/2.json');
+  expect(second.headers()['content-type']).toContain('application/json');
+  const { metadata, results } = (await second.json()) as {
+    metadata: { links: { next: string; prev: string } };
+    results: { id: number }[];
+  };
+  expect(results.map((user) => user.id)).toEqual([11, 12, 13, 14, 15, 16, 17, 18, 19, 20]);
+  // A link is an address on the site, so the page after this one is a file that exists. Its host is the one the
+  // site is built for, so the test follows the path under it.
+  const path = (link: string) => `./api/${link.slice(link.indexOf('/api/') + 5)}`;
+  const next = await request.get(path(metadata.links.next));
+  expect(((await next.json()) as { results: { id: number }[] }).results[0]?.id).toBe(21);
+
+  // CORS is Pages' to send (checked on the live site), so what is checked here is the paths.
+  const record = await request.get('./api/users/1.json');
+  expect(((await record.json()) as { id: number }).id).toBe(1);
+  expect((await request.get('./api/jsonplaceholder/posts/1/comments.json')).ok()).toBe(true);
+  // There is no eleventh page. Pages answers 404; the preview server falls back to the playground's page. Neither is JSON.
+  const beyond = await request.get('./api/users/page/11.json');
+  expect(beyond.headers()['content-type']).not.toContain('json');
 });
