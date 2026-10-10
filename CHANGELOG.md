@@ -4,6 +4,8 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+## 2.23.0 - 2026-10-09
+
 ### Added
 
 - `GET /streams/{messages|notifications|metrics|logs}` plays a dataset as Server-Sent Events, one record per event: `id` is the record's `id`, `data` the record as JSON, and the first N events are the first N records of the dataset for the same seed and locale, so a stream replays exactly. Events are unnamed, so `EventSource.onmessage` receives them, and the stream ends with an `end` event. `GET /streams` lists the streams.
