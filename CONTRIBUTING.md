@@ -34,6 +34,8 @@ Then open [http://localhost:6802/rest-in-pieces/](http://localhost:6802/rest-in-
 | `apps/api/src/data` | Dataset generators, the generator registry and the dataset cache |
 | `apps/api/src/routes` | Route definitions; each route declares its Zod schemas for validation and OpenAPI |
 | `apps/api/src/resources.ts` | The list of built-in datasets. Adding one here gives it list, item, docs and playground support |
+| `examples` | Starter apps (React, Vue, Next.js) that open in StackBlitz and CodeSandbox |
+| `collections` | The Postman and Bruno collections, written by `pnpm collections` from the OpenAPI document |
 | `apps/web/src` | The playground: `lib` (pure logic), `hooks`, `components` |
 | `tests/e2e` | Playwright tests against the real API and playground |
 
@@ -45,6 +47,8 @@ pnpm test:coverage      # API coverage thresholds
 pnpm exec playwright install chromium
 pnpm test:e2e
 ```
+
+If you change a route or a parameter, run `pnpm collections` to rewrite the Postman and Bruno collections in `collections/`; a test fails when they are out of date.
 
 Keep pull requests focused, add or update tests for behaviour changes, and update the README and changelog when user-facing behaviour changes.
 

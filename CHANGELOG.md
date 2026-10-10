@@ -4,6 +4,13 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Added
+
+- `examples/` with three starters that load seeded data and show loading and error states: React with Vite, Vue with Vite (both add `restInPieces()` to `vite.config.js`) and Next.js (one route handler answers `/api/*` with `createApp()`). Each has an "Open in StackBlitz" link, with no account, and the Vite two a CodeSandbox link. The starters install the package from npm and are not part of the workspace.
+- A Postman collection (v2.1) and a Bruno collection with a request for every route, made from the OpenAPI document by `pnpm collections`: `limit` and `seed` on and every other parameter listed, off, with its description; a seeded example body for each write; a `baseUrl` variable and, for the one route that needs it, a `token`. The GitHub Pages build serves the Postman file at `/collections/rest-in-pieces.postman_collection.json`, so Postman imports it by link with no account (Postman's "Run in Postman" button needs a published workspace, which needs an account). The OpenAPI document can be imported by link too.
+- `collections-files.test.ts` fails when the committed collections are not what the generator makes now, and checks that every operation is in both once, every request starts at `{{baseUrl}}`, every path variable is defined and every body is JSON.
+- [docs/starters-and-collections.md](docs/starters-and-collections.md) has the links and the steps.
+
 ## 2.23.0 - 2026-10-09
 
 ### Added
