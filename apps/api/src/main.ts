@@ -1,7 +1,7 @@
 import { serve } from '@hono/node-server';
 import pkg from '../package.json' with { type: 'json' };
 import { createNodeApp } from './app.ts';
-import { CliError, displayUrl, generateUsage, parseCliArgs, usage } from './cli.ts';
+import { CliError, displayUrl, generateUsage, parseCliArgs, streamsFromEnv, usage } from './cli.ts';
 import { loadMock } from './mockCommand.ts';
 import { runGenerateCommand } from './offline.ts';
 
@@ -39,7 +39,7 @@ async function main(): Promise<void> {
       return;
     }
   }
-  const app = mock ? mock.mock.app : createNodeApp({ session, safe });
+  const app = mock ? mock.mock.app : createNodeApp({ session, safe, streams: streamsFromEnv(process.env) });
   const server = serve({ fetch: app.fetch, port, hostname: host }, (info) => {
     const url = displayUrl(host, info.port);
     if (mock) {

@@ -27,6 +27,7 @@ import { home } from './routes/home.ts';
 import { imageRoutes } from './routes/images.ts';
 import { meta } from './routes/meta.ts';
 import { sessionRoutes } from './routes/session.ts';
+import { documentStreams, streamRoutes } from './routes/streams.ts';
 import { SqlTableError } from './serialize.ts';
 
 export type { SessionLimits, SessionOption } from './lib/session.ts';
@@ -50,6 +51,11 @@ export interface AppOptions {
    * default in 2.x, so existing output does not change; `?safe=true` asks for it on one request.
    */
   safe?: boolean | undefined;
+  /**
+   * Serves `GET /streams/{name}`: Server-Sent Events that play messages, notifications, metrics and logs. On by default.
+   * An open stream is a held connection (at most 60 seconds each), so a host that bills by connection time can turn it off.
+   */
+  streams?: boolean | undefined;
 }
 
 /**
@@ -62,6 +68,7 @@ export function createApp({
   mount,
   session: option,
   safe = false,
+  streams = true,
 }: AppOptions = {}): OpenAPIHono {
   const app = new OpenAPIHono();
   const session = createSession(option);
@@ -100,6 +107,10 @@ export function createApp({
     app.route('/random-names', collectionRoutes(names, { deprecated: true, path: 'random-names', session, safe }));
   }
   app.route('/generate', generateRoutes({ safe }));
+  if (streams) {
+    app.route('/streams', streamRoutes({ safe }));
+    documentStreams(app);
+  }
   app.route('/fhir', fhirRoutes());
   imageRoutes(app);
   compatRoutes(app);
@@ -139,6 +150,11 @@ export function createApp({
         name: 'Synthetic patients (FHIR R4)',
         description:
           'Invented patients in the shape of FHIR R4: Patient, Observation, Condition and Encounter, as a FHIR server answers them. Synthetic test data: not real people, not real records, not de-identified data, and not coded with SNOMED CT, LOINC, ICD or CPT.',
+      },
+      {
+        name: 'Streams',
+        description:
+          'Server-Sent Events that play a seeded dataset one record at a time: messages, notifications, metrics and logs. Capped in count and duration; `Last-Event-ID` resumes.',
       },
       { name: 'Images', description: 'Self-hosted SVG avatars and placeholder images, drawn from the URL alone.' },
       {

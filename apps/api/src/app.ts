@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { serveStatic } from '@hono/node-server/serve-static';
-import { safeFromEnv, sessionFromEnv } from './cli.ts';
+import { safeFromEnv, sessionFromEnv, streamsFromEnv } from './cli.ts';
 import { type AppOptions, createApp } from './core.ts';
 
 // The playground is served from the same origin when it has been built alongside the API: `WEB_ROOT`
@@ -15,11 +15,12 @@ const serveWeb =
   process.env.SERVE_WEB !== 'false' && process.env.NODE_ENV !== 'test' && existsSync(`${webRoot}/index.html`);
 
 /** The API as the Node server runs it: logging, and the playground on the same origin when it has been built. */
-export function createNodeApp({ session, safe }: Pick<AppOptions, 'session' | 'safe'> = {}) {
+export function createNodeApp({ session, safe, streams }: Pick<AppOptions, 'session' | 'safe' | 'streams'> = {}) {
   return createApp({
     log: process.env.NODE_ENV !== 'test',
     session,
     safe,
+    streams,
     mount:
       serveWeb && webRoot
         ? (app) => {
@@ -35,4 +36,8 @@ export function createNodeApp({ session, safe }: Pick<AppOptions, 'session' | 's
  * The Node app, keeping writes when `REST_IN_PIECES_SESSION` asks it to and stateless otherwise, and serving safe
  * values when `REST_IN_PIECES_SAFE` does.
  */
-export const app = createNodeApp({ session: sessionFromEnv(process.env), safe: safeFromEnv(process.env) });
+export const app = createNodeApp({
+  session: sessionFromEnv(process.env),
+  safe: safeFromEnv(process.env),
+  streams: streamsFromEnv(process.env),
+});
