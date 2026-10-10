@@ -1,6 +1,6 @@
 {
   "name": "rest-in-pieces-workspace",
-  "version": "2.19.1",
+  "version": "2.19.2",
   "private": true,
   "description": "A REST service that serves realistic, repeatable fake data for building and testing client applications.",
   "license": "MIT",

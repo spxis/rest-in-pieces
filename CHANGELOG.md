@@ -4,6 +4,8 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+## 2.19.2 - 2026-10-09
+
 ### Fixed
 
 - The test suite allows 20 seconds a test, not vitest's 5: the release runner, with coverage on, took longer than 5 over the few tests that build every locale or a request at its size limit, which stopped the release runs of 2.14.0, 2.15.0 and 2.19.1 before publishing. This release is the first on npm since 2.13.0 and carries everything listed for 2.14.0 to 2.19.1.
