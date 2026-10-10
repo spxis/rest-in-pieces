@@ -4,11 +4,14 @@ import '@fontsource/space-grotesk/latin-600.css';
 import '@fontsource/ibm-plex-mono/latin-400.css';
 import '@fontsource/ibm-plex-mono/latin-500.css';
 import './style.css';
-import { StrictMode } from 'react';
+import { lazy, StrictMode, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import { LocaleProvider } from './i18n/LocaleProvider.tsx';
+import { viewFor } from './lib/route.ts';
 import { applyTheme, readTheme } from './lib/theme.ts';
+
+const UseCasesPage = lazy(() => import('./components/UseCasesPage.tsx'));
 
 // Before the first paint, so a pinned theme never flashes the other one.
 applyTheme(readTheme());
@@ -22,7 +25,13 @@ if (!rootElement) throw new Error('Root element was not found');
 createRoot(rootElement).render(
   <StrictMode>
     <LocaleProvider>
-      <App />
+      {viewFor(window.location.pathname, window.location.search) === 'use-cases' ? (
+        <Suspense fallback={null}>
+          <UseCasesPage />
+        </Suspense>
+      ) : (
+        <App />
+      )}
     </LocaleProvider>
   </StrictMode>,
 );

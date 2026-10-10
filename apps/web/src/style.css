@@ -1160,6 +1160,7 @@ h1 {
   .language-picker button {
     padding: 3px 7px;
     font-size: 10px;
+    white-space: nowrap;
   }
   .workspace {
     padding: 29px 12px 16px;

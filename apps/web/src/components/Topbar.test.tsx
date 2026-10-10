@@ -60,6 +60,18 @@ describe('the links in the top bar', () => {
     );
     expect(href('The rest-in-pieces package on npm')).toBe(NPM_URL);
     expect(href('Source code on GitHub')).toBe(REPO_URL);
-    for (const link of links.querySelectorAll('a')) expect(link.getAttribute('rel')).toBe('noreferrer');
+    // The links out of the app open elsewhere without handing over the referrer; the one to the use cases stays in it.
+    for (const link of links.querySelectorAll('a[target=_blank]')) expect(link.getAttribute('rel')).toBe('noreferrer');
+    expect(screen.getByRole('link', { name: /Use cases/ }).getAttribute('href')).toBe('/?view=use-cases');
+  });
+
+  it('offers the playground from the use cases page instead', () => {
+    render(
+      <LocaleProvider initial="en">
+        <Topbar apiBase="http://localhost:6800/" online={null} view="use-cases" />
+      </LocaleProvider>,
+    );
+    expect(screen.getByRole('link', { name: /Playground/ }).getAttribute('href')).toBe('/');
+    expect(screen.queryByRole('link', { name: /Use cases/ })).toBeNull();
   });
 });

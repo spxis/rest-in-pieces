@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { playAll, sidewaysOverflow, USE_CASE_IDS, watchErrors } from './use-cases.helpers.ts';
 
 // The published demo: the API runs inside the page, stateless until the session panel says otherwise.
 test('keeps writes in the tab only when asked, and resets them', async ({ page }) => {
@@ -56,4 +57,41 @@ test('answers nested lists and safe values in the tab, with avatars drawn in the
   expect(await avatar.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
   await page.getByRole('tab', { name: /Body/ }).click();
   await expect(page.locator('.response-body')).toContainText('/rest-in-pieces/api/avatars/');
+});
+
+// The use cases on the published demo: the API inside the page answers every animation, so nothing leaves it,
+// and the browser has no failing request to log for the 500, 503 and 401 the examples ask for.
+test('plays the use cases from the API inside the tab, with nothing logged', async ({ page }) => {
+  test.setTimeout(90_000);
+  const errors: string[] = [];
+  page.on('console', (message) => message.type() === 'error' && errors.push(message.text()));
+  page.on('pageerror', (error) => errors.push(String(error)));
+  const requests: string[] = [];
+  page.on('request', (request) => requests.push(new URL(request.url()).pathname));
+
+  await page.goto('./');
+  await page.getByRole('link', { name: /Use cases/ }).click();
+  await expect(page).toHaveURL(/\/rest-in-pieces\/use-cases\/$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'What it is for' })).toBeVisible();
+  await expect(page.getByTestId('uc-where')).toContainText('inside this page');
+  for (const id of USE_CASE_IDS) await expect(page.getByTestId(`uc-${id}`)).toBeAttached();
+  await playAll(page);
+  await expect(page.getByTestId('uc-person-row')).toHaveCount(5);
+  await expect(page.getByTestId('uc-down')).toContainText('503');
+  await expect(page.getByTestId('uc-log')).toContainText('token_expired');
+  await expect(page.getByTestId('uc-synthetic-tag')).toHaveText('SYNTHETIC');
+  expect(errors).toEqual([]);
+  // The in-tab API answered: not one request went out under the API's address.
+  expect(requests.filter((path) => path.startsWith('/rest-in-pieces/api/'))).toEqual([]);
+});
+
+test('opens the use cases from its own address, in Japanese, on a phone', async ({ page }) => {
+  test.setTimeout(90_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  const errors = watchErrors(page);
+  await page.goto('use-cases/?lang=ja');
+  await expect(page.getByRole('heading', { level: 1, name: '使いどころ' })).toBeVisible();
+  await playAll(page);
+  expect(await sidewaysOverflow(page)).toBe(0);
+  expect(errors).toEqual([]);
 });

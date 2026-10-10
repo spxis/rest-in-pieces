@@ -1,4 +1,5 @@
 import type { PhraseKey } from './phrases.ts';
+import { USE_CASE_JA } from './useCases.ja.ts';
 
 /**
  * Japanese for every phrase. Drafted rather than published copy, so each entry carries `back`:
@@ -447,4 +448,5 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
     back: 'No records match. Please clear the search or filters.',
   },
   'ui.more': { text: 'ほか {count} 件', back: '{count} others' },
+  ...USE_CASE_JA,
 };

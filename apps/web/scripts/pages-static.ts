@@ -2,7 +2,7 @@
  * Writes the parts of the API a browser opens directly rather than through the playground's fetch: the OpenAPI
  * document and the reference page under `dist-pages/api/`, and the static fixtures under `dist-pages/fixtures/`.
  */
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createApp } from '@johnmorrisdotca/rest-in-pieces/core';
 import apiPackage from '../../api/package.json' with { type: 'json' };
@@ -23,6 +23,15 @@ for (const [path, file] of [
   writeFileSync(target, await response.text());
   console.log(`Wrote ${target.pathname}`);
 }
+
+// The use cases are the same app opened from a folder of their own, so `/use-cases/` has its own address to link to.
+// Its scripts and styles are absolute paths under the site's base, so the page is a copy of the playground's.
+mkdirSync(new URL('../dist-pages/use-cases/', import.meta.url), { recursive: true });
+copyFileSync(
+  new URL('../dist-pages/index.html', import.meta.url),
+  new URL('../dist-pages/use-cases/index.html', import.meta.url),
+);
+console.log('Wrote the use cases page at use-cases/index.html');
 
 // The site's full address, which the Pages workflow passes from actions/configure-pages; the package's homepage
 // otherwise. index.json lists every file at it. configure-pages answers with http://, though GitHub Pages serves

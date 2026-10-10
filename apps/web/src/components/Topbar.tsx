@@ -1,9 +1,10 @@
-import { BookOpen, FileJson, Package, Workflow } from 'lucide-react';
+import { BookOpen, FileJson, Lightbulb, Package, SquareTerminal, Workflow } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useSpeaker } from '../i18n/LocaleProvider.tsx';
 import { IN_BROWSER, isInBrowserApi } from '../lib/inBrowserApi.ts';
 import { docsUrl, fixturesUrl, NPM_URL, REPO_URL } from '../lib/links.ts';
 import { isLocalApi } from '../lib/request.ts';
+import { casesPageHref, playgroundHref, type View } from '../lib/route.ts';
 import { APP_COMMIT, APP_VERSION } from '../lib/version.ts';
 import { LanguagePicker } from './LanguagePicker.tsx';
 import { ThemeSwitch } from './ThemeSwitch.tsx';
@@ -42,7 +43,25 @@ function TopbarLink({ href, icon, label, title }: { href: string; icon: ReactNod
   );
 }
 
-export function Topbar({ apiBase, online }: { apiBase: string; online: boolean | null }) {
+/** A link to the other page of this app, so it opens in the same tab. */
+function PageLink({ href, icon, label, title }: { href: string; icon: ReactNode; label: string; title: string }) {
+  return (
+    <a className="topbar-link" href={href} title={title}>
+      {icon}
+      <span className="topbar-link-label">{label}</span>
+    </a>
+  );
+}
+
+export function Topbar({
+  apiBase,
+  online,
+  view = 'playground',
+}: {
+  apiBase: string;
+  online: boolean | null;
+  view?: View;
+}) {
   const { say } = useSpeaker();
   const local = isLocalApi(apiBase);
   const label = say(
@@ -75,6 +94,21 @@ export function Topbar({ apiBase, online }: { apiBase: string; online: boolean |
           <i /> {label}
         </span>
         <nav className="topbar-links" aria-label={say('topbar.links')}>
+          {view === 'use-cases' ? (
+            <PageLink
+              href={playgroundHref(import.meta.env.BASE_URL)}
+              icon={<SquareTerminal size={14} />}
+              label={say('topbar.playground')}
+              title={say('topbar.playgroundTitle')}
+            />
+          ) : (
+            <PageLink
+              href={casesPageHref(IN_BROWSER, import.meta.env.BASE_URL)}
+              icon={<Lightbulb size={14} />}
+              label={say('uc.nav')}
+              title={say('uc.navTitle')}
+            />
+          )}
           <TopbarLink
             href={docsUrl(apiBase, isInBrowserApi(apiBase), import.meta.env.BASE_URL)}
             icon={<BookOpen size={14} />}

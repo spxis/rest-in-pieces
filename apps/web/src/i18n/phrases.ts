@@ -1,3 +1,5 @@
+import { USE_CASE_PHRASES } from './useCases.phrases.ts';
+
 /**
  * Every word the playground shows, in English. Japanese lives in `ja.drafted.ts` under the same keys.
  * `{name}` placeholders are filled by the speaker; a translation must keep the same ones.
@@ -297,6 +299,7 @@ export const PHRASES = {
   'ui.empty': 'Nothing here yet',
   'ui.emptyHint': 'No records match. Clear the search or filters.',
   'ui.more': '…and {count} more',
+  ...USE_CASE_PHRASES,
 } as const;
 
 export type PhraseKey = keyof typeof PHRASES;
