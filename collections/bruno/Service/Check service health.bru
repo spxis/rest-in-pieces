@@ -1,0 +1,11 @@
+meta {
+  name: Check service health
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/health
+  body: none
+  auth: none
+}

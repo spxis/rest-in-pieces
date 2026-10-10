@@ -1,0 +1,26 @@
+meta {
+  name: Get one post
+  type: http
+  seq: 37
+}
+
+get {
+  url: {{baseUrl}}/posts/:id
+  body: none
+  auth: none
+}
+
+params:query {
+  seed: 1
+  ~locale: 
+  ~format: 
+  ~messy: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+  ~expand: 
+}
+
+params:path {
+  id: 1
+}

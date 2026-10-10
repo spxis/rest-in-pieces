@@ -1,0 +1,63 @@
+meta {
+  name: Generate records from a field list, a JSON Schema or an OpenAPI schema
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/generate
+  body: json
+  auth: none
+}
+
+params:query {
+  limit: 10
+  ~offset: 0
+  ~page: 
+  ~pageSize: 
+  ~cursor: 
+  ~max: 
+  ~sortBy: 
+  ~sortDirection: 
+  ~q: 
+  ~metadata: 
+  ~resultsName: 
+  seed: 1
+  ~locale: 
+  ~messy: 
+  ~format: 
+  ~delay: 
+  ~trickle: 
+  ~status: 
+  ~fail: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+}
+
+body:json {
+  {
+    "fields": [],
+    "schema": {},
+    "openapi": {},
+    "component": "loxpGcS1Fpy8cNYjGST52aS6qXxGjGP1KZKhM6r",
+    "count": 288,
+    "seed": 83180450
+  }
+}
+
+docs {
+  Send a field list, a JSON Schema (`schema`) or an OpenAPI document and the name of a schema in it (`openapi`, `component`) as JSON. Paging, sorting, filtering, format and simulation parameters stay in the query string.
+
+  A type may take arguments, choices and a blank rate:
+
+  - `age:number.int(18,65)`, `price:commerce.price(5,500,2)`, `joined:date.between(2020-01-01,2025-12-31)`: arguments in parentheses, in the order `GET /generators` lists them under `parameters`.
+  - `status:pick(active,paused,closed)`: one of the choices, evenly; `pick(active,paused,closed|70,20,10)` weights them, one weight per choice. Choices are text, at most 50 of up to 64 characters.
+  - `nickname:person.firstName?blank=15`: `null` in about 15% of records (`15%` works too, written `15%25` in a URL).
+  - `score:number.normal(70,10,0,100,1)`, `income:number.lognormal(50000,0.5)`, `wait:number.exponential(5)`, `rank:number.zipf(1000,1)`: values that bunch the way real ones do. `normal` and `lognormal` redraw a value outside `min`/`max` up to 20 times and then clamp it.
+  - `age:=age(born)`, `end:=addDays(start, days)`, `full:=concat(first, ' ', last)`: a derived field, written `=` and an expression over the record's other fields (and `index`), worked out after they are made. Numbers, text, true/false, null and dates; `+ - * / %`, comparisons, `&& || !`, `a ? b : c`, and the functions `GET /generators` lists under `functions`. It cannot loop, assign or reach anything outside the record: at most 400 characters, 150 tokens, 12 deep, 100 parts and 10 derived fields. A step that cannot be worked out gives `null`. Write `+` as `%2B` in a URL.
+
+  `constraints=end>start,total>=subtotal` (also `end after start`, `start<end`) puts pairs of fields in order by swapping them, and moves the later one on (a day for dates, one for numbers) when a strict constraint finds them equal. At most 10; they cannot name a derived field or form a loop.
+
+  Commas inside parentheses belong to the arguments. A type that takes no arguments, a wrong count, a value out of range or a bad weight answers `422` with `error` and the `field` it is about; an unknown type answers `400`. With `safe=true`, these types come from the safe ranges: `finance.creditCardNumber`, `image.avatar`, `image.avatarGitHub`, `image.url`, `image.urlPicsumPhotos`, `internet.domainName`, `internet.domainSuffix`, `internet.email`, `internet.ip`, `internet.ipv4`, `internet.ipv6`, `internet.url`, `phone.number`; any email inside other text moves to an example domain.
+}

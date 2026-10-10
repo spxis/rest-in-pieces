@@ -1,0 +1,27 @@
+meta {
+  name: The signed-in user
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/auth/me
+  body: none
+  auth: bearer
+}
+
+params:query {
+  ~delay: 
+  ~status: 
+  ~fail: 
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  Answers the user the access token names, with their role. `401` with `code` `missing_token`, `invalid_token` or `token_expired`, and a `WWW-Authenticate` header, when the token is missing, wrong or expired.
+
+  **Not security.** Every account takes the password `password`, and tokens are HS256 JWTs signed with the published key `rest-in-pieces-not-a-secret`, so anyone can mint one. They exist so a frontend can rehearse a sign-in form, protected routes, roles and expired tokens against realistic answers.
+}

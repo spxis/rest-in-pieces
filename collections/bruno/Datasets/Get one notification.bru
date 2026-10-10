@@ -1,0 +1,25 @@
+meta {
+  name: Get one notification
+  type: http
+  seq: 69
+}
+
+get {
+  url: {{baseUrl}}/notifications/:id
+  body: none
+  auth: none
+}
+
+params:query {
+  seed: 1
+  ~locale: 
+  ~format: 
+  ~messy: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+}
+
+params:path {
+  id: 1
+}

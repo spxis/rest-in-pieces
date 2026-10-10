@@ -1,0 +1,42 @@
+meta {
+  name: List logs
+  type: http
+  seq: 76
+}
+
+get {
+  url: {{baseUrl}}/logs
+  body: none
+  auth: none
+}
+
+params:query {
+  limit: 10
+  ~offset: 0
+  ~page: 
+  ~pageSize: 
+  ~cursor: 
+  ~max: 
+  ~sortBy: 
+  ~sortDirection: 
+  ~q: 
+  ~metadata: 
+  ~resultsName: 
+  seed: 1
+  ~locale: 
+  ~messy: 
+  ~format: 
+  ~delay: 
+  ~trickle: 
+  ~status: 
+  ~fail: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+}
+
+docs {
+  Application log lines about every fifteen seconds, ending at 2026-01-01: a level, a service, a message, a trace id, and for `api` lines a status code and duration. Timestamps always increase, and each line is a pure function of the `seed` and its position, so it is the same in every locale.
+
+  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
+}

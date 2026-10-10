@@ -1,0 +1,44 @@
+meta {
+  name: Create a product
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{baseUrl}}/products
+  body: json
+  auth: none
+}
+
+params:query {
+  seed: 1
+  ~locale: 
+  ~conflict: 
+  ~delay: 
+  ~trickle: 
+  ~status: 
+  ~fail: 
+  ~auth: 
+}
+
+body:json {
+  {
+    "sku": "I0i95b",
+    "name": "Kiara Pfannerstill",
+    "department": "acsi spargo cur",
+    "description": "Aqua avaritia thesaurus volo combibo stultus utor.",
+    "price": 894.61,
+    "currency": "CBE",
+    "rating": 4.39,
+    "stock": 983,
+    "inStock": true
+  }
+}
+
+docs {
+  Validates the body and answers with the new product: the next id after the dataset's last, `createdAt`, `updatedAt` and a `Location` header. Fields the server sets are ignored if sent.
+
+  With the session on, deleting a product also deletes the reviews that point at it, and theirs in turn.
+
+  By default nothing is stored, so a later read returns the same data as before and the response is what the write would have produced. With the session on (`--session`, `REST_IN_PIECES_SESSION=true` or `createApp({ session: true })`), the change is kept in memory and later reads at the same `seed` and `locale` see it, until `POST /reset`. A session that is full answers `507`.
+}

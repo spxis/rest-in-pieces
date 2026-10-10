@@ -1,0 +1,25 @@
+meta {
+  name: Get one country
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/countries/:id
+  body: none
+  auth: none
+}
+
+params:query {
+  seed: 1
+  ~locale: 
+  ~format: 
+  ~messy: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+}
+
+params:path {
+  id: 1
+}

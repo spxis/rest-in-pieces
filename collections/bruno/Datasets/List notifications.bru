@@ -1,0 +1,42 @@
+meta {
+  name: List notifications
+  type: http
+  seq: 68
+}
+
+get {
+  url: {{baseUrl}}/notifications
+  body: none
+  auth: none
+}
+
+params:query {
+  limit: 10
+  ~offset: 0
+  ~page: 
+  ~pageSize: 
+  ~cursor: 
+  ~max: 
+  ~sortBy: 
+  ~sortDirection: 
+  ~q: 
+  ~metadata: 
+  ~resultsName: 
+  seed: 1
+  ~locale: 
+  ~messy: 
+  ~format: 
+  ~delay: 
+  ~trickle: 
+  ~status: 
+  ~fail: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+}
+
+docs {
+  App notifications addressed to `/users` by `userId`: mentions, comments, follows, orders, billing, security and system notices, each with a title, body, channel and a path on this API it is about. A read one has a `readAt` after it was created.
+
+  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
+}

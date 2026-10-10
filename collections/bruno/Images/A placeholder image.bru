@@ -1,0 +1,21 @@
+meta {
+  name: A placeholder image
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/images/640x480.svg
+  body: none
+  auth: none
+}
+
+params:query {
+  ~text: Hero
+  ~bg: e2e8f0
+  ~fg: 475569
+}
+
+docs {
+  A flat SVG rectangle of the size asked for, with its size or `text` in the middle. Sides clamp to 8–4000 pixels and text to 120 characters; colours are hex without or with `#` (`bg=0f172a`), and anything else falls back to the defaults.
+}

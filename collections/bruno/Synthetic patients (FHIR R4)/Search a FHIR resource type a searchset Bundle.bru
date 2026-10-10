@@ -1,0 +1,31 @@
+meta {
+  name: Search a FHIR resource type: a searchset Bundle
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/fhir/:type
+  body: none
+  auth: none
+}
+
+params:query {
+  ~_count: 20
+  ~_offset: 
+  ~patient: Patient/12
+  ~code: heart-rate
+  ~gender: 
+  ~birthdate: ge1980-01-01
+  ~date: ge2025-06-01
+  seed: 
+  ~locale: 
+}
+
+params:path {
+  type: Observation
+}
+
+docs {
+  Synthetic, FHIR R4-shaped Patient, Observation, Condition and Encounter resources, invented by rules and seeded: see the data notes at the top of this tag. Search parameters for Patient: `_id`, `identifier`, `family`, `given`, `name`, `gender`, `birthdate`, `active`, plus `_count` (0 to 100, default 10), `_offset`, `seed` and `locale`. Token parameters take `code` or `system|code`, several separated by commas; dates take the prefixes `eq`, `ne`, `gt`, `lt`, `ge` and `le`; `patient` takes `12` or `Patient/12`. Any other parameter is a `400`. Search parameters for Observation: `_id`, `patient`, `subject`, `code`, `category`, `status`, `date`, plus `_count` (0 to 100, default 10), `_offset`, `seed` and `locale`. Token parameters take `code` or `system|code`, several separated by commas; dates take the prefixes `eq`, `ne`, `gt`, `lt`, `ge` and `le`; `patient` takes `12` or `Patient/12`. Any other parameter is a `400`. Search parameters for Condition: `_id`, `patient`, `subject`, `code`, `category`, `clinical-status`, `onset-date`, plus `_count` (0 to 100, default 10), `_offset`, `seed` and `locale`. Token parameters take `code` or `system|code`, several separated by commas; dates take the prefixes `eq`, `ne`, `gt`, `lt`, `ge` and `le`; `patient` takes `12` or `Patient/12`. Any other parameter is a `400`. Search parameters for Encounter: `_id`, `patient`, `subject`, `status`, `class`, `type`, `date`, plus `_count` (0 to 100, default 10), `_offset`, `seed` and `locale`. Token parameters take `code` or `system|code`, several separated by commas; dates take the prefixes `eq`, `ne`, `gt`, `lt`, `ge` and `le`; `patient` takes `12` or `Patient/12`. Any other parameter is a `400`.
+}

@@ -1,0 +1,25 @@
+meta {
+  name: Get one event
+  type: http
+  seq: 65
+}
+
+get {
+  url: {{baseUrl}}/events/:id
+  body: none
+  auth: none
+}
+
+params:query {
+  seed: 1
+  ~locale: 
+  ~format: 
+  ~messy: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+}
+
+params:path {
+  id: 1
+}

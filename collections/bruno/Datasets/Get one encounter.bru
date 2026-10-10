@@ -1,0 +1,25 @@
+meta {
+  name: Get one encounter
+  type: http
+  seq: 85
+}
+
+get {
+  url: {{baseUrl}}/encounters/:id
+  body: none
+  auth: none
+}
+
+params:query {
+  seed: 1
+  ~locale: 
+  ~format: 
+  ~messy: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+}
+
+params:path {
+  id: 1
+}

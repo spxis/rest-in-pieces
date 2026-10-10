@@ -49,3 +49,13 @@ console.log(`Wrote ${index.files.length} fixtures and index.json to ${fixtures} 
 const apiDir = fileURLToPath(out);
 const staticApi = await writeStaticApi(app, apiDir, `${site}api/`);
 console.log(`Wrote ${staticApi.files} static API files and index.json to ${apiDir}`);
+
+// The Postman collection, at an address Postman can import from by link. The Bruno folder is imported from a clone.
+const collections = fileURLToPath(new URL('../dist-pages/collections/', import.meta.url));
+mkdirSync(collections, { recursive: true });
+const postman = 'rest-in-pieces.postman_collection.json';
+copyFileSync(
+  fileURLToPath(new URL(`../../../collections/postman/${postman}`, import.meta.url)),
+  `${collections}${postman}`,
+);
+console.log(`Wrote ${collections}${postman}`);

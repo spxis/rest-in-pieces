@@ -1,0 +1,42 @@
+meta {
+  name: List invoices
+  type: http
+  seq: 60
+}
+
+get {
+  url: {{baseUrl}}/invoices
+  body: none
+  auth: none
+}
+
+params:query {
+  limit: 10
+  ~offset: 0
+  ~page: 
+  ~pageSize: 
+  ~cursor: 
+  ~max: 
+  ~sortBy: 
+  ~sortDirection: 
+  ~q: 
+  ~metadata: 
+  ~resultsName: 
+  seed: 1
+  ~locale: 
+  ~messy: 
+  ~format: 
+  ~delay: 
+  ~trickle: 
+  ~status: 
+  ~fail: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+}
+
+docs {
+  Invoices with line items, in the locale's currency. Lines add up (`quantity × unitPrice`, then `subtotal`, `tax` at the locale's headline rate and `total`, exact to the currency's smallest unit), and dates follow one another: issued, due after the terms, paid between issue and a little after the due date. A `sent` invoice is not yet due, an `overdue` one is, a `draft` has no dates, and only a `paid` one has a `paidAt`.
+
+  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
+}

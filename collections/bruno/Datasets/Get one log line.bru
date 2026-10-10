@@ -1,0 +1,25 @@
+meta {
+  name: Get one log line
+  type: http
+  seq: 77
+}
+
+get {
+  url: {{baseUrl}}/logs/:id
+  body: none
+  auth: none
+}
+
+params:query {
+  seed: 1
+  ~locale: 
+  ~format: 
+  ~messy: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+}
+
+params:path {
+  id: 1
+}

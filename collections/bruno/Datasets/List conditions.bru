@@ -1,0 +1,42 @@
+meta {
+  name: List conditions
+  type: http
+  seq: 82
+}
+
+get {
+  url: {{baseUrl}}/conditions
+  body: none
+  auth: none
+}
+
+params:query {
+  limit: 10
+  ~offset: 0
+  ~page: 
+  ~pageSize: 
+  ~cursor: 
+  ~max: 
+  ~sortBy: 
+  ~sortDirection: 
+  ~q: 
+  ~metadata: 
+  ~resultsName: 
+  seed: 1
+  ~locale: 
+  ~messy: 
+  ~format: 
+  ~delay: 
+  ~trickle: 
+  ~status: 
+  ~fail: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+}
+
+docs {
+  FHIR R4-shaped Condition resources for the patients in `/patients`: chronic and acute conditions from a hand-made list, each beginning after the patient was old enough for it, ending after it began when it is over. Synthetic: every record is invented, none comes from or is de-identified from a real person or record, and the codes are this project's own lists, not SNOMED CT, LOINC, ICD or CPT. For building and testing software only. `GET /fhir/{type}` answers the same data as a FHIR Bundle.
+
+  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
+}

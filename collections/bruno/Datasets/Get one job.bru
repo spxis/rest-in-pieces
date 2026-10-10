@@ -1,0 +1,25 @@
+meta {
+  name: Get one job
+  type: http
+  seq: 71
+}
+
+get {
+  url: {{baseUrl}}/jobs/:id
+  body: none
+  auth: none
+}
+
+params:query {
+  seed: 1
+  ~locale: 
+  ~format: 
+  ~messy: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+}
+
+params:path {
+  id: 1
+}

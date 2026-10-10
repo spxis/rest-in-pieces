@@ -1,0 +1,42 @@
+meta {
+  name: List patients
+  type: http
+  seq: 78
+}
+
+get {
+  url: {{baseUrl}}/patients
+  body: none
+  auth: none
+}
+
+params:query {
+  limit: 10
+  ~offset: 0
+  ~page: 
+  ~pageSize: 
+  ~cursor: 
+  ~max: 
+  ~sortBy: 
+  ~sortDirection: 
+  ~q: 
+  ~metadata: 
+  ~resultsName: 
+  seed: 1
+  ~locale: 
+  ~messy: 
+  ~format: 
+  ~delay: 
+  ~trickle: 
+  ~status: 
+  ~fail: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+}
+
+docs {
+  FHIR R4-shaped Patient resources: a name, a birth date, a gender, an address, contact details that nobody answers (fiction-range phones, example.com emails), and a medical record number. Ages run from newborn to ninety, and a few of the old have died. Synthetic: every record is invented, none comes from or is de-identified from a real person or record, and the codes are this project's own lists, not SNOMED CT, LOINC, ICD or CPT. For building and testing software only. `GET /fhir/{type}` answers the same data as a FHIR Bundle.
+
+  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
+}

@@ -1,0 +1,45 @@
+meta {
+  name: Update a product
+  type: http
+  seq: 21
+}
+
+patch {
+  url: {{baseUrl}}/products/:id
+  body: json
+  auth: none
+}
+
+params:query {
+  seed: 1
+  ~locale: 
+  ~conflict: 
+  ~delay: 
+  ~trickle: 
+  ~status: 
+  ~fail: 
+  ~auth: 
+}
+
+params:path {
+  id: 1
+}
+
+body:json {
+  {
+    "sku": "0i95bloxp",
+    "name": "Alejandra Johnson",
+    "department": "thesaurus",
+    "price": 692.32,
+    "stock": 390,
+    "inStock": false
+  }
+}
+
+docs {
+  Validates the fields sent and answers with the product merged with them, with `updatedAt` set.
+
+  With the session on, deleting a product also deletes the reviews that point at it, and theirs in turn.
+
+  By default nothing is stored, so a later read returns the same data as before and the response is what the write would have produced. With the session on (`--session`, `REST_IN_PIECES_SESSION=true` or `createApp({ session: true })`), the change is kept in memory and later reads at the same `seed` and `locale` see it, until `POST /reset`. A session that is full answers `507`.
+}

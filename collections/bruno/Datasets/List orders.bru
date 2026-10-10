@@ -1,0 +1,43 @@
+meta {
+  name: List orders
+  type: http
+  seq: 29
+}
+
+get {
+  url: {{baseUrl}}/orders
+  body: none
+  auth: none
+}
+
+params:query {
+  limit: 10
+  ~offset: 0
+  ~page: 
+  ~pageSize: 
+  ~cursor: 
+  ~max: 
+  ~sortBy: 
+  ~sortDirection: 
+  ~q: 
+  ~metadata: 
+  ~resultsName: 
+  seed: 1
+  ~locale: 
+  ~messy: 
+  ~format: 
+  ~delay: 
+  ~trickle: 
+  ~status: 
+  ~fail: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+  ~expand: 
+}
+
+docs {
+  Orders with their line items, each joined to `/users` by `userId` and every item to `/products` by `productId`. Totals add up: each line is `quantity × unitPrice`, `tax` is the subtotal times the buyer's locale's rate, and `total` is the two together, in the locale's currency. Dates follow one another: placed after the buyer joined, shipped after that, delivered after that. `/users/{id}/orders` lists one user's.
+
+  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
+}

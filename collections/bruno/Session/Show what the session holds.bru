@@ -1,0 +1,17 @@
+meta {
+  name: Show what the session holds
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/session
+  body: none
+  auth: none
+}
+
+docs {
+  Whether writes are kept, the limits, and every dataset a write has changed.
+
+  With the session on, `POST`, `PUT`, `PATCH` and `DELETE` change an in-memory copy of the dataset at the request's `seed` and `locale`, and every later read sees the change, until `POST /reset`. The copy lives in the process's memory only: nothing is written to disk, a restart starts again from the seed, and on serverless hosts each instance keeps its own. It is off by default, and stays off on the hosted demo.
+}

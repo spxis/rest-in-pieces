@@ -1,0 +1,43 @@
+meta {
+  name: List posts
+  type: http
+  seq: 35
+}
+
+get {
+  url: {{baseUrl}}/posts
+  body: none
+  auth: none
+}
+
+params:query {
+  limit: 10
+  ~offset: 0
+  ~page: 
+  ~pageSize: 
+  ~cursor: 
+  ~max: 
+  ~sortBy: 
+  ~sortDirection: 
+  ~q: 
+  ~metadata: 
+  ~resultsName: 
+  seed: 1
+  ~locale: 
+  ~messy: 
+  ~format: 
+  ~delay: 
+  ~trickle: 
+  ~status: 
+  ~fail: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+  ~expand: 
+}
+
+docs {
+  Blog posts, joined to `/users` by `userId`: JSONPlaceholder's shape (`userId`, `id`, `title`, `body`) plus `createdAt`. Text is Faker's lorem in the locale's language, and hand-written Japanese for `ja`. `/users/{id}/posts` lists one user's, and `/posts/{id}/comments` a post's comments.
+
+  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
+}

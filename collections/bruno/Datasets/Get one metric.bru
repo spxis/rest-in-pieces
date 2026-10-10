@@ -1,0 +1,25 @@
+meta {
+  name: Get one metric
+  type: http
+  seq: 75
+}
+
+get {
+  url: {{baseUrl}}/metrics/:id
+  body: none
+  auth: none
+}
+
+params:query {
+  seed: 1
+  ~locale: 
+  ~format: 
+  ~messy: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+}
+
+params:path {
+  id: 1
+}

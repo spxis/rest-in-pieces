@@ -1,0 +1,43 @@
+meta {
+  name: List reviews
+  type: http
+  seq: 54
+}
+
+get {
+  url: {{baseUrl}}/reviews
+  body: none
+  auth: none
+}
+
+params:query {
+  limit: 10
+  ~offset: 0
+  ~page: 
+  ~pageSize: 
+  ~cursor: 
+  ~max: 
+  ~sortBy: 
+  ~sortDirection: 
+  ~q: 
+  ~metadata: 
+  ~resultsName: 
+  seed: 1
+  ~locale: 
+  ~messy: 
+  ~format: 
+  ~delay: 
+  ~trickle: 
+  ~status: 
+  ~fail: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+  ~expand: 
+}
+
+docs {
+  Product reviews, joined to `/products` by `productId` and to `/users` by `userId`. Ratings gather around the product's own `rating`, the words match the stars, and each review comes after the product was listed and the reviewer joined. `/products/{id}/reviews` lists one product's.
+
+  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
+}

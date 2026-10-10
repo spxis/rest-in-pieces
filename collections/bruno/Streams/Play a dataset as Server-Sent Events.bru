@@ -1,0 +1,33 @@
+meta {
+  name: Play a dataset as Server-Sent Events
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/streams/:name
+  body: none
+  auth: none
+}
+
+params:query {
+  seed: 
+  ~locale: 
+  ~count: 
+  ~every: 
+  ~duration: 
+  ~drop: 
+  ~lastEventId: 
+  ~delay: 
+  ~status: 
+  ~fail: 
+  ~safe: 
+}
+
+params:path {
+  name: 1
+}
+
+docs {
+  Plays `messages`, `notifications`, `metrics` or `logs` one record at a time as `text/event-stream`. Each event has the record's `id` and the record as JSON `data`, so `EventSource.onmessage` receives it; the first N events are the first N records of the dataset for the same `seed` and `locale`. The stream ends with an `end` event, and a reconnect after it is answered `204` so `EventSource` stops. `Last-Event-ID` resumes after a dropped connection. Bounded: at most 500 events, 60 seconds a connection and an event every 100 ms.
+}

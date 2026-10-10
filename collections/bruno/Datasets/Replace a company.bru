@@ -1,0 +1,48 @@
+meta {
+  name: Replace a company
+  type: http
+  seq: 26
+}
+
+put {
+  url: {{baseUrl}}/companies/:id
+  body: json
+  auth: none
+}
+
+params:query {
+  seed: 1
+  ~locale: 
+  ~conflict: 
+  ~delay: 
+  ~trickle: 
+  ~status: 
+  ~fail: 
+  ~auth: 
+}
+
+params:path {
+  id: 1
+}
+
+body:json {
+  {
+    "name": "Aaliyah Corkery",
+    "industry": "coniuratio",
+    "catchPhrase": "fugit curatio",
+    "website": "https://rigid-creature.example.net/",
+    "email": "Jovan31@example.org",
+    "phone": "204-555-0166",
+    "employees": 8947,
+    "founded": 1642,
+    "city": "East Guidoworth",
+    "province": "Northwest Territories",
+    "country": "Papua New Guinea"
+  }
+}
+
+docs {
+  Validates the whole company and answers with it under the same id, with `updatedAt` set.
+
+  By default nothing is stored, so a later read returns the same data as before and the response is what the write would have produced. With the session on (`--session`, `REST_IN_PIECES_SESSION=true` or `createApp({ session: true })`), the change is kept in memory and later reads at the same `seed` and `locale` see it, until `POST /reset`. A session that is full answers `507`.
+}

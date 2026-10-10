@@ -1,0 +1,21 @@
+meta {
+  name: Put the seeded data back
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/reset
+  body: none
+  auth: none
+}
+
+params:query {
+  ~dataset: 
+}
+
+docs {
+  Drops every change the session holds, or one dataset's with `?dataset=users`, so reads return the seeded data again. Safe to call when the session is off, as a test's `beforeEach` might: it then changes nothing.
+
+  With the session on, `POST`, `PUT`, `PATCH` and `DELETE` change an in-memory copy of the dataset at the request's `seed` and `locale`, and every later read sees the change, until `POST /reset`. The copy lives in the process's memory only: nothing is written to disk, a restart starts again from the seed, and on serverless hosts each instance keeps its own. It is off by default, and stays off on the hosted demo.
+}

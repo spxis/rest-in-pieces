@@ -1,0 +1,43 @@
+meta {
+  name: Create a person
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/names
+  body: json
+  auth: none
+}
+
+params:query {
+  seed: 1
+  ~locale: 
+  ~conflict: 
+  ~delay: 
+  ~trickle: 
+  ~status: 
+  ~fail: 
+  ~auth: 
+}
+
+body:json {
+  {
+    "name": "Aaliyah Corkery",
+    "nameKana": "crux fugit",
+    "nameRomaji": "bardus utrimque acsi",
+    "age": 87,
+    "address": "6118 Terry Turnpike",
+    "city": "North Aryannaview",
+    "province": "Yukon",
+    "postal": "GjGP1KZ",
+    "country": "Saint Helena",
+    "gender": "male"
+  }
+}
+
+docs {
+  Validates the body and answers with the new person: the next id after the dataset's last, `createdAt`, `updatedAt` and a `Location` header. Fields the server sets are ignored if sent.
+
+  By default nothing is stored, so a later read returns the same data as before and the response is what the write would have produced. With the session on (`--session`, `REST_IN_PIECES_SESSION=true` or `createApp({ session: true })`), the change is kept in memory and later reads at the same `seed` and `locale` see it, until `POST /reset`. A session that is full answers `507`.
+}

@@ -1,0 +1,19 @@
+meta {
+  name: An SVG avatar
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/avatars/ada.svg
+  body: none
+  auth: none
+}
+
+params:query {
+  ~name: Ada Lovelace
+}
+
+docs {
+  A square, deterministic avatar: the seed picks the colour, and `name` the initials (`Ada Lovelace` → `AL`; a Japanese name, family name first, shows a family name of one or two characters: `佐藤 美穂` → `佐藤`, and the first of a longer one: `長谷川 翔` → `長`). Without a name it draws a symmetric pattern from the seed. White on a mid-tone tile, so it reads on light and dark pages. With `safe=true`, every `avatar` the datasets serve points here.
+}

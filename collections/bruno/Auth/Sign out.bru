@@ -1,0 +1,15 @@
+meta {
+  name: Sign out
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/auth/logout
+  body: none
+  auth: none
+}
+
+docs {
+  Answers `204`. Tokens are not stored, so signing out is the client forgetting its tokens; this endpoint is here so the call a real app makes has somewhere to go.
+}

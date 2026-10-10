@@ -1,0 +1,26 @@
+meta {
+  name: Get one comment
+  type: http
+  seq: 44
+}
+
+get {
+  url: {{baseUrl}}/comments/:id
+  body: none
+  auth: none
+}
+
+params:query {
+  seed: 1
+  ~locale: 
+  ~format: 
+  ~messy: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+  ~expand: 
+}
+
+params:path {
+  id: 1
+}

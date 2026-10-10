@@ -1,0 +1,47 @@
+meta {
+  name: Update a person
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{baseUrl}}/names/:id
+  body: json
+  auth: none
+}
+
+params:query {
+  seed: 1
+  ~locale: 
+  ~conflict: 
+  ~delay: 
+  ~trickle: 
+  ~status: 
+  ~fail: 
+  ~auth: 
+}
+
+params:path {
+  id: 1
+}
+
+body:json {
+  {
+    "name": "Eldred Bosco",
+    "nameKana": "fugit curatio",
+    "nameRomaji": "utrimque",
+    "age": 87,
+    "address": "2189 Sven Circles",
+    "city": "Fort Verdiestad",
+    "province": "Newfoundland and Labrador",
+    "postal": "1KZKhM6rUih",
+    "country": "American Samoa",
+    "gender": "male"
+  }
+}
+
+docs {
+  Validates the fields sent and answers with the person merged with them, with `updatedAt` set.
+
+  By default nothing is stored, so a later read returns the same data as before and the response is what the write would have produced. With the session on (`--session`, `REST_IN_PIECES_SESSION=true` or `createApp({ session: true })`), the change is kept in memory and later reads at the same `seed` and `locale` see it, until `POST /reset`. A session that is full answers `507`.
+}

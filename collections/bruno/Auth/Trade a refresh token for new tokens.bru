@@ -1,0 +1,31 @@
+meta {
+  name: Trade a refresh token for new tokens
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/auth/refresh
+  body: json
+  auth: none
+}
+
+params:query {
+  ~expiresIn: 
+  ~refreshExpiresIn: 
+  ~delay: 
+  ~status: 
+  ~fail: 
+}
+
+body:json {
+  {
+    "refreshToken": "suppellex a"
+  }
+}
+
+docs {
+  Answers a new pair, read again from the user's current record. Tokens are not stored, so an old refresh token keeps working until it expires.
+
+  **Not security.** Every account takes the password `password`, and tokens are HS256 JWTs signed with the published key `rest-in-pieces-not-a-secret`, so anyone can mint one. They exist so a frontend can rehearse a sign-in form, protected routes, roles and expired tokens against realistic answers.
+}

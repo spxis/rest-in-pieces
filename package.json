@@ -13,6 +13,7 @@
   "scripts": {
     "build": "pnpm --filter @rest-in-pieces/web build",
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm pack:test",
+    "collections": "node scripts/collections.ts",
     "dev": "pnpm -r --parallel dev",
     "dev:api": "pnpm --filter @johnmorrisdotca/rest-in-pieces dev",
     "dev:web": "pnpm --filter @rest-in-pieces/web dev",

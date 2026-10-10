@@ -1,0 +1,25 @@
+meta {
+  name: Get one condition
+  type: http
+  seq: 83
+}
+
+get {
+  url: {{baseUrl}}/conditions/:id
+  body: none
+  auth: none
+}
+
+params:query {
+  seed: 1
+  ~locale: 
+  ~format: 
+  ~messy: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+}
+
+params:path {
+  id: 1
+}

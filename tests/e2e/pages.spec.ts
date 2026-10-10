@@ -139,3 +139,12 @@ test('plays a stream from the API inside the tab', async ({ page }) => {
   await expect(page.getByTestId('stream-log').locator('li')).toHaveCount(4);
   await expect(page.getByTestId('stream-log')).toContainText('cpuPercent');
 });
+
+// The Postman collection is served beside the API, so Postman can import it from the link.
+test('serves the Postman collection for import by link', async ({ request }) => {
+  const response = await request.get('./collections/rest-in-pieces.postman_collection.json');
+  expect(response.ok()).toBe(true);
+  const collection = (await response.json()) as { info: { name: string }; item: unknown[] };
+  expect(collection.info.name).toBe('REST in Pieces');
+  expect(collection.item.length).toBeGreaterThan(5);
+});

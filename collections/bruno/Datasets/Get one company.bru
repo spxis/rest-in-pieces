@@ -1,0 +1,25 @@
+meta {
+  name: Get one company
+  type: http
+  seq: 25
+}
+
+get {
+  url: {{baseUrl}}/companies/:id
+  body: none
+  auth: none
+}
+
+params:query {
+  seed: 1
+  ~locale: 
+  ~format: 
+  ~messy: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+}
+
+params:path {
+  id: 1
+}

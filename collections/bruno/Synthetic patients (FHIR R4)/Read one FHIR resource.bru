@@ -1,0 +1,21 @@
+meta {
+  name: Read one FHIR resource
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/fhir/:type/:id
+  body: none
+  auth: none
+}
+
+params:query {
+  seed: 
+  ~locale: 
+}
+
+params:path {
+  type: Patient
+  id: 12
+}

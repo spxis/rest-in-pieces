@@ -1,0 +1,37 @@
+meta {
+  name: Sign in
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/auth/login
+  body: json
+  auth: none
+}
+
+params:query {
+  seed: 1
+  ~locale: 
+  ~expiresIn: 
+  ~refreshExpiresIn: 
+  ~delay: 
+  ~status: 
+  ~fail: 
+}
+
+body:json {
+  {
+    "username": "Eldred.Dibbert",
+    "email": "Alejandra19@example.com",
+    "password": "combibo stultus utor"
+  }
+}
+
+docs {
+  Checks a username and password and answers with an access token and a refresh token.
+
+  Any user of `/users` signs in with their `username` or `email`, at the `seed` and `locale` given in the query. The first active user is the `admin`, the second the `editor`, and every other user a `viewer`; the usernames `admin`, `editor` and `viewer` sign in as those accounts, and `disabled` names the first account that is not active, which is refused with `403`.
+
+  **Not security.** Every account takes the password `password`, and tokens are HS256 JWTs signed with the published key `rest-in-pieces-not-a-secret`, so anyone can mint one. They exist so a frontend can rehearse a sign-in form, protected routes, roles and expired tokens against realistic answers.
+}

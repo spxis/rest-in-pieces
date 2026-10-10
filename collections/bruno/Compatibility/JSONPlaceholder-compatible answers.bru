@@ -1,0 +1,19 @@
+meta {
+  name: JSONPlaceholder-compatible answers
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/jsonplaceholder/:resource
+  body: none
+  auth: none
+}
+
+params:path {
+  resource: 1
+}
+
+docs {
+  Change a JSONPlaceholder tutorial's base URL from `https://jsonplaceholder.typicode.com` to `…/jsonplaceholder` and it keeps working: `/posts`, `/posts/1`, `/posts?userId=1`, `/posts/1/comments`, `/comments?postId=1`, `/todos`, `/users`, `/users/1/posts` and `/users/1/todos`, and the writes. Lists default to a bare array: as many records as JSONPlaceholder's (100 posts, 500 comments, 200 todos, 10 users), and every match, up to 1,000, for a filtered or nested list. Users carry `name`, `address`, `website` and `company` as JSONPlaceholder's do. Any other parameter of the ordinary route works here too. JSONPlaceholder's `/albums` and `/photos` have no counterpart.
+}

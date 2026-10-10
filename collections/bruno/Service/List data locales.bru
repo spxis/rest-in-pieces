@@ -1,0 +1,15 @@
+meta {
+  name: List data locales
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/locales
+  body: none
+  auth: none
+}
+
+docs {
+  Every value the `locale` parameter takes, with its names, country and currency. Useful for pickers.
+}

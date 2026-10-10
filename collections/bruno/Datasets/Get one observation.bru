@@ -1,0 +1,25 @@
+meta {
+  name: Get one observation
+  type: http
+  seq: 81
+}
+
+get {
+  url: {{baseUrl}}/observations/:id
+  body: none
+  auth: none
+}
+
+params:query {
+  seed: 1
+  ~locale: 
+  ~format: 
+  ~messy: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+}
+
+params:path {
+  id: 1
+}

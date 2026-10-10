@@ -1,0 +1,25 @@
+meta {
+  name: Get one message
+  type: http
+  seq: 67
+}
+
+get {
+  url: {{baseUrl}}/messages/:id
+  body: none
+  auth: none
+}
+
+params:query {
+  seed: 1
+  ~locale: 
+  ~format: 
+  ~messy: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+}
+
+params:path {
+  id: 1
+}

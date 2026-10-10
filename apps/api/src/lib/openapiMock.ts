@@ -234,6 +234,15 @@ function makeValue(
   )[0];
 }
 
+/**
+ * One example value for a schema in a document, seeded: what a request body in a generated Postman or Bruno collection
+ * is made of. Throws `JsonSchemaError` for a schema the generator cannot make.
+ */
+export function sampleValue(document: unknown, schema: unknown, seed = 1): unknown {
+  const prepared = prepareSchemaIn(document, schema);
+  return makeValue(prepared, seed, 'en-CA', { safe: true, base: 'http://localhost:6800' }, undefined);
+}
+
 /** Prepares every response schema of every operation, or throws `OpenApiError` naming each one that cannot be made. */
 function prepareRoutes(operations: readonly Operation[], document: unknown): Route[] {
   const problems: string[] = [];

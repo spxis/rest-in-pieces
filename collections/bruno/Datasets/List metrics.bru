@@ -1,0 +1,42 @@
+meta {
+  name: List metrics
+  type: http
+  seq: 74
+}
+
+get {
+  url: {{baseUrl}}/metrics
+  body: none
+  auth: none
+}
+
+params:query {
+  limit: 10
+  ~offset: 0
+  ~page: 
+  ~pageSize: 
+  ~cursor: 
+  ~max: 
+  ~sortBy: 
+  ~sortDirection: 
+  ~q: 
+  ~metadata: 
+  ~resultsName: 
+  seed: 1
+  ~locale: 
+  ~messy: 
+  ~format: 
+  ~delay: 
+  ~trickle: 
+  ~status: 
+  ~fail: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+}
+
+docs {
+  A server metrics time series, one point every five minutes ending at 2026-01-01: CPU, memory, requests per second, median latency and error rate, with a daily wave, noise and now and then an `incident` where latency and errors jump. Each point is a pure function of the `seed` and its position, so it is the same in every locale and any point can be worked out without the ones before it.
+
+  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
+}

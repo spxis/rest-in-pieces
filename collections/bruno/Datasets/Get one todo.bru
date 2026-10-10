@@ -1,0 +1,26 @@
+meta {
+  name: Get one todo
+  type: http
+  seq: 50
+}
+
+get {
+  url: {{baseUrl}}/todos/:id
+  body: none
+  auth: none
+}
+
+params:query {
+  seed: 1
+  ~locale: 
+  ~format: 
+  ~messy: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+  ~expand: 
+}
+
+params:path {
+  id: 1
+}

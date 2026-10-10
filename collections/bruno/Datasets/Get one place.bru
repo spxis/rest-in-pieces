@@ -1,0 +1,25 @@
+meta {
+  name: Get one place
+  type: http
+  seq: 73
+}
+
+get {
+  url: {{baseUrl}}/places/:id
+  body: none
+  auth: none
+}
+
+params:query {
+  seed: 1
+  ~locale: 
+  ~format: 
+  ~messy: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+}
+
+params:path {
+  id: 1
+}

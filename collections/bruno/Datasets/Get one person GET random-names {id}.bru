@@ -1,0 +1,25 @@
+meta {
+  name: Get one person
+  type: http
+  seq: 87
+}
+
+get {
+  url: {{baseUrl}}/random-names/:id
+  body: none
+  auth: none
+}
+
+params:query {
+  seed: 1
+  ~locale: 
+  ~format: 
+  ~messy: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+}
+
+params:path {
+  id: 1
+}

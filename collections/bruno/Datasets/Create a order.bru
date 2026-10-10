@@ -1,0 +1,98 @@
+meta {
+  name: Create a order
+  type: http
+  seq: 30
+}
+
+post {
+  url: {{baseUrl}}/orders
+  body: json
+  auth: none
+}
+
+params:query {
+  seed: 1
+  ~locale: 
+  ~conflict: 
+  ~delay: 
+  ~trickle: 
+  ~status: 
+  ~fail: 
+  ~auth: 
+}
+
+body:json {
+  {
+    "userId": 4171,
+    "items": [
+      {
+        "productId": 2,
+        "quantity": 30
+      },
+      {
+        "productId": 1468,
+        "quantity": 10
+      },
+      {
+        "productId": 1863,
+        "quantity": 35
+      },
+      {
+        "productId": 3969,
+        "quantity": 54
+      },
+      {
+        "productId": 4193,
+        "quantity": 68
+      },
+      {
+        "productId": 2045,
+        "quantity": 87
+      },
+      {
+        "productId": 274,
+        "quantity": 67
+      },
+      {
+        "productId": 4174,
+        "quantity": 56
+      },
+      {
+        "productId": 1405,
+        "quantity": 20
+      },
+      {
+        "productId": 8009,
+        "quantity": 96
+      },
+      {
+        "productId": 3135,
+        "quantity": 69
+      },
+      {
+        "productId": 8765,
+        "quantity": 89
+      },
+      {
+        "productId": 851,
+        "quantity": 4
+      },
+      {
+        "productId": 1699,
+        "quantity": 87
+      },
+      {
+        "productId": 984,
+        "quantity": 42
+      }
+    ]
+  }
+}
+
+docs {
+  Validates the body and answers with the new order: the next id after the dataset's last, `createdAt`, `updatedAt` and a `Location` header. Fields the server sets are ignored if sent.
+
+  `userId` must name a record in `/users` at the same `seed` and `locale`, or the write answers `422`.
+
+  By default nothing is stored, so a later read returns the same data as before and the response is what the write would have produced. With the session on (`--session`, `REST_IN_PIECES_SESSION=true` or `createApp({ session: true })`), the change is kept in memory and later reads at the same `seed` and `locale` see it, until `POST /reset`. A session that is full answers `507`.
+}

@@ -1,0 +1,40 @@
+meta {
+  name: Create a review
+  type: http
+  seq: 55
+}
+
+post {
+  url: {{baseUrl}}/reviews
+  body: json
+  auth: none
+}
+
+params:query {
+  seed: 1
+  ~locale: 
+  ~conflict: 
+  ~delay: 
+  ~trickle: 
+  ~status: 
+  ~fail: 
+  ~auth: 
+}
+
+body:json {
+  {
+    "productId": 4171,
+    "userId": 7204,
+    "rating": 1,
+    "title": "95bl",
+    "body": "xpGcS"
+  }
+}
+
+docs {
+  Validates the body and answers with the new review: the next id after the dataset's last, `createdAt`, `updatedAt` and a `Location` header. Fields the server sets are ignored if sent.
+
+  `productId` must name a record in `/products`, and `userId` must name a record in `/users` at the same `seed` and `locale`, or the write answers `422`.
+
+  By default nothing is stored, so a later read returns the same data as before and the response is what the write would have produced. With the session on (`--session`, `REST_IN_PIECES_SESSION=true` or `createApp({ session: true })`), the change is kept in memory and later reads at the same `seed` and `locale` see it, until `POST /reset`. A session that is full answers `507`.
+}

@@ -1,0 +1,42 @@
+meta {
+  name: Replace a post
+  type: http
+  seq: 38
+}
+
+put {
+  url: {{baseUrl}}/posts/:id
+  body: json
+  auth: none
+}
+
+params:query {
+  seed: 1
+  ~locale: 
+  ~conflict: 
+  ~delay: 
+  ~trickle: 
+  ~status: 
+  ~fail: 
+  ~auth: 
+}
+
+params:path {
+  id: 1
+}
+
+body:json {
+  {
+    "userId": 4171,
+    "title": "0i95bloxp",
+    "body": "cS1Fpy8cN"
+  }
+}
+
+docs {
+  Validates the whole post and answers with it under the same id, with `updatedAt` set.
+
+  `userId` must name a record in `/users` at the same `seed` and `locale`, or the write answers `422`. With the session on, deleting a post also deletes the comments that point at it, and theirs in turn.
+
+  By default nothing is stored, so a later read returns the same data as before and the response is what the write would have produced. With the session on (`--session`, `REST_IN_PIECES_SESSION=true` or `createApp({ session: true })`), the change is kept in memory and later reads at the same `seed` and `locale` see it, until `POST /reset`. A session that is full answers `507`.
+}
