@@ -222,6 +222,8 @@ curl -N 'http://localhost:6800/users?delay=200-800&trickle=200'
 | `GET /reviews`             | Product reviews by users, rated close to the product's own `rating`. |
 | `GET /invoices`, `/transactions`, `/events`, `/messages`, `/notifications`, `/jobs`, `/places` | More domains, each record agreeing with itself: invoices that add up with dates in order, transactions that post after they happen, events that end after they start, replies after their messages, jobs with salary ranges, places within 15 km of their city with GeoJSON. See [docs/domains.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/domains.md). |
 | `GET /metrics`, `/logs`   | Time series and log lines that are a pure function of the seed and the index, with incidents to find. See [docs/domains.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/domains.md#time-series-a-pure-function-of-the-seed-and-the-index). |
+| `GET /patients`, `/observations`, `/conditions`, `/encounters` | **Synthetic** patients in the shape of FHIR R4, each resource agreeing with its patient (born, alive, old enough). Invented, not de-identified data and not coded with SNOMED, LOINC, ICD or CPT. See [docs/synthetic-patients.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/synthetic-patients.md). |
+| `GET /fhir/{type}`, `/fhir/{type}/{id}`, `/fhir/metadata` | The same synthetic data as a FHIR searchset Bundle, a resource or a CapabilityStatement, with a few search parameters and `OperationOutcome` errors. |
 | `GET /{dataset}/{id}`      | One record: `/names/0`, `/users/1`, `/countries/CA` or `/countries/CAN`. `/orders/{id}` carries its items. |
 | `GET /users/{id}/orders`, `/users/{id}/posts`, `/users/{id}/todos`, `/posts/{id}/comments`, `/products/{id}/reviews` | One record's children, with every list parameter. `404` for a parent that does not exist. |
 | `GET /avatars/{seed}.svg`  | A deterministic SVG avatar; `?name=` puts initials on it. See [Images](#images-avatars-and-placeholders). |
@@ -474,6 +476,12 @@ curl 'http://localhost:6800/generate?fields=age:number.int(18,65),price:commerce
 - **Bounded.** Every argument has a range (lengths up to 256 characters, at most 50 words, 20 sentences or 10 paragraphs, sides up to 4,000), on top of the existing caps of 50 fields and 1,000 records; nothing is evaluated as code.
 - **Clear errors.** A type that takes no arguments, a wrong count, a value that is not a number or a date, one out of range, a `min` above its `max`, a bad choice or weight, or a blank rate outside 0–100 answers `422` with `{ "error": "Field \"age\": …", "field": "age" }`. An unknown type is still a `400`, as before. The same syntax works in a `POST /generate` body: `{ "fields": { "age": "number.int(18,65)" } }`.
 
+## Synthetic patients (FHIR R4-shaped)
+
+`/patients`, `/observations`, `/conditions` and `/encounters` (and a FHIR-style `/fhir/Patient`, `/fhir/Observation`, … that answers Bundles) give healthcare software something realistic to render, search and page. **Everything is invented**: no record comes from, is learned from or is anonymised from a real person or record. It is **not de-identified data**, it makes **no claim of statistical resemblance to any population**, its codes are this project's own short lists and **not SNOMED CT, LOINC, ICD or CPT**, and it is shaped like FHIR R4, not validated against it. Every resource carries a `synthetic` tag. It is for building and testing software, never for research or clinical use.
+
+What it does give you is coherence: an observation is dated after its patient was born and before they died, a reading is plausible for the patient's age, a condition begins when the patient was old enough for it, and an encounter ends after it starts. Contact details are always fiction-range phone numbers and `example.com` emails. [docs/synthetic-patients.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/synthetic-patients.md) has the rules, the search parameters and the whole disclaimer.
+
 ## Data locales
 
 Add `locale` to any dataset, item route or `/generate` call. `GET /locales` lists the same table.
@@ -543,7 +551,7 @@ curl https://spxis.github.io/rest-in-pieces/fixtures/ja/products.page-1.csv  # t
 curl https://spxis.github.io/rest-in-pieces/fixtures/global/names/0.json    # one person from the global mix
 ```
 
-- **What is there.** Every dataset at seed 1, in every locale and `global`: all its records (`users.json`, `users.csv`: 1,000 records, or every country for `countries`), the first page of 10 (`users.page-1.json`, `users.page-1.csv`), and its first three records in item form (`users/1.json`).
+- **What is there.** Every dataset at seed 1, in every locale and `global` (the synthetic FHIR resources, `/metrics` and `/logs` only in the default locale, since they are large or the same everywhere): all its records (`users.json`, `users.csv`: 1,000 records, or every country for `countries`), the first page of 10 (`users.page-1.json`, `users.page-1.csv`), and its first three records in item form (`users/1.json`).
 - **Where.** The default locale, `en-CA`, sits at the top of the folder, as it does in the API; every other locale has a folder of its own: `de/users.json`, `global/users.json`.
 - **Exactly the API's response.** Each file is what the API returns for the request it names: `users.page-1.json` is `/users?seed=1&locale=en-CA&limit=10`. The `metadata.links` in a JSON list are the API's own paths, which need a running API.
 - **Discoverable.** [`fixtures/index.json`](https://spxis.github.io/rest-in-pieces/fixtures/index.json) lists every file with its `url`, size in `bytes`, `contentType`, `dataset`, `locale`, `format`, `kind` (`all`, `page` or `item`) and the `request` it answers.

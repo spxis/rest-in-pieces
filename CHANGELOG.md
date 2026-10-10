@@ -4,6 +4,17 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Added
+
+- `/patients`, `/observations`, `/conditions` and `/encounters`: invented resources in the shape of FHIR R4's Patient, Observation, Condition and Encounter, seeded and localized, read-only, with every dataset feature (paging, sorting, filters, formats, `messy`, the simulation). Each resource carries a `synthetic` tag. **Synthetic, not de-identified: nothing was derived from a real person or record, no statistical resemblance is claimed, and the clinical codes are this project's own short lists in `urn:rest-in-pieces:synthetic:…` code systems, not SNOMED CT, LOINC, ICD or CPT** (HL7's own free code systems and UCUM units are used where FHIR defines them).
+- The records agree with their patient: a patient's birth date and gender are a function of the seed and the id, the same in every locale; observations are dated after birth and before death with values plausible for the patient's age and an interpretation that matches the reference range beside them; conditions begin after birth and when the patient was old enough, and end after they begin; encounters end after they start, planned ones start after 2026-01-01, and a patient who died has only finished encounters. Contact details are always fiction-range phone numbers and `example.com` emails.
+- `GET /fhir/{Patient|Observation|Condition|Encounter}` answers a searchset Bundle as `application/fhir+json` (`_count` up to 100, `_offset`, a few search parameters per type including `patient`, `code`, `status`, `date` with `ge`/`le` prefixes), `GET /fhir/{type}/{id}` the resource, and `GET /fhir/metadata` a CapabilityStatement; errors are `OperationOutcome`s. A search parameter it does not support is a `400` that names it, never ignored. Read-only and JSON only.
+- The OpenAPI document describes them under "Synthetic patients (FHIR R4)". Playground: a tab, icon and UI-preview card for each. [docs/synthetic-patients.md](docs/synthetic-patients.md) has the rules and the whole disclaimer.
+
+### Changed
+
+- The live demo's static fixtures write the four FHIR datasets, `/metrics` and `/logs` for the default locale only, since they are large or the same in every locale; every locale still answers them from the API.
+
 ## 2.18.0 - 2026-10-09
 
 ### Added

@@ -75,6 +75,9 @@
     "openapi-mock",
     "sql-data-generator",
     "csv-generator",
+    "fhir",
+    "synthetic-patients",
+    "healthcare-test-data",
     "sql-insert",
     "placeholder-images",
     "avatar"
