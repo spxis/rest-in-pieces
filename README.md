@@ -69,193 +69,13 @@ installInBrowserApi(); // answers fetch('/api/...') in this tab; every other req
 const { results } = await (await fetch('/api/users?limit=10&seed=7')).json();
 ```
 
-`installInBrowserApi({ base: '/mock' })` moves it, `installInBrowserApi({ app: { session: true } })` keeps writes for as long as the tab is open, and the function it returns puts the original `fetch` back. The API loads on the first request, so the page pays nothing for it until then. Only `fetch` is answered; libraries built on `XMLHttpRequest` still go to the network. To answer those too, use the [Mock Service Worker handlers](#mock-service-worker).
+`installInBrowserApi({ base: '/mock' })` moves it, `installInBrowserApi({ app: { session: true } })` keeps writes for as long as the tab is open, and the function it returns puts the original `fetch` back. The API loads on the first request, so the page pays nothing for it until then. Only `fetch` is answered; libraries built on `XMLHttpRequest` still go to the network. To answer those too, use the [Mock Service Worker handlers](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#mock-service-worker).
 
 ## Use with
 
-### Vite
+Vite, Mock Service Worker, Storybook, Next.js, Playwright, Cypress, typed clients (openapi-fetch) and any origin: the setup for each, with code. The short version: `@johnmorrisdotca/rest-in-pieces/vite` serves the API from the Vite dev server under `/api`, `@johnmorrisdotca/rest-in-pieces/msw` answers it from a Mock Service Worker handler, and `createApp()` answers in-process in any test runner.
 
-`@johnmorrisdotca/rest-in-pieces/vite` serves the whole API from the Vite dev server, under `/api` on the same origin as your app: one line, no second process, no proxy, no entry file. It applies to `vite dev` only, so nothing of it reaches a production build, and responses stream, so `?trickle=` arrives in pieces. `vite` is an optional peer dependency.
-
-```ts
-// vite.config.ts
-import { defineConfig } from 'vite';
-import { restInPieces } from '@johnmorrisdotca/rest-in-pieces/vite';
-
-export default defineConfig({ plugins: [restInPieces()] }); // fetch('/api/users?limit=10') in the app
-```
-
-`restInPieces({ base: '/mock' })` moves it, and `app` passes options to `createApp()`: `restInPieces({ app: { session: true } })` keeps writes until `POST /api/reset` or a restart of the dev server. Every path outside the base stays Vite's. Because it runs in the dev server rather than the page, server-side rendering and any HTTP client work without a service worker.
-
-Two other ways, neither needing the plugin:
-
-- **[`@hono/vite-dev-server`](https://github.com/honojs/vite-plugins/tree/main/packages/dev-server)** runs a fetch-style app inside `vite dev` from an entry file. Prefer it when you are writing Hono routes of your own beside the fake ones, since it reloads the entry when it changes. Mount the API in the entry and leave every other path to Vite with `exclude`; its own `base` option moves Vite's base too, so it does not suit an app served at `/`.
-
-  ```ts
-  // src/api.ts
-  import { Hono } from 'hono';
-  import { createApp } from '@johnmorrisdotca/rest-in-pieces/core';
-  export default new Hono().route('/api', createApp());
-
-  // vite.config.ts: plugins: [devServer({ entry: 'src/api.ts', exclude: [/^\/(?!api(\/|\?|$))/] })]
-  ```
-
-- **Vite's `server.proxy`**, with no code at all: run `npx @johnmorrisdotca/rest-in-pieces` in another terminal and proxy to it. Prefer it when the same API should also answer curl, a phone on the network or another app.
-
-  ```ts
-  server: { proxy: { '/api': { target: 'http://localhost:6800', rewrite: (path) => path.replace(/^\/api/, '') } } }
-  ```
-
-### Mock Service Worker
-
-`@johnmorrisdotca/rest-in-pieces/msw` gives [MSW](https://mswjs.io/) one handler that answers everything under a base path from the whole API. MSW's service worker catches `fetch`, `XMLHttpRequest` and axios alike, and a handler placed before it still wins, so a test can override one endpoint and leave the rest to the API. Pass MSW's own `http`: the entry imports nothing from `msw`, so it works with MSW 2 (`from 'msw'`) and MSW 3 (`from 'msw'` or `from 'msw/http'`). `msw` is an optional peer dependency.
-
-**In the browser**, once the worker script is in place (`npx msw init public`):
-
-```ts
-import { http } from 'msw';
-import { setupWorker } from 'msw/browser';
-import { restInPiecesHandlers } from '@johnmorrisdotca/rest-in-pieces/msw';
-
-await setupWorker(...restInPiecesHandlers({ http })).start({ onUnhandledRequest: 'bypass' }); // MSW 3: onUnhandledFrame
-```
-
-**In Vitest or Jest.** MSW in Node matches absolute URLs only, so give the base as one and point the code under test at it:
-
-```ts
-import { http } from 'msw';
-import { setupServer } from 'msw/node';
-import { restInPiecesHandlers } from '@johnmorrisdotca/rest-in-pieces/msw';
-
-export const server = setupServer(...restInPiecesHandlers({ base: 'http://localhost/api', http }));
-// beforeAll(() => server.listen()); afterEach(() => server.resetHandlers()); afterAll(() => server.close());
-```
-
-`server.use(http.get('http://localhost/api/users', () => HttpResponse.json({ results: [] })))` overrides one endpoint for one test; every other request under the base still reaches the API.
-
-**With MSW 3's Vite plugin**, which serves the worker and leaves it out of production builds (`plugins: [msw()]` from `msw/vite` in `vite.config.ts`):
-
-```ts
-if (import.meta.env.DEV) {
-  const { network } = await import('virtual:msw');
-  const { http } = await import('msw/http');
-  const { restInPiecesHandlers } = await import('@johnmorrisdotca/rest-in-pieces/msw');
-  network.configure({ handlers: restInPiecesHandlers({ http }) });
-  await network.enable();
-}
-```
-
-`restInPiecesHandlers({ base, app, http })` takes the same `base` (default `/api`) and `app` options as `installInBrowserApi`, and loads the API on the first request it matches. With `app: { session: true }`, writes are kept by the handlers for as long as the page (or the test file, in Node) lives; a `POST` to `/api/reset` puts the seed back between tests.
-
-### Storybook
-
-With [msw-storybook-addon](https://github.com/mswjs/msw-storybook-addon), start the worker with the handlers once in `.storybook/preview.ts`. Handlers given to `setupWorker` survive the addon's reset between stories:
-
-```ts
-import { http } from 'msw';
-import { setupWorker } from 'msw/browser';
-import { mswLoader } from 'msw-storybook-addon/csf3'; // CSF Next: addons: [addonMsw(start)]
-import { restInPiecesHandlers } from '@johnmorrisdotca/rest-in-pieces/msw';
-
-const start = async () => {
-  const worker = setupWorker(...restInPiecesHandlers({ http }));
-  await worker.start({ onUnhandledRequest: 'bypass' });
-  return worker;
-};
-export default { loaders: [mswLoader(start)] };
-```
-
-The loading, error and overflow stories then need no mocking code, only another URL:
-
-```ts
-export const Loading = { args: { src: '/api/users?delay=3000' } };
-export const Failed = { args: { src: '/api/users?status=500' } };
-export const Messy = { args: { src: '/api/users?messy=true&seed=3' } };
-```
-
-### Next.js
-
-A catch-all route handler hosts the whole API inside a Next.js app, on its own origin. Hono's `mount` takes the base off the path before the API sees it (`hono` is already a dependency of this package; add it to yours if your package manager is strict):
-
-```ts
-// app/api/[[...path]]/route.ts
-import { Hono } from 'hono';
-import { createApp } from '@johnmorrisdotca/rest-in-pieces/core';
-
-const app = new Hono().mount('/api', createApp().fetch);
-const handler = (request: Request) => app.fetch(request);
-export { handler as GET, handler as HEAD, handler as POST, handler as PUT, handler as PATCH, handler as DELETE, handler as OPTIONS };
-```
-
-The same `createApp().fetch` runs on any other fetch-style host: Cloudflare Workers, Deno, Bun or a Vercel function.
-
-### Playwright
-
-No server and no MSW: answer the page's API requests from the app in the test process with `page.route`, so each test gets the same data and can turn on a drill by URL:
-
-```ts
-import { createApp } from '@johnmorrisdotca/rest-in-pieces';
-
-const app = createApp();
-test.beforeEach(({ page }) => page.route('**/api/**', async (route) => {
-  const request = route.request();
-  const url = new URL(request.url());
-  const response = await app.request(url.pathname.replace(/^\/api/, '') + url.search, { method: request.method(), headers: request.headers(), body: request.postDataBuffer() });
-  await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: Buffer.from(await response.arrayBuffer()) });
-}));
-```
-
-Or start the API beside your app with Playwright's `webServer` (`command: 'npx @johnmorrisdotca/rest-in-pieces --port 6800'`, `url: 'http://localhost:6800/health'`).
-
-For a CRUD flow that reads its own writes, make the app with `createApp({ session: true })` and put the seed back before each test, so every test starts from the same data:
-
-```ts
-const app = createApp({ session: true });
-test.beforeEach(() => app.request('/reset', { method: 'POST' }));
-```
-
-A signed-in test can sign in once and keep the token: `const { accessToken } = await (await app.request('/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'admin', password: 'password' }) })).json()`. See [Sign-in](#sign-in-fake-auth).
-
-[`@msw/playwright`](https://github.com/mswjs/playwright) (MSW 3) does the same through MSW, so the [MSW handlers](#mock-service-worker) plug straight in. Give them the base at your app's origin:
-
-```ts
-import { defineNetworkFixture } from '@msw/playwright';
-
-const handlers = restInPiecesHandlers({ base: 'http://localhost:5173/api', http });
-// in test.extend: const network = defineNetworkFixture({ context, handlers }); await network.enable(); await use(network); await network.disable();
-```
-
-### Cypress
-
-Cypress runs its intercept handlers in the browser, so the API runs as a server beside your app. With [start-server-and-test](https://github.com/bahmutov/start-server-and-test) and the package installed as a dev dependency:
-
-```json
-"scripts": {
-  "api": "rest-in-pieces --port 6800",
-  "e2e": "start-test api http://localhost:6800/health dev http://localhost:5173 'cypress run'"
-}
-```
-
-Slow, failing and flaky answers come from the API's own `?delay=`, `?status=` and `?fail=`, with no mocking code in the test. To test a form that saves, start the API with `--session` (`"api": "rest-in-pieces --port 6800 --session"`) and put the seed back before each test with `beforeEach(() => cy.request('POST', 'http://localhost:6800/reset'))`. Keep `cy.intercept` for the faults no server can make, such as a dropped connection: `cy.intercept('GET', '/api/users*', { forceNetworkError: true })`. Or call `installInBrowserApi()` in the app under test and need no server at all.
-
-### Typed clients
-
-The package ships the API's OpenAPI 3.1 document as `@johnmorrisdotca/rest-in-pieces/openapi.json`, and TypeScript types for every path and schema, generated from it by [openapi-typescript](https://openapi-ts.dev/), as `@johnmorrisdotca/rest-in-pieces/types`. They describe the version installed, with nothing running. With [openapi-fetch](https://openapi-ts.dev/openapi-fetch/):
-
-```ts
-import createClient from 'openapi-fetch';
-import type { paths } from '@johnmorrisdotca/rest-in-pieces/types';
-
-const api = createClient<paths, 'application/json'>({ baseUrl: 'http://localhost:6800' });
-const { data } = await api.GET('/users', { params: { query: { limit: '10', seed: '42' } } });
-if (data && !Array.isArray(data)) console.log(data.metadata.total, data.results[0]?.email); // metadata=false returns a bare array
-```
-
-`components['schemas']['User']`, `['Person']`, `['Product']` and the rest type single records, `['UserInput']` and its siblings the write bodies, and `['AuthTokens']`, `['AuthUser']`, `['AuthError']` and `['Session']` the sign-in and session answers. Query parameters are strings, as they are in a URL. To generate the types yourself, point openapi-typescript at the document: `npx openapi-typescript node_modules/@johnmorrisdotca/rest-in-pieces/dist/openapi.json -o rest-in-pieces.d.ts`, or at `/openapi.json` on any running instance.
-
-### Any origin
-
-CORS is on by default, so a frontend on any dev-server origin can call the API directly. Every response carries `Access-Control-Allow-Origin: *`; a preflight `OPTIONS` answers `204` with the methods allowed and the requested headers echoed back, so a write with an `Authorization` header preflights too; and `X-Total-Count`, `Link`, `ETag`, `X-Simulated`, `Retry-After`, `Location` and `WWW-Authenticate` are exposed to scripts.
+**[Read Use with in docs/use-with.md.](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md)** Sections: [Vite](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#vite), [Mock Service Worker](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#mock-service-worker), [Storybook](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#storybook), [Next.js](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#nextjs), [Playwright](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#playwright), [Cypress](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#cypress), [Typed clients](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#typed-clients), [Any origin](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#any-origin).
 
 ## Why use it
 
@@ -281,7 +101,7 @@ Most tools in this space either intercept requests and leave you to write the da
 | Tool | What it is | Verdict |
 | ---- | ---------- | ------- |
 | [json-server](https://github.com/typicode/json-server) | A REST API over a `db.json` you write | Closest in spirit. It writes changes back to `db.json`, which REST in Pieces does not: its [session](#sessions-keeping-writes) keeps writes in memory only, until a reset or a restart. Both have relations: json-server's `_embed` over the data you wrote, REST in Pieces' [nested routes and `expand`](#relations) over generated data that already joins up. REST in Pieces has generated, seeded, localized data, paging, formats, sign-in and failure drills with nothing to write. |
-| [MSW](https://mswjs.io/) | Request interception in the browser and Node | Not a rival but a host: MSW intercepts, REST in Pieces answers. Use the [MSW handlers](#mock-service-worker). |
+| [MSW](https://mswjs.io/) | Request interception in the browser and Node | Not a rival but a host: MSW intercepts, REST in Pieces answers. Use the [MSW handlers](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#mock-service-worker). |
 | [Mirage JS](https://miragejs.com/) | A fake server in the tab, with models and factories you define | Mirage wants a schema and routes; REST in Pieces needs no setup. Both keep writes in memory (REST in Pieces with `session: true`) and both have relations: Mirage between the models you define, any shape you like; REST in Pieces between its own datasets only. |
 | [Prism](https://github.com/stoplightio/prism) | A mock server generated from your OpenAPI file | Use Prism when you have a contract to mock; use REST in Pieces when you do not, and want realistic data rather than examples. |
 | [Mockoon](https://mockoon.com/) | A desktop app and CLI for hand-templated mock routes | Better for people who prefer a GUI and per-route templates; REST in Pieces is code-first, with seeds and locales built in. |
@@ -469,102 +289,21 @@ Simulated responses carry `X-Simulated: true`, and 429 and 503 carry `Retry-Afte
 
 ### Writes
 
-`/names`, `/users`, `/products`, `/companies`, `/orders`, `/posts`, `/comments`, `/todos` and `/reviews` take writes, so a client can rehearse a form submit, an optimistic update, a delete confirmation and a validation error:
+`/names`, `/users`, `/products`, `/companies`, `/orders`, `/posts`, `/comments`, `/todos` and `/reviews` take `POST`, `PUT`, `PATCH` and `DELETE`, so a client can rehearse a form submit, an optimistic update, a delete confirmation and a validation error. **Stateless by default:** unless the session is on, nothing is stored and a write never changes what a later read returns. `delay`, `trickle`, `status` and `fail` work on writes as on reads.
 
-```sh
-# Create: 201, with the next id after the dataset's last, createdAt, updatedAt and a Location header
-curl -i -X POST 'http://localhost:6800/users' -H 'Content-Type: application/json' \
-  -d '{ "firstName": "Ada", "lastName": "Lovelace", "username": "ada", "email": "ada@example.com",
-        "avatar": "https://example.com/ada.png", "phone": "416-555-0100", "jobTitle": "Analyst",
-        "company": "Analytical Engines", "city": "Toronto", "country": "CA", "active": true }'
-
-# Update some fields: 200 with the record merged with them
-curl -X PATCH 'http://localhost:6800/users/42' -H 'Content-Type: application/json' -d '{ "active": false }'
-
-# Delete: 204
-curl -i -X DELETE 'http://localhost:6800/users/42'
-
-# A validation error, a conflict, and a slow failing save
-curl -X POST 'http://localhost:6800/users' -H 'Content-Type: application/json' -d '{ "email": "nope" }'
-curl -i -X PUT 'http://localhost:6800/users/42?conflict=true' -H 'Content-Type: application/json' -d '{ … }'
-curl -i -X PATCH 'http://localhost:6800/users/42?delay=1500&status=503' -H 'Content-Type: application/json' -d '{}'
-```
-
-| Request | Answer |
-| ------- | ------ |
-| `POST /{dataset}` | `201` with the record, the next id (`1001` for users, `1000` for the zero-based `/names`, one past the last for the related datasets), `createdAt` and `updatedAt`, and `Location: /users/1001`. |
-| `PUT /{dataset}/{id}` | `200` with the body under the same id, `createdAt` kept and `updatedAt` set. Every field is required. |
-| `PATCH /{dataset}/{id}` | `200` with the record merged with the fields sent, and `updatedAt` set. |
-| `DELETE /{dataset}/{id}` | `204` with no body. |
-| An unknown id | `404`, as the `GET` answers. |
-| A body that fails validation | `422` with a message per field: `{ "error": "Validation failed", "fields": { "email": "Invalid email" } }`. A missing field says `Required`; a reference to a record that does not exist says so: `{ "userId": "No user with id 5000." }`. |
-| `?conflict=true` | `409`, to rehearse "someone else changed this". |
-| Malformed JSON, or no `Content-Type: application/json` | `400` or `415`. Bodies over 64 KB get `413`. |
-| A full session | `507` with a message saying which limit, when the [session](#sessions-keeping-writes) is on. |
-
-The body is the record without the fields the server sets (the id and `createdAt`); those are ignored if sent, and so is any field the dataset does not have. The schemas are `PersonInput`, `UserInput`, `ProductInput`, `CompanyInput`, `OrderInput`, `PostInput`, `CommentInput`, `TodoInput` and `ReviewInput` in [`/openapi.json`](#endpoints); a related dataset's references must name records that exist, and an order's prices and totals are worked out by the server (see [Relations](#relations)). Every record a dataset serves is a valid `PUT` body. `delay`, `trickle`, `status` and `fail` work as they do on reads; on a `PUT`, `PATCH` or `DELETE`, `seed` and `locale` choose the record, as on the `GET`. Writes answer in JSON.
-
-**Stateless by default.** Unless the session is on, nothing is stored: a write never changes what a later read returns, on a shared host or anywhere else, and the response is what the write would have produced. Turn the [session](#sessions-keeping-writes) on to keep writes. `/countries` is real reference data keyed by ISO code, so it stays read-only, as does the deprecated `/random-names` alias.
+**Full reference with examples: [docs/writes-sessions-auth.md#writes](https://github.com/spxis/rest-in-pieces/blob/main/docs/writes-sessions-auth.md#writes).**
 
 ### Sessions: keeping writes
 
-Off by default, and opt-in wherever the API runs:
+Opt-in, in memory only, with nothing on a timer: `--session`, `REST_IN_PIECES_SESSION=true` or `createApp({ session: true })` keep writes until `POST /reset`, so a test can create, edit and delete and read the result back. Capped at 2,000 records a dataset, 64 changed datasets and 8 MB, answering `507` when full.
 
-| Where | Turn it on |
-| ----- | ---------- |
-| The command line | `npx @johnmorrisdotca/rest-in-pieces --session`, or `REST_IN_PIECES_SESSION=true` (also in Docker: `-e REST_IN_PIECES_SESSION=true`) |
-| In-process | `createApp({ session: true })` |
-| The Vite plugin | `restInPieces({ app: { session: true } })` |
-| MSW | `restInPiecesHandlers({ http, app: { session: true } })` |
-| A browser tab | `installInBrowserApi({ app: { session: true } })` |
-
-```sh
-npx @johnmorrisdotca/rest-in-pieces --session
-
-curl -X DELETE 'http://localhost:6800/users/1'                # 204
-curl -i 'http://localhost:6800/users/1'                       # 404: it stays deleted
-curl 'http://localhost:6800/users?limit=1' | jq .metadata.total   # 999
-curl 'http://localhost:6800/session'                          # what the session holds
-curl -X POST 'http://localhost:6800/reset'                    # the seed again: 1000 users
-```
-
-- **What it keeps.** `POST` adds the record with the next id (ids are never given out twice, even after a delete), `PUT` and `PATCH` replace and merge, `DELETE` removes. Lists, counts, `X-Total-Count`, filters, search, sorting, paging, cursors, `messy` and item routes all see the change, and so does `/auth/me` for a user who was edited, disabled or deleted.
-- **Per seed and locale.** A dataset is copied into the session on its first write, at that request's `seed` and `locale`, so `/users?seed=7` and `/users?locale=ja` change apart from `/users`. Everything not written to is still read straight from the seed.
-- **`GET /session`** lists every changed dataset with its created, updated and deleted counts and its size, plus the limits. **`POST /reset`** drops every change, or one dataset's with `?dataset=users`, and answers `200` when the session is off too, so a test's `beforeEach` can call it either way.
-- **Relations stay whole.** A write must name records that exist: an order's `userId` and every item's `productId`, a comment's `postId` and `userId`, a review's `productId` and `userId`, a post's or todo's `userId`, at the same `seed` and `locale`, or it answers `422` naming the field. A delete takes along every record that points at the one deleted, and theirs in turn: **deleting a user deletes their orders, their posts and every comment on those posts, their todos, and the comments and reviews they wrote**; deleting a post deletes its comments; deleting a product deletes its reviews. Orders keep a product's name and price as they were when it was ordered, the way a shop keeps what it charged, so deleting a product leaves the orders, and `expand=items.product` gives `null` there. The delete makes room for every dataset it changes first, or answers `507` and changes nothing. `GET /session` counts what each dataset lost.
-- **Capped.** At most 2,000 records in a dataset of 1,000 (at one seed and locale), and in proportion for a dataset seeded with more (an orders dataset of 1,680 may hold 3,360); 64 changed datasets, counting each seed and locale apart, since one delete can change six; and 8 MB of written records. A write past a limit answers `507 Insufficient Storage` and keeps nothing; `createApp({ session: { records, datasets, bytes } })` moves the limits.
-- **Memory only.** Nothing is written to disk and nothing runs on a timer. A restart starts again from the seed, each `createApp()` has a store of its own, and on a serverless host every instance keeps its own copy, so keep it off there. The hosted demos are stateless: the Vercel deployment never turns it on, and the GitHub Pages playground keeps writes only in your tab, and only after you tick **Keep writes in this tab**.
+**Full reference: [docs/writes-sessions-auth.md#sessions-keeping-writes](https://github.com/spxis/rest-in-pieces/blob/main/docs/writes-sessions-auth.md#sessions-keeping-writes).**
 
 ### Sign-in (fake auth)
 
-A login form, protected routes, roles and expired tokens, against realistic answers. **Not security:** every account's password is `password`, and the tokens are HS256 JWTs signed with the published key `rest-in-pieces-not-a-secret`, so anyone can mint one. They are real JWTs only so that a client's own JWT decoding works on them.
+`POST /auth/login`, `/auth/refresh`, `GET /auth/me` and `POST /auth/logout` over `/users`, roles (`admin`, `editor`, `viewer`, `disabled`), and `?auth=required|editor|admin` on any data endpoint, for rehearsing login forms, protected routes and expired tokens. **Not security:** every password is `password` and the tokens are signed with a published key.
 
-```sh
-curl -X POST 'http://localhost:6800/auth/login?expiresIn=30s' -H 'Content-Type: application/json' \
-  -d '{ "username": "editor", "password": "password" }'
-curl 'http://localhost:6800/auth/me' -H 'Authorization: Bearer <accessToken>'
-curl -i 'http://localhost:6800/products?auth=admin' -H 'Authorization: Bearer <accessToken>'   # 403 for an editor
-```
-
-**Accounts.** Every user of `/users` signs in with their `username` or `email`, at the `seed` and `locale` in the login's query, so the same seed signs in the same person on every machine. The first active user is the `admin`, the second the `editor`, and every other user a `viewer`. Four usernames are shortcuts: `admin`, `editor` and `viewer` sign in as those accounts, and `disabled` names the first account that is not active.
-
-| Request | Answer |
-| ------- | ------ |
-| `POST /auth/login` `{ "username", "password" }` (or `email`) | `200` with `tokenType: "Bearer"`, `accessToken`, `expiresIn` (seconds), `expiresAt`, `refreshToken`, `refreshExpiresIn` and `user` (the `/users` record plus `role`). |
-| A wrong password or unknown user | `401` `{ "error": "Unauthorized", "code": "invalid_credentials", "message": … }` |
-| An account that is not active | `403` with `code: "account_disabled"` |
-| A missing field | `422` `{ "error": "Validation failed", "fields": { "password": "Required" } }` |
-| `POST /auth/refresh` `{ "refreshToken" }` | `200` with a new pair, read again from the user's current record. Tokens are not stored, so an old refresh token works until it expires. |
-| `GET /auth/me` with `Authorization: Bearer <accessToken>` | `200` with the user and their role. |
-| `POST /auth/logout` | `204`. Signing out is the client forgetting its tokens. |
-| No token, a malformed or tampered one, or a refresh token where an access token belongs | `401` with `code` `missing_token` or `invalid_token`, and `WWW-Authenticate: Bearer realm="rest-in-pieces"` (with `error="invalid_token"` and a description for a bad token). |
-| An expired token | `401` with `code: "token_expired"`. |
-| `?auth=editor` or `?auth=admin` with a role that is not enough | `403` with `code: "insufficient_role"`, `required` and `role`. |
-
-- **Lifetimes.** Access tokens last 15 minutes and refresh tokens 7 days. `?expiresIn=` and `?refreshExpiresIn=` on login and refresh take seconds (`30`) or a unit (`30s`, `5m`, `2h`, `7d`), up to 30 days. `expiresIn=0` gives an access token that has already expired, so the refresh path can be rehearsed at once.
-- **Protected routes.** `?auth=required`, `?auth=editor` or `?auth=admin` on any dataset, item, write or `/generate` turns that request into a protected route. Without `auth`, tokens are ignored, as before. A simulated `status` or `fail` still wins, so `?auth=required&status=503` is a `503`.
-- **Rehearsable failures too.** `delay`, `status` and `fail` work on `/auth/*`, for a slow or failing sign-in.
-- **In the OpenAPI document** as the `Auth` tag and a `bearerAuth` security scheme, so `/docs` can send a token.
+**Full reference: [docs/writes-sessions-auth.md#sign-in-fake-auth](https://github.com/spxis/rest-in-pieces/blob/main/docs/writes-sessions-auth.md#sign-in-fake-auth).**
 
 ## Relations
 
