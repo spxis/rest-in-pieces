@@ -6,6 +6,7 @@ import {
   curlCommand,
   extractRows,
   fetchSnippet,
+  generateCommand,
   isLocalApi,
   isSchemaRequest,
   requestFor,
@@ -204,6 +205,46 @@ describe('generating from a schema', () => {
     expect(body.metadata.total).toBe(25);
     expect(body.results).toHaveLength(5);
     for (const row of body.results) expect(Number.isInteger(row.id)).toBe(true);
+  });
+});
+
+describe('the offline command', () => {
+  const generated = {
+    ...base,
+    endpoint: 'generate',
+    max: 500,
+    seed: 3,
+    format: 'sql' as const,
+    table: 'people',
+    fields: [
+      { id: 1, name: 'name', type: 'person.fullName' },
+      { id: 2, name: 'nick', type: "pick(it's,ok)" },
+    ],
+    constraints: 'a>b',
+  };
+
+  it('writes the setup as a generate command', () => {
+    expect(generateCommand(generated)).toBe(
+      "npx @johnmorrisdotca/rest-in-pieces generate \\\n  --fields 'name:person.fullName,nick:pick(it'\\''s,ok)' \\\n  --constraints 'a>b' \\\n  --count 500 \\\n  --seed 3 \\\n  --format sql \\\n  --table people",
+    );
+    expect(generateCommand({ ...generated, format: 'xml', constraints: '', locale: 'ja', safe: true })).toBe(
+      "npx @johnmorrisdotca/rest-in-pieces generate \\\n  --fields 'name:person.fullName,nick:pick(it'\\''s,ok)' \\\n  --count 500 \\\n  --seed 3 \\\n  --locale ja \\\n  --safe \\\n  --format ndjson",
+    );
+  });
+
+  it('reads a typed schema from schema.json, with the component of an OpenAPI document', () => {
+    const schema = { ...generated, schemaMode: true, format: 'csv' as const, schema: '{"type":"object"}' };
+    expect(generateCommand(schema)).toBe(
+      '# Save the schema above as schema.json\nnpx @johnmorrisdotca/rest-in-pieces generate \\\n  --schema schema.json \\\n  --count 500 \\\n  --seed 3 \\\n  --format csv',
+    );
+    expect(generateCommand({ ...schema, schema: '{"openapi":"3.0.3"}', component: ' Pet ' })).toContain(
+      "--component 'Pet'",
+    );
+    expect(generateCommand({ ...schema, component: 'Pet' })).not.toContain('--component');
+  });
+
+  it('is only for generated records', () => {
+    expect(generateCommand(base)).toBeNull();
   });
 });
 

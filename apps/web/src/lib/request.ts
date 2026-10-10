@@ -127,6 +127,37 @@ export function requestFor(config: PlaygroundConfig): { method: HttpMethod; body
     : { method: config.method, body: config.body };
 }
 
+/**
+ * The `rest-in-pieces generate` command that writes this setup's records offline, or null when the setup is not a
+ * generated one. A schema is typed in the playground, so the command reads it from `schema.json`.
+ */
+export function generateCommand(config: PlaygroundConfig): string | null {
+  if (config.endpoint !== 'generate') return null;
+  const quote = (text: string) => `'${text.replaceAll("'", "'\\''")}'`;
+  const schema = isSchemaRequest(config);
+  const format = (['ndjson', 'json', 'csv', 'sql'] as const).find((name) => name === config.format) ?? 'ndjson';
+  const parts = ['npx @johnmorrisdotca/rest-in-pieces generate'];
+  if (schema) {
+    parts.push('--schema schema.json');
+    if (config.component.trim() && /"(openapi|swagger)"\s*:/.test(config.schema)) {
+      parts.push(`--component ${quote(config.component.trim())}`);
+    }
+  } else {
+    parts.push(
+      `--fields ${quote(config.fields.map((field) => `${field.name.trim()}:${field.type.trim()}`).join(','))}`,
+    );
+    if (config.constraints.trim()) parts.push(`--constraints ${quote(config.constraints.trim())}`);
+  }
+  parts.push(`--count ${Math.max(1, config.max)}`, `--seed ${config.seed}`);
+  if (config.locale !== 'en-CA') parts.push(`--locale ${config.locale}`);
+  if (config.safe) parts.push('--safe');
+  parts.push(`--format ${format}`);
+  if (format === 'sql') parts.push(`--table ${config.table.trim() || 'generated'}`);
+  // One option to a line, so the command reads in a narrow panel and pastes as it is.
+  const command = parts.join(' \\\n  ');
+  return schema ? `# Save the schema above as schema.json\n${command}` : command;
+}
+
 /** Builds the request URL for a setup. Parameters at their API defaults are left out to keep URLs readable. */
 export function buildRequestUrl(config: PlaygroundConfig, seeded = true): string {
   const schema = isSchemaRequest(config);

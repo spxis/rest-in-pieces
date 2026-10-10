@@ -27,7 +27,7 @@ import {
   METHODS,
   type PlaygroundConfig,
 } from './lib/config.ts';
-import { buildRequestUrl, isSchemaRequest, requestFor, schemaProperties } from './lib/request.ts';
+import { buildRequestUrl, generateCommand, isSchemaRequest, requestFor, schemaProperties } from './lib/request.ts';
 import { sampleBody } from './lib/samples.ts';
 
 const MAC = /Mac|iPhone|iPad/.test(navigator.userAgent);
@@ -292,6 +292,7 @@ export default function App() {
               apiBase={config.apiBase}
               format={config.format}
               request={requestFor({ ...config, method: chosen })}
+              cli={generateCommand(config)}
               account={auth.username}
               session={session.summary?.enabled === true}
               copied={copied}

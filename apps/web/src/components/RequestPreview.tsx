@@ -17,6 +17,7 @@ export function RequestPreview({
   copied,
   onCopy,
   onShare,
+  cli = null,
 }: {
   url: string;
   apiBase: string;
@@ -30,17 +31,23 @@ export function RequestPreview({
   copied: string | null;
   onCopy: (value: string, key: string) => void;
   onShare: () => void;
+  /** The `generate` command for this setup, shown as a CLI tab, when it is a generated one. */
+  cli?: string | null;
 }) {
   const { say, compose } = useSpeaker();
-  const [view, setView] = useState<SnippetKind>('url');
-  const text = snippetFor(view, {
-    ...request,
-    url,
-    apiBase,
-    format,
-    session,
-    ...(account ? { account } : {}),
-  });
+  const [chosen, setView] = useState<SnippetKind | 'cli'>('url');
+  const view = chosen === 'cli' && cli === null ? 'url' : chosen;
+  const text =
+    view === 'cli' && cli !== null
+      ? cli
+      : snippetFor(view === 'cli' ? 'url' : view, {
+          ...request,
+          url,
+          apiBase,
+          format,
+          session,
+          ...(account ? { account } : {}),
+        });
   const params = new URL(url, 'http://x').searchParams.size;
 
   const button = (key: string, label: string, value: string | null, icon = <Copy size={14} />) => (
@@ -59,7 +66,7 @@ export function RequestPreview({
     <div className="request-preview">
       <div className="preview-heading">
         <div className="snippet-tabs" role="tablist" aria-label={say('preview.snippets')}>
-          {SNIPPET_KINDS.map((option) => (
+          {[...SNIPPET_KINDS, ...(cli === null ? [] : (['cli'] as const))].map((option) => (
             <button
               type="button"
               key={option}
@@ -68,7 +75,7 @@ export function RequestPreview({
               className={view === option ? 'active' : ''}
               onClick={() => setView(option)}
             >
-              {option === 'url' ? say('preview.url') : SNIPPET_LABELS[option]}
+              {option === 'url' ? say('preview.url') : option === 'cli' ? 'CLI' : SNIPPET_LABELS[option]}
             </button>
           ))}
         </div>
@@ -91,7 +98,9 @@ export function RequestPreview({
       <div className="preview-actions">
         {button(
           'snippet',
-          view === 'url' ? say('preview.copyUrl') : say('preview.copySnippet', { name: SNIPPET_LABELS[view] }),
+          view === 'url'
+            ? say('preview.copyUrl')
+            : say('preview.copySnippet', { name: view === 'cli' ? 'CLI' : SNIPPET_LABELS[view] }),
           text,
         )}
         {button('setup', say('preview.share'), null, <Link2 size={14} />)}

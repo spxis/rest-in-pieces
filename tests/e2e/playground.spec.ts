@@ -136,6 +136,19 @@ test('generates records from a JSON Schema, and refuses what is not JSON', async
   await expect(page.getByTestId('response-status')).toHaveText(/200/);
 });
 
+test('offers the offline command beside the request snippets, for generated records only', async ({ page }) => {
+  await expect(page.getByRole('tab', { name: 'CLI', exact: true })).toHaveCount(0);
+  await page.getByRole('tab', { name: /Generate/ }).click();
+  await page.getByRole('tab', { name: 'CLI', exact: true }).click();
+  await expect(snippet(page)).toContainText("--fields 'name:person.fullName,email:internet.email'");
+  await expect(snippet(page)).toContainText('--count 1000');
+  await expect(snippet(page)).toContainText('--format json');
+  await page.getByRole('button', { name: 'JSON Schema', exact: true }).click();
+  await expect(snippet(page)).toContainText('--schema schema.json');
+  await page.getByRole('tab', { name: /Users/ }).click();
+  await expect(page.getByRole('tab', { name: 'CLI', exact: true })).toHaveCount(0);
+});
+
 test('rehearses a create, a validation error and a delete', async ({ page }) => {
   await page.getByRole('tab', { name: /Users/ }).click();
   await page.getByRole('button', { name: 'POST', exact: true }).click();
