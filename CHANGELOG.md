@@ -4,6 +4,8 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+## 2.21.0 - 2026-10-09
+
 ### Added
 
 - A read-only copy of the API as plain files on the GitHub Pages site, at `https://spxis.github.io/rest-in-pieces/api/`: nothing to install, no key and no server, with CORS open. `users.json` is the first page of ten, `users/page/2.json` the next, `users/1.json` one record, `users/1/orders.json` the records it owns, `ja/products.json` the same in Japanese, and `index.json` lists what is there. A page number is in the path and every address ends in `.json`, because Pages cannot read a query string and chooses the content type from the ending.

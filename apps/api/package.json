@@ -1,6 +1,6 @@
 {
   "name": "@johnmorrisdotca/rest-in-pieces",
-  "version": "2.20.0",
+  "version": "2.21.0",
   "description": "A mock REST API and test data generator with realistic, seeded fake data for building and testing frontends: related datasets with referential integrity, paging, sorting, filters, errors and delays on demand, safe values, SVG avatars, and NDJSON and SQL exports. Run it with npx, in Vite, through MSW or inside a browser tab.",
   "keywords": [
     "mock-api",
