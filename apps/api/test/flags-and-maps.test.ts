@@ -138,6 +138,31 @@ describe('GET /maps/{code}.svg', () => {
     expect((await get('/maps/JP.svg?lang=fr')).status).toBe(400);
   });
 
+  it('draws named features on a country or region, and lights one by its id', async () => {
+    const plain = await (await get('/maps/JP.svg')).text();
+    expect(plain).not.toContain('class="cz-features"');
+    const water = await (await get('/maps/JP.svg?features=water')).text();
+    expect(water).toContain('class="cz-marine-area"');
+    expect(water).toContain('data-code="Q200239"'); // Lake Biwa
+    expect(water).toContain('class="cz-river"');
+    expect(water).not.toContain('class="cz-peak"');
+    expect(await (await get('/maps/JP.svg?features=peaks')).text()).toContain('class="cz-peak"');
+    const lit = await get('/maps/JP.svg?feature=Q200239');
+    expect(lit.status).toBe(200);
+    const text = await lit.text();
+    expect(text).toContain('data-code="Q200239" data-kind="lake" data-group="lakes" data-tone="selected"');
+    expect(text).not.toContain('class="cz-marine-area"');
+    expect((await get('/maps/JP-13.svg?features=peaks,strait')).status).toBe(200);
+  });
+
+  it('is 404 for a feature the map does not hold, and 400 for a features choice that is not one', async () => {
+    expect((await get('/maps/FR.svg?feature=Q200239')).status).toBe(404);
+    expect((await get('/maps/JP.svg?feature=nothing')).status).toBe(404);
+    const bad = await get('/maps/JP.svg?features=cities');
+    expect(bad.status).toBe(400);
+    expect(((await bad.json()) as { error: string }).error).toContain('cities');
+  });
+
   it('is in the OpenAPI document, with the flags', async () => {
     const spec = (await request<{ paths: Record<string, unknown> }>('/openapi.json')).body;
     expect(Object.keys(spec.paths)).toEqual(expect.arrayContaining(['/flags/{code}.svg', '/maps/{code}.svg']));

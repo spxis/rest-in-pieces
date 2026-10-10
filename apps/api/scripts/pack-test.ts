@@ -102,6 +102,12 @@ async function checkCli(): Promise<void> {
       map.status === 501 && mapBody.includes('npm install @johnmorrisdotca/chizu'),
       `/maps/JP.svg answered ${map.status} ${mapBody}`,
     );
+    const geo = await fetch(`${base}/geo/features`);
+    const geoBody = await geo.text();
+    assert(
+      geo.status === 501 && geoBody.includes('npm install @johnmorrisdotca/chizu'),
+      `/geo/features answered ${geo.status} ${geoBody}`,
+    );
     const addressList = (await (await fetch(`${base}/addresses?limit=3`)).json()) as {
       results: { lines: string[]; postcode: string }[];
     };
@@ -113,7 +119,7 @@ async function checkCli(): Promise<void> {
     assert(home.includes('<div id="root">'), 'The CLI did not serve the packed playground at /.');
     assert(output.includes(`REST in Pieces ${version} is running at ${base}`), `Unexpected start-up line: ${output}`);
     step(
-      `CLI on ${base}: /health, /users?limit=1, /countries/JP, /countries/withdrawn/SU, /subdivisions/JP-13, /groupings/eu, /addresses, a flag redirect, a map that names Chizu and the playground answered`,
+      `CLI on ${base}: /health, /users?limit=1, /countries/JP, /countries/withdrawn/SU, /subdivisions/JP-13, /groupings/eu, /addresses, a flag redirect, a map and the geographic features that name Chizu and the playground answered`,
     );
   } finally {
     cli.kill('SIGTERM');

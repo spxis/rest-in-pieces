@@ -12,6 +12,7 @@ import {
   makeTransaction,
 } from './data/domains.ts';
 import { FHIR_FIELDS, loadConditions, loadEncounters, loadObservations, loadPatients } from './data/fhir.ts';
+import { type FeatureRecord, featureRecords, findFeature, loadFeatures } from './data/geo.ts';
 import {
   type CountryRecord,
   countriesNamed,
@@ -53,6 +54,7 @@ import {
   Company,
   CompanyInput,
   Country,
+  GeoFeature,
   Grouping,
   Order,
   OrderInput,
@@ -112,6 +114,7 @@ const COUNTRY_FIELDS = fieldsOf(Country);
 const WITHDRAWN_FIELDS = fieldsOf(WithdrawnCountry);
 const SUBDIVISION_FIELDS = fieldsOf(Subdivision);
 const GROUPING_FIELDS = fieldsOf(Grouping);
+const FEATURE_FIELDS = fieldsOf(GeoFeature);
 const ADDRESS_FIELDS = fieldsOf(Address);
 
 function seededResource<T extends object>(
@@ -211,6 +214,7 @@ export const resources: Resource[] = [
     relations: {
       subdivisions: { kind: 'many', target: 'subdivisions', key: 'country' },
       groupings: { kind: 'many', target: 'groupings', key: 'members' },
+      features: { kind: 'many', target: 'features', key: 'countries' },
     },
   },
   {
@@ -277,6 +281,25 @@ export const resources: Resource[] = [
     relations: {
       countries: { kind: 'list', target: 'countries', key: 'members' },
       subdivisions: { kind: 'list', target: 'subdivisions', key: 'members' },
+    },
+  },
+  {
+    name: 'features',
+    mount: 'geo/features',
+    title: 'Geographic feature',
+    description:
+      "The named physical features of the world — oceans, seas, gulfs, bays and straits, lakes and reservoirs, rivers, deserts, mountain ranges, plateaus, plains, peninsulas and peaks — about 2,800 of them, each with its kind, its name in English and Japanese (and the reading in kana), a point, a box round it (never its shape), the countries whose map holds it, its Wikidata item and, for a peak, its height. Real reference data from Chizu (Natural Earth, public domain; names from Natural Earth and Wikidata, CC0), so `seed` has no effect. Filter by `kind=lake`, `group=marine`, `countries=JP`, `rank[lte]=2`; search names in English, Japanese or kana with `q=biwa`, `q=琵琶`; `/countries/{code}/features` lists a country's. `map` is the address of a map that draws it lit (`/maps/JP.svg?features=all&feature=Q200239`). Capitals are in `/countries`. Needs `@johnmorrisdotca/chizu` installed beside this package: without it every request is `501` and names it.",
+    schema: GeoFeature,
+    idField: 'id',
+    idDescription: "The feature's id: a Wikidata item such as `Q200239` (Lake Biwa), or Natural Earth's `ne-…`.",
+    seeded: false,
+    defaults: { limit: 10, metadata: true },
+    ready: () => loadFeatures(),
+    load: (_, locale) => ({ records: featureRecords(locale) as object[], generatedAt: STATIC_DATE }),
+    fields: () => FEATURE_FIELDS,
+    find: (records, id) => findFeature(records as readonly FeatureRecord[], id),
+    relations: {
+      countries: { kind: 'list', target: 'countries', key: 'countries' },
     },
   },
   {

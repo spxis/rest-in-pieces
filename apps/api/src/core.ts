@@ -8,6 +8,7 @@ import { logger } from 'hono/logger';
 import { secureHeaders } from 'hono/secure-headers';
 import pkg from '../package.json' with { type: 'json' };
 import { FieldError, SchemaError } from './data/generators.ts';
+import { NotInstalledError } from './data/geo.ts';
 import { requireAuth, TOKEN_KEY } from './lib/auth.ts';
 import { simulate } from './lib/controls.ts';
 import { CursorError } from './lib/cursor.ts';
@@ -204,6 +205,7 @@ export function createApp({
     ) {
       return c.json({ error: err.message }, 400);
     }
+    if (err instanceof NotInstalledError) return c.json({ error: err.message }, 501);
     if (err instanceof FieldError) return c.json({ error: err.message, field: err.field }, 422);
     // Malformed JSON (400) and a body that is not JSON (415) come from the request validators.
     if (err instanceof HTTPException && err.status < 500) return c.json({ error: err.message }, err.status);

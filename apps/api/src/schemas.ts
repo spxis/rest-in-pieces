@@ -420,6 +420,60 @@ export const Grouping = z
   })
   .openapi('Grouping');
 
+export const GeoFeature = z
+  .object({
+    id: z.string().openapi({
+      description:
+        "A stable id: the feature's Wikidata item (`Q200239`, Lake Biwa) where it has one, else Natural Earth's own (`ne-…`).",
+      example: 'Q200239',
+    }),
+    wikidata: z
+      .string()
+      .nullable()
+      .openapi({ description: 'Its Wikidata item, or `null` where it has none.', example: 'Q200239' }),
+    kind: z.string().openapi({
+      description:
+        'What it is: `ocean`, `sea`, `gulf`, `bay`, `strait`, `channel`, `sound`, `fjord`, `inlet`, `lagoon`, `reef`, `lake`, `reservoir`, `river`, `desert`, `range`, `plateau`, `plain`, `peninsula`, `cape`, `basin`, `delta`, `valley`, `wetland`, `tundra`, `isthmus`, `depression`, `lowland`, `gorge`, `foothills` or `peak`.',
+      example: 'lake',
+    }),
+    group: z.string().openapi({
+      description: 'Its group: `marine`, `landforms`, `lakes`, `rivers` or `peaks`.',
+      example: 'lakes',
+    }),
+    name: z.string().openapi({
+      description: 'In Japanese for `ja` (English where it has no Japanese name), English otherwise.',
+      example: 'Lake Biwa',
+    }),
+    names: z.object({ en: z.string(), ja: z.string().nullable() }),
+    reading: z
+      .string()
+      .nullable()
+      .openapi({ description: 'The Japanese name in kana, where it is known.', example: 'びわこ' }),
+    rank: z.number().int().openapi({
+      description:
+        "Natural Earth's scale rank: 0 for an ocean, up to 10 for a small lake or a short river; the lower, the bigger.",
+    }),
+    elevation: z.number().nullable().openapi({ description: "A peak's height in metres." }),
+    location: Point.openapi({
+      description:
+        "A point on it: a peak itself, the middle of a river's course, a lake or sea's labelling point (the point farthest from its edges).",
+    }),
+    bbox: z.object({ west: z.number(), south: z.number(), east: z.number(), north: z.number() }).nullable().openapi({
+      description:
+        "The box round it in degrees; `null` for a peak. Only the box is served, never its shape. A feature that crosses the 180th meridian has a box that spans the globe, and one on several countries' maps is the box round the parts those maps draw.",
+    }),
+    countries: z.array(z.string()).openapi({
+      description:
+        'Alpha-2 codes of the countries whose map holds it: a sea that comes within 1.5% of the canvas of the coast, a lake or river with three tenths of it on the land, a landform or peak on the land. Empty for an ocean or sea no country map shows.',
+    }),
+    map: z.string().nullable().openapi({
+      description:
+        "A path, from this API's base address, to a map that draws it lit: `maps/JP.svg?features=all&feature=Q200239` (`/maps`, drawn by Chizu). `null` where no country's map holds it.",
+      example: 'maps/JP.svg?features=all&feature=Q200239',
+    }),
+  })
+  .openapi('GeoFeature');
+
 export const Address = z
   .object({
     id: z.number().int(),

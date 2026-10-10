@@ -19,6 +19,7 @@ describe('service endpoints', () => {
       'withdrawn',
       'subdivisions',
       'groupings',
+      'features',
       'addresses',
       'orders',
       'posts',

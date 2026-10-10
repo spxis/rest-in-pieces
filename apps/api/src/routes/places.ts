@@ -1,7 +1,7 @@
 import { type OpenAPIHono, z } from '@hono/zod-openapi';
 import type { Context } from 'hono';
 import { flagCodeOf, flagUrlOf, loadHata } from '../data/flags.ts';
-import { hexColor, mapFor } from '../data/maps.ts';
+import { FEATURE_CHOICES, hexColor, mapFor, parseFeatureChoices } from '../data/maps.ts';
 import { flagParam } from '../lib/query.ts';
 import { ErrorBody } from '../schemas.ts';
 
@@ -97,12 +97,21 @@ export function placeRoutes(app: OpenAPIHono, { flags = 'auto' }: PlaceOptions =
           .enum(['en', 'ja'])
           .optional()
           .openapi({ description: "The language of the map's label for a screen reader." }),
+        features: z.string().optional().openapi({
+          description: `Named physical features to draw on the map, from Chizu: \`water\` (seas, lakes and rivers), \`all\`, a group (\`marine\`, \`lakes\`, \`rivers\`, \`landforms\`, \`peaks\`, \`capitals\`) or a kind (\`strait\`, \`peak\`), several separated by commas. They are the features of \`/geo/features\` that fall on the map. Needs Chizu 1.2 or later.`,
+          example: 'water,peaks',
+        }),
+        feature: z.string().optional().openapi({
+          description:
+            'One feature to light, by its `id` in `/geo/features` (`Q200239` is Lake Biwa). It is drawn even when `features` does not name its group. `404` if it is not on this map.',
+          example: 'Q200239',
+        }),
       }),
     },
     responses: {
       200: svgResponse('The map.'),
       400: {
-        description: 'A colour that is not hex, or an unknown language.',
+        description: 'A colour that is not hex, an unknown language, or a `features` choice that is not one.',
         content: { 'application/json': { schema: ErrorBody } },
       },
       404: { description: 'No map for that code.', content: { 'application/json': { schema: ErrorBody } } },
@@ -152,13 +161,23 @@ export function placeRoutes(app: OpenAPIHono, { flags = 'auto' }: PlaceOptions =
 
   app.get('/maps/:file{.+\\.svg}', async (c) => {
     const text = c.req.param('file').slice(0, -'.svg'.length);
-    const { color, capital, dot, lang } = c.req.query();
+    const { color, capital, dot, lang, features, feature } = c.req.query();
     const fill = hexColor(color);
     const marker = hexColor(dot);
     if (fill === null || marker === null)
       return c.json({ error: 'color and dot are hex colours, such as 2f6b4f.' }, 400);
     if (lang !== undefined && lang !== 'en' && lang !== 'ja') return c.json({ error: 'lang is en or ja.' }, 400);
+    const choices = parseFeatureChoices(features);
+    if ('bad' in choices)
+      return c.json(
+        {
+          error: `features is one or more of ${FEATURE_CHOICES.slice(0, 8).join(', ')}, or a kind such as strait or peak, not "${choices.bad}".`,
+        },
+        400,
+      );
     const result = await mapFor(text, {
+      features: choices.choices,
+      ...(feature ? { feature } : {}),
       color: fill,
       dot: marker,
       lang,

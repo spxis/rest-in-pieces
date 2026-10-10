@@ -105,6 +105,8 @@
     "country-flags",
     "svg-flags",
     "svg-maps",
+    "geographic-features",
+    "natural-earth",
     "restcountries-alternative",
     "postcodes",
     "address-generator",

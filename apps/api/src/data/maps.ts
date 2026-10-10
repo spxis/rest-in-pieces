@@ -11,19 +11,43 @@ import { countryRecords, findCountry, loadCountries } from './kuni.ts';
 interface ChizuRegion {
   code: string;
 }
-interface ChizuMap {
+export interface ChizuMap {
+  id: string;
   name: string;
   regions: ChizuRegion[];
 }
-interface Chizu {
+/** One named feature as Chizu draws it on a map's canvas (a sea, a lake, a river, a landform, a peak or a capital). */
+export interface ChizuFeature {
+  code: string;
+  kind: string;
+  group: string;
+  name: string;
+  nameJa?: string;
+  reading?: string;
+  rank: number;
+  elevation?: number;
+  path: string;
+  bbox: [number, number, number, number];
+  centroid: [number, number];
+}
+export interface ChizuFeatureLayer {
+  map: string;
+  features: ChizuFeature[];
+}
+export interface Chizu {
   load: {
     loadCountry(code: string): Promise<ChizuMap | null>;
     loadDivisions(code: string): Promise<ChizuMap | null>;
+    /** Since Chizu 1.2.0. */
+    loadFeatures?(mapId: string): Promise<ChizuFeatureLayer | null>;
+    FEATURE_MAPS?: readonly string[];
+    COUNTRY_CODES?: readonly string[];
   };
   draw: { drawChizu(map: ChizuMap, options: Record<string, unknown>): string };
   core: {
     regionBox(map: ChizuMap, code: string, ratio?: number): unknown;
     projectPoint(map: ChizuMap, lon: number, lat: number): [number, number] | null;
+    unprojectPoint?(map: ChizuMap, x: number, y: number): [number, number] | null;
   };
 }
 
@@ -34,7 +58,7 @@ export const MAPS_NOT_INSTALLED =
   'Maps are drawn by @johnmorrisdotca/chizu, which is not installed here: run `npm install @johnmorrisdotca/chizu` beside this package.';
 
 /** Chizu, when it can be imported (on Node, when it is installed beside this package), and `null` where it cannot. */
-function loadChizu(): Promise<Chizu | null> {
+export function loadChizu(): Promise<Chizu | null> {
   const names = ['@johnmorrisdotca/chizu/load', '@johnmorrisdotca/chizu/draw', '@johnmorrisdotca/chizu'] as const;
   chizu ??= Promise.all(names.map((name) => import(/* @vite-ignore */ name))).then(
     ([load, draw, core]) => ({ load, draw, core }) as Chizu,
@@ -52,6 +76,65 @@ export interface MapOptions {
   dot?: string | undefined;
   /** The language of the map's label for a screen reader. */
   lang?: 'en' | 'ja' | undefined;
+  /** Named features to draw on the map: `water`, `all`, a group (`lakes`) or a kind (`strait`), several at once. */
+  features?: readonly string[] | undefined;
+  /** One feature to light, by its id in `/geo/features` (`Q200239`); it is drawn even if `features` does not name it. */
+  feature?: string | undefined;
+}
+
+/** What `features` may name: `water` (seas, lakes, rivers), `all`, a group, or a kind. */
+export const FEATURE_CHOICES: readonly string[] = [
+  'water',
+  'all',
+  'marine',
+  'landforms',
+  'lakes',
+  'rivers',
+  'peaks',
+  'capitals',
+  'ocean',
+  'sea',
+  'gulf',
+  'bay',
+  'strait',
+  'channel',
+  'sound',
+  'fjord',
+  'inlet',
+  'lagoon',
+  'reef',
+  'lake',
+  'reservoir',
+  'river',
+  'desert',
+  'range',
+  'plateau',
+  'plain',
+  'peninsula',
+  'cape',
+  'basin',
+  'delta',
+  'valley',
+  'wetland',
+  'tundra',
+  'isthmus',
+  'depression',
+  'lowland',
+  'gorge',
+  'foothills',
+  'peak',
+  'capital',
+  'seat',
+];
+
+/** A comma-separated `features` value, or the first word in it that is not a choice. */
+export function parseFeatureChoices(value: string | undefined): { choices: string[] } | { bad: string } {
+  const words = (value ?? '')
+    .split(',')
+    .map((word) => word.trim().toLowerCase())
+    .filter(Boolean);
+  const bad = words.find((word) => !FEATURE_CHOICES.includes(word));
+  return bad === undefined ? { choices: words } : { bad };
 }
 
 export type MapResult = { svg: string } | { error: string; status: 404 | 501 };
@@ -60,6 +143,33 @@ export type MapResult = { svg: string } | { error: string; status: 404 | 501 };
 export function hexColor(value: string | undefined): string | null | undefined {
   if (value === undefined || value === '') return undefined;
   return /^#?([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(value) ? `#${value.replace(/^#/, '')}` : null;
+}
+
+/**
+ * The named features to draw on a map (`features`, `feature`): Chizu's layer for the map, which holds the sea, lake, river,
+ * landform and peak names that fall on it. A map with no layer, or Chizu older than 1.2, draws without; naming a feature
+ * the map does not hold is `404`.
+ */
+async function featuresFor(
+  tools: Chizu,
+  mapId: string,
+  options: MapOptions,
+): Promise<{ draw: Record<string, unknown> } | { error: string; status: 404 }> {
+  const asked = options.features && options.features.length > 0 ? options.features : undefined;
+  if (!asked && !options.feature) return { draw: {} };
+  const layer = tools.load.loadFeatures ? await tools.load.loadFeatures(mapId) : null;
+  if (options.feature) {
+    const there = layer?.features.some((one) => one.code === options.feature);
+    if (!there) return { error: `The feature "${options.feature}" is not on this map.`, status: 404 };
+  }
+  if (!layer) return { draw: {} };
+  return {
+    draw: {
+      features: asked ?? [],
+      featureLayer: layer,
+      ...(options.feature ? { tones: { [options.feature]: 'selected' } } : {}),
+    },
+  };
 }
 
 /**
@@ -79,7 +189,9 @@ export async function mapFor(code: string, options: MapOptions = {}): Promise<Ma
     const map = country ? await tools.load.loadCountry(country.alpha2.toLowerCase()) : null;
     if (!country || !map) return { error: `There is no map for the country "${wanted}".`, status: 404 };
     const colors = options.color ? { [country.alpha2]: options.color } : undefined;
-    let svg = tools.draw.drawChizu(map, { style: true, language, ...(colors ? { colors } : {}) });
+    const layer = await featuresFor(tools, `country-${country.alpha2.toLowerCase()}`, options);
+    if ('error' in layer) return layer;
+    let svg = tools.draw.drawChizu(map, { style: true, language, ...(colors ? { colors } : {}), ...layer.draw });
     const at = country.capitalLocation;
     const point = options.capital && at ? tools.core.projectPoint(map, at.lon, at.lat) : null;
     if (point) {
@@ -98,12 +210,15 @@ export async function mapFor(code: string, options: MapOptions = {}): Promise<Ma
   );
   if (!map || !found) return { error: `There is no map for the subdivision "${wanted}".`, status: 404 };
   const colors = options.color ? { [found.code]: options.color } : undefined;
+  const layer = await featuresFor(tools, `divisions-${country}`, options);
+  if ('error' in layer) return layer;
   const svg = tools.draw.drawChizu(map, {
     style: true,
     language,
     box: tools.core.regionBox(map, found.code, 1.5),
-    tones: { [found.code]: 'selected' },
     ...(colors ? { colors } : {}),
+    ...layer.draw,
+    tones: { [found.code]: 'selected', ...(layer.draw.tones as object | undefined) },
   });
   return { svg };
 }
