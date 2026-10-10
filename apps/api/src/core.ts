@@ -13,6 +13,7 @@ import { simulate } from './lib/controls.ts';
 import { CursorError } from './lib/cursor.ts';
 import { ExpressionError } from './lib/expression.ts';
 import { UnsupportedFormatError } from './lib/format.ts';
+import { JsonSchemaError } from './lib/jsonschema.ts';
 import { UnsupportedLocaleError } from './lib/locale.ts';
 import { ExpandError } from './lib/relations.ts';
 import { createSession, type SessionOption } from './lib/session.ts';
@@ -159,6 +160,7 @@ export function createApp({
     if (
       err instanceof SchemaError ||
       err instanceof ExpressionError ||
+      err instanceof JsonSchemaError ||
       err instanceof UnsupportedFormatError ||
       err instanceof UnsupportedLocaleError ||
       err instanceof CursorError ||

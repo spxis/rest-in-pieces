@@ -15,6 +15,7 @@ import { LOCALE_CODES } from '../src/lib/locale.ts';
 import { resourceNamed } from '../src/resources.ts';
 import { type Envelope, request } from './helpers.ts';
 
+// biome-ignore lint/suspicious/noExplicitAny: records are read by field name
 type Row = Record<string, any>;
 
 const NEW = ['invoices', 'transactions', 'events', 'messages', 'notifications', 'jobs', 'places', 'metrics', 'logs'];

@@ -2,6 +2,7 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import type { Context } from 'hono';
 import {
   type FieldSpec,
+  type GenerateContext,
   generateRecords,
   MAX_CONSTRAINTS,
   MAX_FIELDS,
@@ -13,7 +14,8 @@ import {
 } from '../data/generators.ts';
 import { buildBody, MAX_RECORDS, pageLinks, queryCollection, setPaginationHeaders } from '../lib/collection.ts';
 import { requestedFormat, respond } from '../lib/format.ts';
-import { contentLanguage, parseLocale } from '../lib/locale.ts';
+import { generateFromSchema, prepareSchema, SCHEMA_LIMITS, SUPPORTED } from '../lib/jsonschema.ts';
+import { contentLanguage, type Locale, parseLocale } from '../lib/locale.ts';
 import { intParam, pick } from '../lib/query.ts';
 import { publicBase, wantsSafe } from '../lib/safe.ts';
 import { DEFAULT_SEED, MAX_SEED } from '../resources.ts';
@@ -52,6 +54,17 @@ export const FIELD_SYNTAX_DOCS =
   `With \`safe=true\`, these types come from the safe ranges: ${SAFE_TYPES.map((t) => `\`${t}\``).join(', ')}; ` +
   'any email inside other text moves to an example domain.';
 
+/** What a `schema` may use, for the docs. */
+export const SCHEMA_DOCS =
+  `Records are made by a hand-written generator for a subset of JSON Schema: ${SUPPORTED.types.join(', ')}; ` +
+  `${SUPPORTED.keywords.map((keyword) => `\`${keyword}\``).join(', ')}; and the formats ${SUPPORTED.formats.join(', ')}. ` +
+  'A keyword it cannot honour (`not`, `if`, `patternProperties` and the like) answers `400` rather than being ignored. ' +
+  'A `$ref` must be local (`#/$defs/Name`, `#/components/schemas/Name`): nothing is fetched. Limits: ' +
+  `${SCHEMA_LIMITS.depth} levels of nesting, ${SCHEMA_LIMITS.items} items per array, ${SCHEMA_LIMITS.string} characters per string, ` +
+  `${SCHEMA_LIMITS.recordNodes} values per record and ${SCHEMA_LIMITS.requestNodes.toLocaleString('en-US')} per request. ` +
+  "An object schema's properties become the record's fields after `index`; any other schema's value is the record's `value`. " +
+  '`x-generator` names a generator type (`person.fullName`); properties called `email`, `name`, `city` and the like get matching values.';
+
 const DEFAULTS = { limit: 10, metadata: true };
 
 const listResponses = {
@@ -61,7 +74,7 @@ const listResponses = {
   },
   400: {
     description:
-      'Invalid field list or generator type, an expression or constraint that cannot be read or goes past a limit, or a cursor that is invalid or belongs to another query.',
+      'Invalid field list or generator type, an expression or constraint that cannot be read or goes past a limit, a schema with a keyword this generator does not support, a remote or looping `$ref`, or one that asks for more than a request may make, or a cursor that is invalid or belongs to another query.',
     content: { 'application/json': { schema: ErrorBody } },
   },
   422: {
@@ -122,7 +135,27 @@ const FieldsBody = z
 
 const GenerateRequest = z
   .object({
-    fields: FieldsBody,
+    fields: FieldsBody.optional(),
+    schema: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .openapi({
+        description: `A JSON Schema to generate records from, instead of \`fields\`. ${SCHEMA_DOCS}`,
+        example: {
+          type: 'object',
+          required: ['id', 'email'],
+          properties: {
+            id: { type: 'integer', minimum: 1 },
+            email: { type: 'string', format: 'email' },
+            role: { enum: ['admin', 'editor', 'viewer'] },
+          },
+        },
+      }),
+    openapi: z.record(z.string(), z.unknown()).optional().openapi({
+      description:
+        'An OpenAPI 3.x (or Swagger 2) document to generate from, instead of `fields` or `schema`. `component` names the entry in `components.schemas` (or `definitions`); it may be left out when the document has one. References are followed inside the document only.',
+    }),
+    component: z.string().max(200).optional().openapi({ example: 'Pet' }),
     constraints: z
       .array(z.string().max(100))
       .max(MAX_CONSTRAINTS)
@@ -134,6 +167,9 @@ const GenerateRequest = z
     count: z.number().int().min(1).max(MAX_RECORDS).optional().openapi({ example: 100 }),
     seed: z.number().int().min(0).max(MAX_SEED).optional().openapi({ example: 42 }),
   })
+  .refine((body) => [body.fields, body.schema, body.openapi].filter((part) => part !== undefined).length === 1, {
+    message: 'Send exactly one of fields, schema or openapi.',
+  })
   .openapi('GenerateRequest');
 
 const postRoute = createRoute({
@@ -141,8 +177,8 @@ const postRoute = createRoute({
   path: '/',
   tags: ['Custom data'],
   operationId: 'generatePost',
-  summary: 'Generate records from a JSON schema',
-  description: `Send the schema as JSON. Paging, sorting, filtering, format and simulation parameters stay in the query string.\n\n${FIELD_SYNTAX_DOCS}`,
+  summary: 'Generate records from a field list, a JSON Schema or an OpenAPI schema',
+  description: `Send a field list, a JSON Schema (\`schema\`) or an OpenAPI document and the name of a schema in it (\`openapi\`, \`component\`) as JSON. Paging, sorting, filtering, format and simulation parameters stay in the query string.\n\n${FIELD_SYNTAX_DOCS}`,
   request: {
     query: ListQuery.extend(extraQuery),
     body: { required: true, content: { 'application/json': { schema: GenerateRequest } } },
@@ -156,7 +192,11 @@ function toFieldSpecs(fields: z.infer<typeof FieldsBody>): FieldSpec[] {
 
 /** `GET` and `POST /generate`. `safe` serves safe values unless a request says `safe=false`. */
 export function generateRoutes({ safe = false }: { safe?: boolean } = {}) {
-  const send = (c: Context, fields: FieldSpec[], count: number, seed: number, constraints: string[]) => {
+  const send = (
+    c: Context,
+    seed: number,
+    records: (locale: Locale, context: GenerateContext) => Record<string, unknown>[],
+  ) => {
     requestedFormat(c);
     const query = c.req.query();
     const locale = parseLocale(pick(query, 'locale'));
@@ -164,16 +204,10 @@ export function generateRoutes({ safe = false }: { safe?: boolean } = {}) {
     const context = wantsSafe(query, safe)
       ? { safe: true, base: publicBase(c.req.url, c.req.header('x-forwarded-prefix')) }
       : { safe: false, base: '' };
-    const page = queryCollection(
-      generateRecords(fields, count, seed, locale, context, constraints),
-      query,
-      DEFAULTS,
-      locale,
-      {
-        seed,
-        keep: ['index'],
-      },
-    );
+    const page = queryCollection(records(locale, context), query, DEFAULTS, locale, {
+      seed,
+      keep: ['index'],
+    });
     const links = pageLinks(c, page);
     setPaginationHeaders(c, links, page.total);
     return respond(c, buildBody(page, links, { generatedAt: new Date(), seed, locale }), page.records, 'generated');
@@ -195,12 +229,26 @@ export function generateRoutes({ safe = false }: { safe?: boolean } = {}) {
       const count = intParam(pick(query, 'count', 'max', 'maxRecords'), MAX_RECORDS, MAX_RECORDS);
       const seed = intParam(pick(query, 'seed'), DEFAULT_SEED, MAX_SEED);
       const constraints = parseConstraintList(pick(query, 'constraints'));
-      return send(c, parseFieldList(list, constraints), Math.max(count, 1), seed, constraints) as never;
+      const fields = parseFieldList(list, constraints);
+      return send(c, seed, (locale, context) =>
+        generateRecords(fields, Math.max(count, 1), seed, locale, context, constraints),
+      ) as never;
     })
     .openapi(postRoute, (c) => {
       const body = c.req.valid('json');
+      const count = body.count ?? MAX_RECORDS;
+      const seed = body.seed ?? DEFAULT_SEED;
+      if (body.fields === undefined) {
+        if (body.constraints?.length) {
+          throw new SchemaError('constraints work on a field list; a schema states its own rules.');
+        }
+        const prepared = prepareSchema({ schema: body.schema, openapi: body.openapi, component: body.component });
+        return send(c, seed, (locale, context) => generateFromSchema(prepared, count, seed, locale, context)) as never;
+      }
       const constraints = body.constraints ?? [];
       const fields = validateFields(toFieldSpecs(body.fields), constraints);
-      return send(c, fields, body.count ?? MAX_RECORDS, body.seed ?? DEFAULT_SEED, constraints) as never;
+      return send(c, seed, (locale, context) =>
+        generateRecords(fields, count, seed, locale, context, constraints),
+      ) as never;
     });
 }
