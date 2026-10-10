@@ -329,6 +329,23 @@ describe('the real reference data', () => {
   });
 });
 
+describe('the geographic features', () => {
+  it('are held whole in the default locale, each as a file in every format, and each country has its own list', () => {
+    const features = (index.datasets[index.defaultLocale] ?? []).find((dataset) => dataset.name === 'features');
+    expect(features).toMatchObject({ idField: 'id', nested: [] });
+    expect(features?.records).toBeGreaterThan(2500);
+    expect(index.datasets.ja?.map((dataset) => dataset.name)).not.toContain('features');
+    expect(read('features/Q200239.json')).toMatchObject({
+      name: 'Lake Biwa',
+      names: { en: 'Lake Biwa', ja: '琵琶湖' },
+    });
+    for (const format of ['csv', 'ndjson', 'sql']) expect(files.has(`features/Q200239.${format}`)).toBe(true);
+    const japan = read('countries/JP/features.json').results ?? [];
+    expect(japan.length).toBeGreaterThan(10);
+    expect(files.has('countries/JP/features.csv')).toBe(true);
+  });
+});
+
 describe('a build that cannot be right', () => {
   const answer = (routes: Record<string, () => Response>) => ({
     request: (path: string) => {

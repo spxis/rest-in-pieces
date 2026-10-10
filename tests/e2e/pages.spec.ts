@@ -148,3 +148,11 @@ test('serves the Postman collection for import by link', async ({ request }) => 
   expect(collection.info.name).toBe('REST in Pieces');
   expect(collection.item.length).toBeGreaterThan(5);
 });
+
+// Chizu cannot be loaded inside a tab, so the tab has no Features dataset (the static API holds the data, at /api/features.json).
+test('offers the datasets the tab can serve, and not the features that need Chizu', async ({ page }) => {
+  await page.goto('./');
+  await expect(page.getByText('IN-BROWSER API')).toBeVisible();
+  await expect(page.getByRole('tab', { name: /Countries/ })).toBeVisible();
+  await expect(page.getByRole('tab', { name: /Features/ })).toHaveCount(0);
+});

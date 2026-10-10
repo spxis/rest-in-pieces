@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
+import { isInBrowserApi } from '../lib/inBrowserApi.ts';
 import { trimBase } from '../lib/request.ts';
+
+/** Datasets made from a package the copy of the API inside a browser tab cannot load (Chizu), so the tab has none of them. */
+const NOT_IN_A_TAB: ReadonlySet<string> = new Set(['features']);
 
 export interface ResourceInfo {
   name: string;
@@ -86,7 +90,9 @@ export function useCatalog(apiBase: string): Catalog {
         ]);
         if (!Array.isArray(resources) || typeof generators?.modules !== 'object') throw new Error('Unexpected catalog');
         setCatalog({
-          resources,
+          resources: isInBrowserApi(apiBase)
+            ? (resources as ResourceInfo[]).filter((one) => !NOT_IN_A_TAB.has(one.name))
+            : resources,
           generators: generators.modules,
           parameters: typeof generators.parameters === 'object' && generators.parameters ? generators.parameters : {},
           locales: Array.isArray(locales) && locales.length > 0 ? locales : FALLBACK_CATALOG.locales,

@@ -91,6 +91,8 @@ export const PHRASES = {
   'dataset.groupings':
     "Groups of countries (the EU, the G7, ASEAN) and regions inside a country: 107 in all, from the seven continents and the UN regions to 23 international bodies with the days members joined and left, 16 informal groupings (the Middle East, the Balkans) and Japan's regions. Real reference data, so `seed` has no effect. Narrow it with `kind=membership` or `members=JP`.",
 
+  'dataset.features':
+    "The named physical features of the world: oceans, seas, straits, lakes, rivers, deserts, mountain ranges, peninsulas and peaks, about 2,800 of them, each with its kind, names in English and Japanese, a point, a box round it, the countries whose map holds it and its Wikidata item. Real reference data from Chizu (Natural Earth, public domain), so seed has no effect. Filter by kind, group or countries, search by name with q, and each card's map lights the feature on its country.",
   'dataset.addresses':
     "Addresses in the United States, Canada, Japan, Australia, the United Kingdom, France and Germany, each in its own country's format, as its post writes it, with a postcode that exists in the right region. Street names are invented (Japanese town names come from a short list of common ones), so no address is a real person's. Narrow it with `country=JP`; `regionCode` links to `/subdivisions`. `/addresses/validate` and `/addresses/format` check and write an address you give them.",
 

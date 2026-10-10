@@ -49,4 +49,20 @@ describe('the playground and the real reference data', () => {
       '/countries/withdrawn/SU/successors',
     );
   });
+
+  it('draws a geographic feature as a card, with a map that lights it, and asks for it under /geo', async () => {
+    const biwa = (await (await api.request('/geo/features/Q200239')).json()) as Record<string, unknown>;
+    expect(cardOf(biwa)).toMatchObject({ title: 'Lake Biwa', subtitle: 'lake · JP', thing: true });
+    const fuji = (await (await api.request('/geo/features?kind=peak&countries=JP&limit=1')).json()) as {
+      results: Record<string, unknown>[];
+    };
+    expect(cardOf(fuji.results[0] as Record<string, unknown>).subtitle).toMatch(/^peak · [\d,]+ m · JP$/);
+    expect(mapAddress('http://localhost:6800/geo/features?limit=10', biwa)).toBe(
+      'http://localhost:6800/maps/JP.svg?features=all&feature=Q200239',
+    );
+    expect(mapAddress('http://localhost:6800/geo/features?limit=10', { ...biwa, map: null })).toBeNull();
+    expect(datasetPath('features')).toBe('geo/features');
+    const config = { ...defaultConfig('http://localhost:6800'), endpoint: 'features' };
+    expect(buildRequestUrl(config)).toBe('http://localhost:6800/geo/features?limit=10');
+  });
 });

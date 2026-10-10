@@ -158,8 +158,11 @@ export function generateCommand(config: PlaygroundConfig): string | null {
   return schema ? `# Save the schema above as schema.json\n${command}` : command;
 }
 
-/** Datasets whose routes are not at `/{name}`: the withdrawn countries are a list inside `/countries`. */
-const DATASET_PATHS: Readonly<Record<string, string>> = { withdrawn: 'countries/withdrawn' };
+/** Datasets whose routes are not at `/{name}`: the withdrawn countries are a list inside `/countries`, the geographic features are under `/geo`. */
+const DATASET_PATHS: Readonly<Record<string, string>> = {
+  withdrawn: 'countries/withdrawn',
+  features: 'geo/features',
+};
 
 /** The path segment a dataset is served at, without the leading slash. */
 export const datasetPath = (endpoint: string): string => DATASET_PATHS[endpoint] ?? endpoint;

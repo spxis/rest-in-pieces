@@ -40,6 +40,7 @@ export const STATIC_DEFAULT_LOCALE_ONLY: ReadonlySet<string> = new Set([
   ...DEFAULT_LOCALE_ONLY,
   'countries',
   'withdrawn',
+  'features',
 ]);
 /** The JSONPlaceholder-shaped tree: its resources, and the lists each one owns. */
 export const PLACEHOLDER_FOLDER = 'jsonplaceholder';
@@ -60,7 +61,11 @@ export const STATIC_FORMATS = ['csv', 'ndjson', 'sql'] as const;
  * Lists a record owns that the static API does not write: a subdivision's `children` are the subdivisions whose `parent` it
  * is, and 5,050 files of them (most empty) would add nothing the country's own list (`countries/FR/subdivisions.json`) lacks.
  */
-export const STATIC_SKIP_NESTED: Readonly<Record<string, readonly string[]>> = { subdivisions: ['children'] };
+export const STATIC_SKIP_NESTED: Readonly<Record<string, readonly string[]>> = {
+  subdivisions: ['children'],
+  // A feature's countries are `countries` on its record: 2,790 more files of three countries each would repeat what `/countries` holds.
+  features: ['countries'],
+};
 
 /** Where a dataset's routes are: `/users`, or the `path` the API gives (`/countries/withdrawn`). */
 const route = (resource: { name: string; path?: string }): string => resource.path ?? `/${resource.name}`;

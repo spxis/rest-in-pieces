@@ -68,3 +68,21 @@ test('lists addresses as an envelope shows them, in the seven countries', async 
   await expect(page.locator('.response-body')).toContainText('"regionCode": "AU-');
   await expect(page.locator('.response-body')).toContainText('"subdivision": {');
 });
+
+test('lists the named seas, lakes, rivers and peaks, each with a map that lights it', async ({ page }) => {
+  await page.getByRole('tab', { name: /Features/ }).click();
+  await send(page);
+  await expect(page.getByTestId('response-status')).toHaveText(/200/);
+  await expect(snippet(page)).toContainText('/geo/features?');
+  await page.getByRole('tab', { name: /UI preview/ }).click();
+  const cards = page.getByTestId('ui-cards');
+  await expect(cards).toContainText('Arctic Ocean');
+  await expect(cards).toContainText('ocean');
+  // The map is the country's, drawn by the API with the feature lit, so it loads from there.
+  const map = cards.locator('img.preview-map').first();
+  await expect(map).toHaveAttribute('src', /\/maps\/[A-Z]{2}\.svg\?features=all&feature=Q788$/);
+  await expect.poll(() => map.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+  await page.getByRole('tab', { name: /Body/ }).click();
+  await expect(page.locator('.response-body')).toContainText('"names": {');
+  await expect(page.locator('.response-body')).toContainText('"wikidata": "Q788"');
+});

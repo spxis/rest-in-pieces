@@ -168,6 +168,19 @@ export function cardOf(row: Row): {
       thing: true,
     };
   }
+  if ('group' in row && 'bbox' in row && 'countries' in row) {
+    const height =
+      row.elevation === null || row.elevation === undefined ? '' : `${Number(row.elevation).toLocaleString()} m`;
+    return {
+      title: text('name'),
+      subtitle: [text('kind'), height, Array.isArray(row.countries) ? row.countries.slice(0, 4).join(' ') : '']
+        .filter(Boolean)
+        .join(' · '),
+      aside: '',
+      avatar: null,
+      thing: true,
+    };
+  }
   if ('successors' in row && 'since' in row) {
     return {
       title: text('name'),
@@ -373,14 +386,19 @@ const ERRORS: Record<number, [PhraseKey, PhraseKey]> = {
  * proper state for empty results and for each error, so the unhappy paths can be seen, not only read.
  */
 /**
- * The address of the map of a country or subdivision on the API a response came from, or null for any other record:
- * the request's address up to the dataset (`…/countries`, `…/subdivisions`), then `/maps/{code}.svg`.
+ * The address of the map of a country, a subdivision or a geographic feature on the API a response came from, or null for
+ * any other record: the request's address up to the dataset (`…/countries`, `…/subdivisions`, `…/geo/features`), then
+ * `/maps/{code}.svg`, or the feature's own `map` path, which lights it.
  */
 export function mapAddress(requestUrl: string, row: Row): string | null {
+  const root = /^(.*?)\/(?:countries|subdivisions|groupings|names|companies|geo\/features)(?:[/?]|$)/.exec(
+    requestUrl,
+  )?.[1];
+  if (root === undefined) return null;
+  // A geographic feature carries the path of a map that lights it (`maps/JP.svg?features=all&feature=Q200239`).
+  if ('group' in row && 'bbox' in row && typeof row.map === 'string') return `${root}/${row.map}`;
   const code = 'shortCode' in row ? row.code : 'alpha2' in row && 'continent' in row ? row.alpha2 : null;
-  if (typeof code !== 'string') return null;
-  const root = /^(.*?)\/(?:countries|subdivisions|groupings|names|companies)(?:[/?]|$)/.exec(requestUrl)?.[1];
-  return root === undefined ? null : `${root}/maps/${encodeURIComponent(code)}.svg`;
+  return typeof code === 'string' ? `${root}/maps/${encodeURIComponent(code)}.svg` : null;
 }
 
 /** A map beside a record, where the API that answered can draw one; nothing where it cannot (the copy inside the page). */

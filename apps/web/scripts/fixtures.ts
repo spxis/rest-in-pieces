@@ -39,6 +39,8 @@ export const DEFAULT_LOCALE_ONLY: ReadonlySet<string> = new Set([
   // Real reference data with both languages in every record (`names`): only `name` follows the locale.
   'subdivisions',
   'groupings',
+  // Named features carry their names in both languages (`names`), and are cut at the API's largest page.
+  'features',
   // An address's country, region and postcode do not follow the locale: they are in the seven countries' own formats.
   'addresses',
 ]);
