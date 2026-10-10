@@ -209,11 +209,12 @@ test('offers a scenario as a share link first', async ({ page, context }) => {
   await expect(snippet(page)).toContainText('delay=1500');
 });
 
-test('links to the API reference, the fixtures, npm and the repository', async ({ page }) => {
+test('links to the API reference, the fixtures, the static API, npm and the repository', async ({ page }) => {
   await expect(page).toHaveTitle(/fake REST API/);
   const links = page.getByRole('navigation', { name: 'Project links' });
   await expect(links.getByRole('link', { name: 'API docs' })).toHaveAttribute('href', /\/docs$/);
   await expect(links.getByRole('link', { name: 'Fixtures' })).toHaveAttribute('href', /\/fixtures\/index\.json$/);
+  await expect(links.getByRole('link', { name: 'Static API' })).toHaveAttribute('href', /\/api\/index\.json$/);
   await expect(links.getByRole('link', { name: 'npm' })).toHaveAttribute(
     'href',
     'https://www.npmjs.com/package/@johnmorrisdotca/rest-in-pieces',

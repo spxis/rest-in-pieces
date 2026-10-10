@@ -20,6 +20,11 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
     text: 'どこからでも取得できる、作成済みの JSON・CSV レスポンス',
     back: 'Pre-made JSON and CSV responses you can fetch from anywhere',
   },
+  'topbar.staticApi': { text: '静的 API', back: 'Static API' },
+  'topbar.staticApiTitle': {
+    text: 'インストールもキーも不要。どこからでも取得できる、パスが固定された JSON ファイル',
+    back: 'JSON files at fixed paths that you can fetch from anywhere, with no install and no key needed',
+  },
   'topbar.npmTitle': { text: 'npm の rest-in-pieces パッケージ', back: 'The rest-in-pieces package on npm' },
   'topbar.repoTitle': { text: 'GitHub のソースコード', back: 'Source code on GitHub' },
   'topbar.version': { text: 'バージョン {version}', back: 'Version {version}' },

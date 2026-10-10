@@ -58,6 +58,9 @@ describe('the links in the top bar', () => {
     expect(screen.getByRole('link', { name: /Fixtures/ }).getAttribute('href')).toBe(
       'https://spxis.github.io/rest-in-pieces/fixtures/index.json',
     );
+    expect(screen.getByRole('link', { name: /Static API/ }).getAttribute('href')).toBe(
+      'https://spxis.github.io/rest-in-pieces/api/index.json',
+    );
     expect(href('The rest-in-pieces package on npm')).toBe(NPM_URL);
     expect(href('Source code on GitHub')).toBe(REPO_URL);
     // The links out of the app open elsewhere without handing over the referrer; the one to the use cases stays in it.

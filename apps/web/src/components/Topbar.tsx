@@ -1,8 +1,8 @@
-import { BookOpen, FileJson, Lightbulb, Package, SquareTerminal, Workflow } from 'lucide-react';
+import { BookOpen, FileJson, Globe, Lightbulb, Package, SquareTerminal, Workflow } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useSpeaker } from '../i18n/LocaleProvider.tsx';
 import { IN_BROWSER, isInBrowserApi } from '../lib/inBrowserApi.ts';
-import { docsUrl, fixturesUrl, NPM_URL, REPO_URL } from '../lib/links.ts';
+import { docsUrl, fixturesUrl, NPM_URL, REPO_URL, staticApiUrl } from '../lib/links.ts';
 import { isLocalApi } from '../lib/request.ts';
 import { casesPageHref, playgroundHref, type View } from '../lib/route.ts';
 import { APP_COMMIT, APP_VERSION } from '../lib/version.ts';
@@ -119,6 +119,12 @@ export function Topbar({
             icon={<FileJson size={14} />}
             label={say('topbar.fixtures')}
             title={say('topbar.fixturesTitle')}
+          />
+          <TopbarLink
+            href={staticApiUrl(IN_BROWSER, import.meta.env.BASE_URL)}
+            icon={<Globe size={14} />}
+            label={say('topbar.staticApi')}
+            title={say('topbar.staticApiTitle')}
           />
           <TopbarLink href={NPM_URL} icon={<Package size={14} />} label="npm" title={say('topbar.npmTitle')} />
           <TopbarLink href={REPO_URL} icon={<GitHubMark />} label="GitHub" title={say('topbar.repoTitle')} />

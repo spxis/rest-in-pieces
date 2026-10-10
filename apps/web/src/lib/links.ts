@@ -21,3 +21,8 @@ export function docsUrl(apiBase: string, inBrowser: boolean, pageBase: string): 
 export function fixturesUrl(onPages: boolean, pageBase: string): string {
   return `${onPages ? pageBase : PAGES_URL}fixtures/index.json`;
 }
+
+/** The static API's index, which lists the datasets, the page paths and the JSONPlaceholder-shaped tree. */
+export function staticApiUrl(onPages: boolean, pageBase: string): string {
+  return `${onPages ? pageBase : PAGES_URL}api/index.json`;
+}

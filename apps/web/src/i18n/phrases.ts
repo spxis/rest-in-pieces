@@ -15,6 +15,8 @@ export const PHRASES = {
   'topbar.links': 'Project links',
   'topbar.fixtures': 'Fixtures',
   'topbar.fixturesTitle': 'Ready-made JSON and CSV responses to fetch from anywhere',
+  'topbar.staticApi': 'Static API',
+  'topbar.staticApiTitle': 'Plain JSON files at fixed paths, with no install and no key, to fetch from anywhere',
   'topbar.npmTitle': 'The rest-in-pieces package on npm',
   'topbar.repoTitle': 'Source code on GitHub',
   'topbar.version': 'Version {version}',
