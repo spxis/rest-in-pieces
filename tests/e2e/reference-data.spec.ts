@@ -54,3 +54,17 @@ test('shows a country with its flag and its map in the UI preview', async ({ pag
   await expect(map).toHaveAttribute('src', /\/maps\/AD\.svg$/);
   await expect.poll(() => map.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
 });
+
+test('lists addresses as an envelope shows them, in the seven countries', async ({ page }) => {
+  await page.getByRole('tab', { name: /Addresses/ }).click();
+  await page.getByRole('combobox', { name: 'Sort field' }).selectOption('country');
+  await page.getByTestId('relations').getByRole('button', { name: 'subdivision', exact: true }).click();
+  await send(page);
+  await expect(page.getByTestId('response-status')).toHaveText(/200/);
+  await page.getByRole('tab', { name: /UI preview/ }).click();
+  const cards = page.getByTestId('ui-cards');
+  await expect(cards.locator('li').first()).toContainText('AU');
+  await page.getByRole('tab', { name: /Body/ }).click();
+  await expect(page.locator('.response-body')).toContainText('"regionCode": "AU-');
+  await expect(page.locator('.response-body')).toContainText('"subdivision": {');
+});

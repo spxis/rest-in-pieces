@@ -30,7 +30,7 @@ GitHub Pages serves files, and cannot read a query string, so the page number is
 | `api/ja/…` | The same tree with Japanese data (`?locale=ja`) |
 | `api/jsonplaceholder/…` | The JSONPlaceholder-shaped tree, below |
 
-Every dataset is here: `names`, `users`, `products`, `companies`, `countries` (all 250), `subdivisions` (all 5,050, in the default locale only, with `countries/{code}/subdivisions.json` for each country's own list), `groupings` (all 107, default locale only), `withdrawn` (the 31 withdrawn countries, at `withdrawn.json`: a file cannot be under `countries/`, whose folder holds a file for each country), `orders`, `posts`, `comments`, `todos`, `reviews`, `invoices`, `transactions`, `events`, `messages`, `notifications`, `jobs`, `places`, `metrics`, `logs` and the four synthetic-patient sets. `api/index.json` lists them with their relations, so a script can discover the tree instead of hard-coding it:
+Every dataset is here: `names`, `users`, `products`, `companies`, `countries` (all 250), `subdivisions` (all 5,050, in the default locale only, with `countries/{code}/subdivisions.json` for each country's own list), `groupings` (all 107, default locale only), `addresses` (the first 100 at seed 1, default locale only), `withdrawn` (the 31 withdrawn countries, at `withdrawn.json`: a file cannot be under `countries/`, whose folder holds a file for each country), `orders`, `posts`, `comments`, `todos`, `reviews`, `invoices`, `transactions`, `events`, `messages`, `notifications`, `jobs`, `places`, `metrics`, `logs` and the four synthetic-patient sets. `api/index.json` lists them with their relations, so a script can discover the tree instead of hard-coding it:
 
 ```js
 const index = await (await fetch(`${base}index.json`)).json();

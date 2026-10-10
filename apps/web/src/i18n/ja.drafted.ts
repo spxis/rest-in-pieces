@@ -155,6 +155,11 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
     back: 'Groups of countries such as the EU, G7 and ASEAN, and regional divisions inside a country. 107 entries, including the seven continents, the UN regional divisions, 23 international organizations with join and leave dates, 16 informal groups such as the Middle East and the Balkans, and the regions of Japan. It is real data, so `seed` has no effect. You can narrow it with `kind=membership` or `members=JP`.',
   },
 
+  'dataset.addresses': {
+    text: 'アメリカ・カナダ・日本・オーストラリア・イギリス・フランス・ドイツの住所。それぞれの国の郵便の書式で書かれ、郵便番号はその地域に実在するものです。通りや地名は Faker のもので、実在の人物の住所ではありません。`country=JP` で絞り込め、`regionCode` は `/subdivisions` につながります。`/addresses/validate` と `/addresses/format` は、渡した住所を検証・整形します。',
+    back: "Addresses in the United States, Canada, Japan, Australia, the United Kingdom, France and Germany. Each is written in its own country's postal format, and the postal code is one that really exists in that region. Street and place names are Faker's, so they are not any real person's address. You can narrow it with `country=JP`, and `regionCode` connects to `/subdivisions`. `/addresses/validate` and `/addresses/format` validate and format an address you hand them.",
+  },
+
   'scenario.heading': { text: '再現できるシナリオ', back: 'Scenarios you can reproduce' },
   'scenario.share': { text: '共有リンク', back: 'Share link' },
   'scenario.shareThis': { text: 'このシナリオを共有', back: 'Share this scenario' },

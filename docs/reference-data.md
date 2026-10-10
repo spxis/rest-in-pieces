@@ -154,6 +154,45 @@ curl 'http://localhost:6800/maps/CA-ON.svg'
 
 A country's map is its outline (Natural Earth 1:50m) for 238 countries; a subdivision's is its country's regions with that one lit and framed, for the regions of 32 countries (Japan, Canada, the United States, Australia, the United Kingdom, Germany, France and more). Any other code is `404`, and a colour that is not hex `400`. Chizu is a dependency, loaded the first time a map is asked for; each country's outline is its own small file. The copy of this API that runs inside a browser tab, as on the demo site, has no maps (`501`), because Chizu's data is not part of that page; `npx`, Docker and `createApp()` on Node have them.
 
+## Addresses: `/addresses`
+
+Addresses in the United States, Canada, Japan, Australia, the United Kingdom, France and Germany, each in its own country's format and with a postcode that exists in the right region. They are invented: the street and place names are Faker's, so no address is a real person's; only the postcode is checked against the real tables.
+
+```sh
+curl 'http://localhost:6800/addresses?country=JP&limit=3'
+curl 'http://localhost:6800/addresses?country=GB&limit=3&expand=subdivision'
+curl 'http://localhost:6800/addresses?format=csv&limit=1000'
+curl 'http://localhost:6800/addresses/validate?address=1+Main+St,+Sydney+VIC+2000'
+curl 'http://localhost:6800/addresses/format?address=12+rue+de+la+Paix,+75002+Paris&country=FR'
+```
+
+A dataset of 1,000 for each `seed`, in the mix of seven (about 30% US, 14% Japan, 14% UK, 12% Canada, 11% each France and Germany, 8% Australia), the same for the same seed. `country=AU` and the other list parameters narrow it.
+
+| Field | What it holds |
+| ----- | ------------- |
+| `country` | `US`, `CA`, `JP`, `AU`, `GB`, `FR` or `DE`: whose format the address is in. |
+| `lines`, `formatted` | The address as its country's post writes it, a string a line (`["12 SMITH ST","PARRAMATTA NSW 2150"]` for Australia Post, `["〒100-0005","東京都千代田区丸の内1-2-3"]` for Japan Post), and the lines joined with a line break. |
+| `latin` | Japan only: the address as English writes it, `1-2-3 Marunouchi, Chiyoda-ku, Tokyo 100-0005, Japan`. |
+| `number`, `street`, `unit`, `city` | The parts. `unit` is a flat, apartment or unit in about one address in seven (not in Japan). A Japanese `street` is the town (町名) and its `number` the block (`1-2-3`). |
+| `region`, `regionCode` | The state, province, prefecture, nation, department or Land in the country's own language, and its ISO 3166-2 code (`AU-NSW`, `GB-ENG`, `FR-69`, `DE-BY`, `JP-13`), which is a record in `/subdivisions`: `expand=subdivision` embeds it. |
+| `postcode` | A postcode that exists in that region. |
+
+**What "exists in the right region" means, per country**, from [address-plus](https://github.com/johnmorrisdotca/address-plus)'s tables, and what it does not:
+
+| Country | The postcode comes from | The format |
+| ------- | ----------------------- | ---------- |
+| US | one of the state's ZIP prefixes (the first three digits USPS gives that state), then two digits | USPS: capitals, standard street types, unit after the street |
+| Canada | a letter Canada Post uses for the province, then the rest of the pattern with the letters it uses | Canada Post |
+| Japan | a prefix Japan Post delivers to the prefecture, then four digits that are checked to be delivered there too | the 〒 line, then prefecture, municipality, town and block |
+| Australia | a number in one of the state's delivery blocks | Australia Post: the last line in capitals |
+| United Kingdom | a postcode area and district Royal Mail has, with a unit and two letters; the nation follows from the district | Royal Mail: post town in capitals |
+| France | one of the 6,328 postcodes in La Poste's base officielle, which names its department | La Poste: capitals without accents |
+| Germany | one of the 10,813 postcodes in GeoNames' list for Germany, which names its Land | Deutsche Post |
+
+The postcode is real and in the right region, and that is all that is promised: the street, the commune and the town are Faker's, so a French `17230` may sit beside the name of a town in another department. A test runs every one of the 1,000 default addresses through address-plus's validator and fails on a postcode that disagrees with its region.
+
+`GET /addresses/validate?address=…&country=…` reads an address you give it and says what disagrees in it (`Postcode 2000 belongs to NSW, not VIC`), and `GET /addresses/format?address=…&country=…` writes it as its country's post does. `country` is one of the seven; without it the country is worked out from the address. An address is at most 300 characters, nothing is looked up on the network and nothing is kept.
+
 ## Withdrawn countries: `/countries/withdrawn`
 
 The 31 entries of ISO 3166-3, the list of country names removed from ISO 3166-1: the Soviet Union (`SU`), Yugoslavia (`YU`), Czechoslovakia (`CS`), East Germany (`DD`), Zaire (`ZR`), East Timor (`TP`), the Netherlands Antilles (`AN`), Burma (`BU`) and the rest. They are never in `/countries`, so a country picker does not offer the USSR.
@@ -187,6 +226,12 @@ Where two countries held a code (`CS` was Czechoslovakia and then Serbia and Mon
 | Land borders, confirmed | Natural Earth 1:50m, through Kuni | Public domain |
 | Flags of countries and subdivisions | Wikimedia Commons files and flag-icons, optimised by Hata, which keeps each file's author and licence | Each file's own, kept in Hata's manifest; Hata is MIT |
 | Country outlines and regions for maps | Natural Earth 1:50m, drawn by Chizu | Public domain; Chizu is MIT |
+| Japan's prefectures, municipalities and the prefecture each postal code delivers to | Geolonia 住所データ; Japan Post's KEN_ALL through jp-postal, in address-plus | MIT |
+| Australian postcode blocks | Australia Post's blocks and the Australian Bureau of Statistics' Postal Areas, in address-plus | CC BY 4.0 (the ABS) |
+| British postcode areas and districts | Royal Mail's grammar and Ordnance Survey's Code-Point Open, in address-plus; contains Royal Mail data © Royal Mail copyright and database right 2026 | Open Government Licence v3 |
+| French postcodes and departments | La Poste's base officielle and INSEE's departments, in address-plus | Licence Ouverte 2.0 |
+| German postcodes | GeoNames' list for Germany, in address-plus | CC BY 4.0 |
+| Street and place names in `/addresses` | Faker | MIT |
 | The few years, codes, names and successors of withdrawn countries that Wikidata lacks | Written for Kuni from the list ISO 3166-3 publishes | MIT; a list of facts |
 
 Kuni's `NOTICE.md` has the full text of each licence. Nothing under ODbL, CC BY-SA or the GPL is used.

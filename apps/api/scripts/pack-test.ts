@@ -100,11 +100,18 @@ async function checkCli(): Promise<void> {
       map.status === 200 && (await map.text()).includes('data-map="country-jp"'),
       `/maps/JP.svg answered ${map.status}`,
     );
+    const addressList = (await (await fetch(`${base}/addresses?limit=3`)).json()) as {
+      results: { lines: string[]; postcode: string }[];
+    };
+    assert(
+      addressList.results.length === 3 && addressList.results.every((one) => one.lines.length >= 2 && one.postcode),
+      `/addresses answered ${JSON.stringify(addressList)}`,
+    );
     const home = await (await fetch(`${base}/`)).text();
     assert(home.includes('<div id="root">'), 'The CLI did not serve the packed playground at /.');
     assert(output.includes(`REST in Pieces ${version} is running at ${base}`), `Unexpected start-up line: ${output}`);
     step(
-      `CLI on ${base}: /health, /users?limit=1, /countries/JP, /countries/withdrawn/SU, /subdivisions/JP-13, /groupings/eu, a flag redirect, a map and the playground answered`,
+      `CLI on ${base}: /health, /users?limit=1, /countries/JP, /countries/withdrawn/SU, /subdivisions/JP-13, /groupings/eu, /addresses, a flag redirect, a map and the playground answered`,
     );
   } finally {
     cli.kill('SIGTERM');

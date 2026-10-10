@@ -18,6 +18,7 @@ import { UnsupportedLocaleError } from './lib/locale.ts';
 import { ExpandError } from './lib/relations.ts';
 import { createSession, type SessionOption } from './lib/session.ts';
 import { mountOf, resources } from './resources.ts';
+import { addressRoutes } from './routes/addresses.ts';
 import { authRoutes } from './routes/auth.ts';
 import { collectionRoutes } from './routes/collection.ts';
 import { compatRoutes } from './routes/compat.ts';
@@ -106,6 +107,8 @@ export function createApp({
   // `?auth=` turns any data request into a protected route, after the simulation has had its say.
   for (const path of dataPaths) app.use(`${path}/*`, requireAuth());
 
+  // `/addresses/validate` and `/addresses/format` go before `/addresses/{id}`, which would take them for ids.
+  app.route('/addresses', addressRoutes());
   // A dataset with a path of its own (`/countries/withdrawn`) goes first, or `/countries/{id}` would take its list for an id.
   for (const resource of [...resources].sort((a, b) => Number(b.mount !== undefined) - Number(a.mount !== undefined))) {
     app.route(mountOf(resource), collectionRoutes(resource, { session, all: resources, safe }));

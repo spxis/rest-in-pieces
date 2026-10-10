@@ -32,8 +32,8 @@ importers:
         specifier: ^1.6.3
         version: 1.6.3(hono@4.13.9)(zod@4.6.5)
       '@johnmorrisdotca/address-plus':
-        specifier: ^1.1.0
-        version: 1.1.0
+        specifier: ^1.6.0
+        version: 1.6.0
       '@johnmorrisdotca/chizu':
         specifier: ^1.4.0
         version: 1.4.0
@@ -497,9 +497,9 @@ packages:
       '@types/node':
         optional: true
 
-  '@johnmorrisdotca/address-plus@1.1.0':
-    resolution: {integrity: sha512-y7PLRjn9iyx4vBBiSdxfqz942xrBjQKzavT3wdCbbX4X6OQt5XGmNpCuKdyN4oYIt9RpzvgwFmTeXg5D/4h90A==}
-    engines: {node: '>=18.0.0', pnpm: '>=8.0.0'}
+  '@johnmorrisdotca/address-plus@1.6.0':
+    resolution: {integrity: sha512-Qk3uvpUrq/eCYUskQ73a7qEdPuxMHqxTVcb//eOh06LXfkVVsX5+wEuMvtXf36YKHs7uMbP3+03czqT54/YbPA==}
+    engines: {node: '>=24'}
 
   '@johnmorrisdotca/chizu@1.4.0':
     resolution: {integrity: sha512-tlfHQ9bL0Sim3SNuDRw7YNAjdnlrmWDzFZve9DIF9SNngHN3KQQj7r+zsSI0xAAzQ+dyOiZSbHHZ1jM15ZkoDA==}
@@ -1859,7 +1859,7 @@ snapshots:
     optionalDependencies:
       '@types/node': 26.6.3
 
-  '@johnmorrisdotca/address-plus@1.1.0':
+  '@johnmorrisdotca/address-plus@1.6.0':
     dependencies:
       fast-levenshtein: 3.0.0
 

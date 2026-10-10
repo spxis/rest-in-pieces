@@ -420,6 +420,42 @@ export const Grouping = z
   })
   .openapi('Grouping');
 
+export const Address = z
+  .object({
+    id: z.number().int(),
+    country: z
+      .enum(['US', 'CA', 'JP', 'AU', 'GB', 'FR', 'DE'])
+      .openapi({ description: 'ISO 3166-1 alpha-2 code of the country whose format the address is in.' }),
+    lines: z.array(z.string()).openapi({
+      description:
+        "The address in its country's own format, one string a line, as its post writes it (USPS, Canada Post, Australia Post, Royal Mail, La Poste, Deutsche Post, Japan Post).",
+      example: ['12 SMITH ST', 'PARRAMATTA NSW 2150'],
+    }),
+    formatted: z.string().openapi({ description: '`lines` joined with a line break.' }),
+    latin: z
+      .string()
+      .nullable()
+      .openapi({ description: 'Japan only: the address as English writes it, in Latin letters.' }),
+    number: z.string(),
+    street: z.string(),
+    unit: z.string().nullable().openapi({ description: 'A flat, apartment or unit, in about one address in seven.' }),
+    city: z.string(),
+    region: z.string().openapi({
+      description: "The state, province, prefecture, nation, department or Land, in the country's own language.",
+      example: 'New South Wales',
+    }),
+    regionCode: z.string().openapi({
+      description: 'Its ISO 3166-2 code: a record in `/subdivisions`, which `expand=subdivision` embeds.',
+      example: 'AU-NSW',
+    }),
+    postcode: z.string().openapi({
+      description:
+        "A postcode that exists in the region: a ZIP code of its state, a postal code of its province, a postcode of its state's blocks, a Royal Mail district, one of La Poste's, one of GeoNames' for its Land, a Japan Post code of its prefecture.",
+      example: '2150',
+    }),
+  })
+  .openapi('Address');
+
 export const GeneratedRecord = z
   .object({ index: z.number().int() })
   .catchall(z.unknown())

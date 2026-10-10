@@ -39,6 +39,8 @@ export const DEFAULT_LOCALE_ONLY: ReadonlySet<string> = new Set([
   // Real reference data with both languages in every record (`names`): only `name` follows the locale.
   'subdivisions',
   'groupings',
+  // An address's country, region and postcode do not follow the locale: they are in the seven countries' own formats.
+  'addresses',
 ]);
 
 interface FetchApp {

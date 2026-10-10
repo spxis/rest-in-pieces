@@ -1,0 +1,20 @@
+meta {
+  name: Check an address
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/addresses/validate
+  body: none
+  auth: none
+}
+
+params:query {
+  ~address: 12 Smith St, Parramatta NSW 2150
+  ~country: 
+}
+
+docs {
+  Reads an address in the format of the United States, Canada, Japan, Australia, the United Kingdom, France or Germany and checks it with `@johnmorrisdotca/address-plus`: whether it has what a postal address has, and whether its postcode belongs to the region it names (`Postcode 2000 belongs to NSW, not VIC`). Nothing is looked up on the network, so it says nothing about whether a street exists.
+}

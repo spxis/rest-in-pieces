@@ -19,6 +19,70 @@
       "name": "Reference data",
       "item": [
         {
+          "name": "Check an address",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/addresses/validate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "addresses",
+                "validate"
+              ],
+              "query": [
+                {
+                  "key": "address",
+                  "value": "12 Smith St, Parramatta NSW 2150",
+                  "description": "The address, on one line (at most 300 characters).",
+                  "disabled": true
+                },
+                {
+                  "key": "country",
+                  "value": "",
+                  "description": "Which country's format to read it in: US, CA, JP, AU, GB, FR, DE. Without it, the country is worked out from the address.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Reads an address in the format of the United States, Canada, Japan, Australia, the United Kingdom, France or Germany and checks it with `@johnmorrisdotca/address-plus`: whether it has what a postal address has, and whether its postcode belongs to the region it names (`Postcode 2000 belongs to NSW, not VIC`). Nothing is looked up on the network, so it says nothing about whether a street exists."
+          }
+        },
+        {
+          "name": "Write an address the way its country does",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/addresses/format",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "addresses",
+                "format"
+              ],
+              "query": [
+                {
+                  "key": "address",
+                  "value": "12 Smith St, Parramatta NSW 2150",
+                  "description": "The address, on one line (at most 300 characters).",
+                  "disabled": true
+                },
+                {
+                  "key": "country",
+                  "value": "",
+                  "description": "Which country's format to read it in: US, CA, JP, AU, GB, FR, DE. Without it, the country is worked out from the address.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Reads an address and writes it as its country's post does: USPS capitals, Canada Post, Australia Post, Royal Mail, La Poste's capitals without accents, Deutsche Post, Japan Post. `lines` are the lines on an envelope."
+          }
+        },
+        {
           "name": "List withdrawn",
           "request": {
             "method": "GET",
@@ -4958,6 +5022,238 @@
               }
             },
             "description": "Validates the fields sent and answers with the company merged with them, with `updatedAt` set.\n\nBy default nothing is stored, so a later read returns the same data as before and the response is what the write would have produced. With the session on (`--session`, `REST_IN_PIECES_SESSION=true` or `createApp({ session: true })`), the change is kept in memory and later reads at the same `seed` and `locale` see it, until `POST /reset`. A session that is full answers `507`."
+          }
+        },
+        {
+          "name": "List addresses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/addresses?limit=10&seed=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "addresses"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Records per page, 0 to 1000. Aliases: `size`, `length`, `pageSize`.",
+                  "disabled": false
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "description": "Records to skip.",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "",
+                  "description": "One-based page number in pages of `limit`: `page=3&pageSize=20` is `offset=40&limit=20`.",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "",
+                  "description": "Alias of `limit`, for use with `page`.",
+                  "disabled": true
+                },
+                {
+                  "key": "cursor",
+                  "value": "",
+                  "description": "An opaque cursor from `metadata.nextCursor` or `prevCursor`. Overrides `page` and `offset`; an empty `cursor=` starts on the first page with cursor links. A cursor used with different filters, sort, `q`, `seed`, `locale`, `messy` or `max` returns 400.",
+                  "disabled": true
+                },
+                {
+                  "key": "max",
+                  "value": "",
+                  "description": "Caps the dataset size to test end-of-data handling. Defaults to every record: 1000, or more after creates with the session on. Alias: `maxRecords`.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "",
+                  "description": "Field to sort by. Append `:numeric` to compare as numbers, e.g. `age:numeric`.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "",
+                  "description": "`asc` or `desc` (also `reverse`, `rev`, `backwards`, `-1`). Alias: `sortOrder`.",
+                  "disabled": true
+                },
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": "Case-insensitive text search across every field.",
+                  "disabled": true
+                },
+                {
+                  "key": "metadata",
+                  "value": "",
+                  "description": "`false` returns the bare array instead of the metadata envelope.",
+                  "disabled": true
+                },
+                {
+                  "key": "resultsName",
+                  "value": "",
+                  "description": "Renames the results key, e.g. `rows`.",
+                  "disabled": true
+                },
+                {
+                  "key": "seed",
+                  "value": "1",
+                  "description": "Selects a repeatable dataset. The same seed always returns the same records.",
+                  "disabled": false
+                },
+                {
+                  "key": "locale",
+                  "value": "",
+                  "description": "Which country the data is written for: `en-CA` (English (Canada)), `en-US` (English (United States)), `en-IN` (English (India)), `zh-CN` (Chinese (China)), `pt-BR` (Portuguese (Brazil)), `en-GB` (English (United Kingdom)), `ru` (Russian (Russia)), `de` (German (Germany)), `id` (Indonesian (Indonesia)), `ja` (Japanese (Japan)), `fr` (French (France)), `fr-CA` (French (Canada)), `ko` (Korean (South Korea)), `es-MX` (Spanish (Mexico)), `vi` (Vietnamese (Vietnam)), or `global` (Global mix): every record from a locale chosen by the seed, weighted toward the bigger developer populations, with `country` saying which. `en-CA` is the default. Names, addresses, phone numbers, prices (in the local currency) and country names follow the locale; `ja` adds katakana readings. Field names never change, so `province` and `postal` hold whatever the country uses. `GET /locales` lists them all.",
+                  "disabled": true
+                },
+                {
+                  "key": "messy",
+                  "value": "",
+                  "description": "Rewrites a share of values into the ones that break layouts and parsers: null and missing keys, empty and whitespace-only strings, very long strings (120 characters, 2,000 for descriptions), emoji, combining marks and zero-width joiners, right-to-left text, leading and trailing whitespace, numbers at the edges (0, negative, very large, many decimals) and dates at the edges (the epoch, the far future, 29 February). `true` rewrites about 15% of values; a number from 0 to 1 sets the share, so `0.5` rewrites half and `1` every one. Which values change comes from `seed` and each record's position, so the same URL returns the same mess every time. Values keep their type (a string field holds a string, a number field a number, a date field a date in the same format), but while `messy` is on every field except the id may be null or missing, whatever the schema says.",
+                  "disabled": true
+                },
+                {
+                  "key": "format",
+                  "value": "",
+                  "description": "`json` (default), `csv`, `yaml`, `xml`, `ndjson` (one record per line) or `sql` (one `INSERT` per record, into `table=`). CSV, NDJSON and SQL hold the page's records without the metadata. The `Accept` header works too (`text/csv`, `application/x-ndjson`, `application/sql`).",
+                  "disabled": true
+                },
+                {
+                  "key": "delay",
+                  "value": "",
+                  "description": "Wait this many milliseconds before responding, up to 10000. A range such as `200-800` picks a wait inside it from the request, seed included, so the same URL always waits the same time.",
+                  "disabled": true
+                },
+                {
+                  "key": "trickle",
+                  "value": "",
+                  "description": "Send the headers at once and the body in pieces this many milliseconds apart, whatever the format. With `delay`, the whole response takes no more than 10000 ms.",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Respond with this status (200–599). 4xx and 5xx return a simulated error.",
+                  "disabled": true
+                },
+                {
+                  "key": "fail",
+                  "value": "",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "disabled": true
+                },
+                {
+                  "key": "auth",
+                  "value": "",
+                  "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "safe",
+                  "value": "",
+                  "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. Off by default in 2.x, so existing output does not change; it becomes the default in 3.0.",
+                  "disabled": true
+                },
+                {
+                  "key": "table",
+                  "value": "",
+                  "description": "With `format=sql`: the table the `INSERT` statements name. Defaults to the dataset's name. A letter or `_`, then letters, digits or `_`, up to 63 characters.",
+                  "disabled": true
+                },
+                {
+                  "key": "expand",
+                  "value": "",
+                  "description": "Embeds related records, comma-separated: `subdivision`, `subdivision.country`, `subdivision.parent`, `subdivision.children`. Paths go 2 levels deep at most, apply to the page only, and embed at most 5000 records in all; a related record that no longer exists is `null`.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Addresses in the United States, Canada, Japan, Australia, the United Kingdom, France and Germany, each in its own country's format (`lines` as its post writes it: USPS, Canada Post, Japan Post, Australia Post, Royal Mail, La Poste, Deutsche Post) with a postcode that exists in the right region: a US state's ZIP prefixes, a Canadian province's postal letters, an Australian state's postcode blocks, a Royal Mail district, a postcode of La Poste's or GeoNames' list for its department or Land, a Japan Post code of its prefecture. Street and place names are Faker's, so no address is a real person's. Filter by `country=JP`; `regionCode` is a record in `/subdivisions` (`expand=subdivision`). `/addresses/validate` and `/addresses/format` check and write an address you give them.\n\nAny other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`)."
+          }
+        },
+        {
+          "name": "Get one address",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/addresses/:id?seed=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "addresses",
+                ":id"
+              ],
+              "query": [
+                {
+                  "key": "seed",
+                  "value": "1",
+                  "description": "Selects a repeatable dataset. The same seed always returns the same records.",
+                  "disabled": false
+                },
+                {
+                  "key": "locale",
+                  "value": "",
+                  "description": "Which country the data is written for: `en-CA` (English (Canada)), `en-US` (English (United States)), `en-IN` (English (India)), `zh-CN` (Chinese (China)), `pt-BR` (Portuguese (Brazil)), `en-GB` (English (United Kingdom)), `ru` (Russian (Russia)), `de` (German (Germany)), `id` (Indonesian (Indonesia)), `ja` (Japanese (Japan)), `fr` (French (France)), `fr-CA` (French (Canada)), `ko` (Korean (South Korea)), `es-MX` (Spanish (Mexico)), `vi` (Vietnamese (Vietnam)), or `global` (Global mix): every record from a locale chosen by the seed, weighted toward the bigger developer populations, with `country` saying which. `en-CA` is the default. Names, addresses, phone numbers, prices (in the local currency) and country names follow the locale; `ja` adds katakana readings. Field names never change, so `province` and `postal` hold whatever the country uses. `GET /locales` lists them all.",
+                  "disabled": true
+                },
+                {
+                  "key": "format",
+                  "value": "",
+                  "description": "`json` (default), `csv`, `yaml`, `xml`, `ndjson` (one record per line) or `sql` (one `INSERT` per record, into `table=`). CSV, NDJSON and SQL hold the page's records without the metadata. The `Accept` header works too (`text/csv`, `application/x-ndjson`, `application/sql`).",
+                  "disabled": true
+                },
+                {
+                  "key": "messy",
+                  "value": "",
+                  "description": "Rewrites a share of values into the ones that break layouts and parsers: null and missing keys, empty and whitespace-only strings, very long strings (120 characters, 2,000 for descriptions), emoji, combining marks and zero-width joiners, right-to-left text, leading and trailing whitespace, numbers at the edges (0, negative, very large, many decimals) and dates at the edges (the epoch, the far future, 29 February). `true` rewrites about 15% of values; a number from 0 to 1 sets the share, so `0.5` rewrites half and `1` every one. Which values change comes from `seed` and each record's position, so the same URL returns the same mess every time. Values keep their type (a string field holds a string, a number field a number, a date field a date in the same format), but while `messy` is on every field except the id may be null or missing, whatever the schema says.",
+                  "disabled": true
+                },
+                {
+                  "key": "auth",
+                  "value": "",
+                  "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "safe",
+                  "value": "",
+                  "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. Off by default in 2.x, so existing output does not change; it becomes the default in 3.0.",
+                  "disabled": true
+                },
+                {
+                  "key": "table",
+                  "value": "",
+                  "description": "With `format=sql`: the table the `INSERT` statements name. Defaults to the dataset's name. A letter or `_`, then letters, digits or `_`, up to 63 characters.",
+                  "disabled": true
+                },
+                {
+                  "key": "expand",
+                  "value": "",
+                  "description": "Embeds related records, comma-separated: `subdivision`, `subdivision.country`, `subdivision.parent`, `subdivision.children`. Paths go 2 levels deep at most, apply to the page only, and embed at most 5000 records in all; a related record that no longer exists is `null`.",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "One-based `id` of the address."
+                }
+              ]
+            },
+            "description": ""
           }
         },
         {

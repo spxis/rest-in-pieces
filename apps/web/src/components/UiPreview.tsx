@@ -177,6 +177,15 @@ export function cardOf(row: Row): {
       thing: true,
     };
   }
+  if ('regionCode' in row && 'lines' in row && Array.isArray(row.lines)) {
+    return {
+      title: (row.lines as unknown[]).map((line) => cellText(line)).join(' · '),
+      subtitle: [text('region'), text('postcode')].filter(Boolean).join(' · '),
+      aside: text('country'),
+      avatar: null,
+      thing: true,
+    };
+  }
   if ('invoiceStatus' in row) {
     return {
       title: [text('number'), text('customer')].filter(Boolean).join(' · '),

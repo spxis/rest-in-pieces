@@ -56,6 +56,7 @@ const DATASET_PHRASES: Record<string, PhraseKey> = {
   withdrawn: 'dataset.withdrawn',
   subdivisions: 'dataset.subdivisions',
   groupings: 'dataset.groupings',
+  addresses: 'dataset.addresses',
   orders: 'dataset.orders',
   posts: 'dataset.posts',
   comments: 'dataset.comments',

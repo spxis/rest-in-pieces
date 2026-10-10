@@ -1,0 +1,20 @@
+meta {
+  name: Write an address the way its country does
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/addresses/format
+  body: none
+  auth: none
+}
+
+params:query {
+  ~address: 12 Smith St, Parramatta NSW 2150
+  ~country: 
+}
+
+docs {
+  Reads an address and writes it as its country's post does: USPS capitals, Canada Post, Australia Post, Royal Mail, La Poste's capitals without accents, Deutsche Post, Japan Post. `lines` are the lines on an envelope.
+}

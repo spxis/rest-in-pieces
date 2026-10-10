@@ -1,4 +1,5 @@
 import type { z } from '@hono/zod-openapi';
+import { makeAddresses, readyAddresses } from './data/addresses.ts';
 import { build, type Makers } from './data/build.ts';
 import { cached } from './data/cache.ts';
 import {
@@ -46,6 +47,7 @@ import { type Derive, deriveOrder } from './lib/integrity.ts';
 import { GLOBAL, LOCALES, type Locale } from './lib/locale.ts';
 import type { RelatedResource, Relation } from './lib/relations.ts';
 import {
+  Address,
   Comment,
   CommentInput,
   Company,
@@ -110,6 +112,7 @@ const COUNTRY_FIELDS = fieldsOf(Country);
 const WITHDRAWN_FIELDS = fieldsOf(WithdrawnCountry);
 const SUBDIVISION_FIELDS = fieldsOf(Subdivision);
 const GROUPING_FIELDS = fieldsOf(Grouping);
+const ADDRESS_FIELDS = fieldsOf(Address);
 
 function seededResource<T extends object>(
   name: string,
@@ -274,6 +277,23 @@ export const resources: Resource[] = [
       countries: { kind: 'list', target: 'countries', key: 'members' },
       subdivisions: { kind: 'list', target: 'subdivisions', key: 'members' },
     },
+  },
+  {
+    name: 'addresses',
+    title: 'Address',
+    description:
+      "Addresses in the United States, Canada, Japan, Australia, the United Kingdom, France and Germany, each in its own country's format (`lines` as its post writes it: USPS, Canada Post, Japan Post, Australia Post, Royal Mail, La Poste, Deutsche Post) with a postcode that exists in the right region: a US state's ZIP prefixes, a Canadian province's postal letters, an Australian state's postcode blocks, a Royal Mail district, a postcode of La Poste's or GeoNames' list for its department or Land, a Japan Post code of its prefecture. Street and place names are Faker's, so no address is a real person's. Filter by `country=JP`; `regionCode` is a record in `/subdivisions` (`expand=subdivision`). `/addresses/validate` and `/addresses/format` check and write an address you give them.",
+    schema: Address,
+    idField: 'id',
+    idDescription: 'One-based `id` of the address.',
+    seeded: true,
+    defaults: { limit: 10, metadata: true },
+    ready: () => readyAddresses(),
+    load: (seed) => cached(`addresses:${seed}`, () => makeAddresses(seed, MAX_RECORDS)),
+    fields: () => ADDRESS_FIELDS,
+    find: byNumericField('id'),
+    keep: ['id', 'regionCode', 'country'],
+    relations: { subdivision: { kind: 'one', target: 'subdivisions', key: 'regionCode' } },
   },
   ...related(),
   ...domains(),

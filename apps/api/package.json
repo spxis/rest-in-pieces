@@ -1,7 +1,7 @@
 {
   "name": "@johnmorrisdotca/rest-in-pieces",
   "version": "2.24.1",
-  "description": "A mock REST API and test data generator with realistic, seeded fake data for building and testing frontends: related datasets with referential integrity, paging, sorting, filters, errors and delays on demand, safe values, SVG avatars, real country and region data (names in English and Japanese, ISO codes, states, provinces and prefectures, flags and maps, withdrawn codes) and NDJSON and SQL exports. Run it with npx, in Vite, through MSW or inside a browser tab.",
+  "description": "A mock REST API and test data generator with realistic, seeded fake data for building and testing frontends: related datasets with referential integrity, paging, sorting, filters, errors and delays on demand, safe values, SVG avatars, real country and region data (names in English and Japanese, ISO codes, states, provinces and prefectures, flags and maps, withdrawn codes), addresses in seven countries' own formats and NDJSON and SQL exports. Run it with npx, in Vite, through MSW or inside a browser tab.",
   "keywords": [
     "mock-api",
     "fake-api",
@@ -105,7 +105,11 @@
     "country-flags",
     "svg-flags",
     "svg-maps",
-    "restcountries-alternative"
+    "restcountries-alternative",
+    "postcodes",
+    "address-generator",
+    "fake-addresses",
+    "zip-codes"
   ],
   "homepage": "https://spxis.github.io/rest-in-pieces/",
   "bugs": "https://github.com/spxis/rest-in-pieces/issues",
@@ -193,7 +197,7 @@
     "@faker-js/faker": "^10.6.0",
     "@hono/node-server": "^2.1.1",
     "@hono/zod-openapi": "^1.6.3",
-    "@johnmorrisdotca/address-plus": "^1.1.0",
+    "@johnmorrisdotca/address-plus": "^1.6.0",
     "@johnmorrisdotca/chizu": "^1.4.0",
     "@johnmorrisdotca/kuni": "^1.2.0",
     "@scalar/hono-api-reference": "^0.12.6",
