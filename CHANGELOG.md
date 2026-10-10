@@ -4,6 +4,8 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+## 2.20.0 - 2026-10-09
+
 ### Added
 
 - A use cases page in the playground, at `use-cases/` on GitHub Pages and `?view=use-cases` everywhere else, linked from the top bar and the README, in English and 日本語, light and dark, and laid out for a 390 px phone. Ten use cases, each with the problem in a line, the request or code that solves it (one press copies it) and a short animation: a front end built before its backend (a table fills with people, then an order with its buyer and products), a JSONPlaceholder tutorial that takes a `POST`, loading, flaky, down and empty states (`delay`, `trickle`, `fail=0.3`, `status=503`), data that breaks layouts (`messy`), sign-in with a token that expires and is refreshed, the same seed twice, seeding a database (`format=sql` and `ndjson`), mock records from a JSON Schema, one seed in four locales, and invented FHIR patients, invoices and transactions. The animations are not recordings: each sends the requests shown beside it to the API (inside the page on GitHub Pages) and draws what comes back, plays once when it scrolls into view, can be replayed, never loops, and shows its finished state at once for a reader who asks for reduced motion.
