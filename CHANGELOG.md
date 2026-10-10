@@ -4,6 +4,20 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Added
+
+- `rest-in-pieces serve --openapi ./openapi.yaml` (also `--openapi` on the main command) answers every operation of an OpenAPI 3.x or Swagger 2.0 document, JSON or YAML, with seeded data in the shape of its response schema. The answer is the operation's lowest `2xx` response, made by the generator behind `POST /generate`, seeded from the seed, the method and the address: the same request gives the same body, `/pets/1` and `/pets/2` differ, and a path parameter lands in the matching property. A list is as long as the `limit`, `pageSize`, `per_page`, … the operation declares (ten when none, at most 100); the fields a write sends are put into its answer; the headers the document lists are made.
+- Requests are checked against the document: path, query and header parameters, and a JSON body (types, `required`, `enum`, bounds, lengths, `format`, `items`, `allOf`, `anyOf`, `oneOf`). A fault is a `400`, or a `422` when the document lists `422` and not `400`, naming every fault and where it is. A body over 64 KB is `413`, a body that is not JSON `400`, another content type `415`; an unknown address is `404` and a method it does not have `405` with `Allow`.
+- `?delay=`, `?status=`, `?fail=` and `?trickle=` work on every route. `?status=404` answers with the body the document gives that status; `?seed=`, `?locale=` and `?safe=` work too. An operation that declares one of those names itself keeps it, and the control is `?_status=503` there (`?_name` works everywhere).
+- `GET /__mock` lists the operations, `/__mock/openapi.json` serves the document and `/__mock/docs` shows it. The start-up message lists what is mocked.
+- `createMockApp(document)` and `createMock(document)` from `@johnmorrisdotca/rest-in-pieces/mock`: the same mock in process, with no Node modules, for tests, workers and Mock Service Worker handlers. `OpenApiError` names every fault in a document it cannot mock.
+- A `$ref` must point inside the document (a URL or file is refused, anywhere in it, and nothing is fetched); a keyword the generator cannot honour, a pattern it cannot read and a schema that can never be made (a loop through required properties) stop start-up and are listed together. Bounded: 1,000 operations, 500,000 values and 5 MB in a document; a response of at most 5,000 values, 1,000,000 characters and 100 list items; JSON bodies only (a response that lists only another type answers `501`); `pattern`, security schemes and `example` values are not used; writes are answered, not kept.
+- [docs/mock-your-openapi.md](docs/mock-your-openapi.md) has the rules and the limits; the playground's JSON Schema note points to it, in English and Japanese; `pack:test` runs the installed `serve --openapi`.
+
+### Changed
+
+- The README's Custom fields section moves to [docs/custom-fields.md](docs/custom-fields.md), leaving a short section and a link, to make room; its Prism row now says what each does with an OpenAPI file.
+
 ## 2.21.0 - 2026-10-09
 
 ### Added

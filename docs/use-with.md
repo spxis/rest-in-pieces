@@ -185,3 +185,7 @@ if (data && !Array.isArray(data)) console.log(data.metadata.total, data.results[
 ## Any origin
 
 CORS is on by default, so a frontend on any dev-server origin can call the API directly. Every response carries `Access-Control-Allow-Origin: *`; a preflight `OPTIONS` answers `204` with the methods allowed and the requested headers echoed back, so a write with an `Authorization` header preflights too; and `X-Total-Count`, `Link`, `ETag`, `X-Simulated`, `Retry-After`, `Location` and `WWW-Authenticate` are exposed to scripts.
+
+## Your own API's OpenAPI document
+
+When the API you build against has an OpenAPI document, mock all of it instead of the built-in datasets: `npx @johnmorrisdotca/rest-in-pieces serve --openapi ./openapi.yaml` serves every operation with seeded data in the shape of its response schema and checks requests against the document, and `createMockApp(document)` from `@johnmorrisdotca/rest-in-pieces/mock` answers the same in process, in a test or from a Mock Service Worker handler. See [Mock your own API from its OpenAPI document](mock-your-openapi.md).

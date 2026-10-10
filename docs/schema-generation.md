@@ -1,6 +1,6 @@
 # Records from a JSON Schema or an OpenAPI schema
 
-`POST /generate` makes seeded records that match a schema you send. Send `schema` (a JSON Schema) or `openapi` (an OpenAPI 3.x or Swagger 2 document) with `component` naming the schema in it, instead of a `fields` list. Paging, sorting, filters, search, every format (JSON, CSV, YAML, XML, NDJSON, SQL), `locale`, `safe`, `messy` and the latency and error simulation work as they do everywhere else. [Back to the README](https://github.com/spxis/rest-in-pieces#custom-fields-arguments-choices-and-blanks).
+`POST /generate` makes seeded records that match a schema you send. Send `schema` (a JSON Schema) or `openapi` (an OpenAPI 3.x or Swagger 2 document) with `component` naming the schema in it, instead of a `fields` list. Paging, sorting, filters, search, every format (JSON, CSV, YAML, XML, NDJSON, SQL), `locale`, `safe`, `messy` and the latency and error simulation work as they do everywhere else. [Back to the README](https://github.com/spxis/rest-in-pieces#custom-fields-arguments-choices-and-blanks). To answer every operation of an OpenAPI document, not one schema, see [Mock your own API from its OpenAPI document](mock-your-openapi.md): it makes each response from the same generator, so the limits below apply to it too.
 
 ```sh
 curl -X POST 'http://localhost:6800/generate?limit=3' \

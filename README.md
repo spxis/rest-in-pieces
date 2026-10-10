@@ -33,6 +33,7 @@ npx @johnmorrisdotca/rest-in-pieces --port 6900      # another port; PORT works 
 npx @johnmorrisdotca/rest-in-pieces --host 0.0.0.0   # reachable from other machines and containers
 npx @johnmorrisdotca/rest-in-pieces --session        # keep writes in memory until POST /reset
 npx @johnmorrisdotca/rest-in-pieces --safe           # safe values by default: example-domain emails, fiction-range phones
+npx @johnmorrisdotca/rest-in-pieces serve --openapi ./openapi.yaml   # mock your own API from its OpenAPI document
 ```
 
 **Offline, with no server:** `generate` writes seeded records from a [JSON Schema or OpenAPI schema](https://github.com/spxis/rest-in-pieces/blob/main/docs/schema-generation.md) or a field list to a file or a pipe, one at a time, as `ndjson`, `json`, `csv` or `sql`. A hundred thousand rows take about a second and a half, and the records are the API's, for the same seed.
@@ -81,6 +82,14 @@ const { results } = await (await fetch('/api/users?limit=10&seed=7')).json();
 
 `installInBrowserApi({ base: '/mock' })` moves it, `installInBrowserApi({ app: { session: true } })` keeps writes for as long as the tab is open, and the function it returns puts the original `fetch` back. The API loads on the first request, so the page pays nothing for it until then. Only `fetch` is answered; libraries built on `XMLHttpRequest` still go to the network. To answer those too, use the [Mock Service Worker handlers](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#mock-service-worker).
 
+### Mock your own API from its OpenAPI document
+
+```sh
+npx @johnmorrisdotca/rest-in-pieces serve --openapi ./openapi.yaml
+```
+
+Every operation of your OpenAPI 3.x or Swagger 2.0 document (JSON or YAML) answers with seeded data in the shape of its response schema, and each request is checked against the document: a path parameter that is not an integer, a missing required header or a body that breaks its schema is a `400` (or `422`) naming the fault. `?delay=`, `?status=404` (the body your document gives that status), `?fail=0.3` and `?trickle=` work on every route. References must be local, writes are answered but not kept, and only JSON bodies are made. [docs/mock-your-openapi.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/mock-your-openapi.md) has the rules, the limits and `createMockApp` for tests.
+
 ### Nothing to install: a public static API
 
 For a tutorial, a CodePen or a classroom, the demo site also serves a small read-only copy of the API as plain files, with CORS open and no key. A page number is in the path, and every address ends in `.json`:
@@ -126,7 +135,7 @@ Most tools in this space either intercept requests and leave you to write the da
 | [json-server](https://github.com/typicode/json-server) | A REST API over a `db.json` you write | Closest in spirit. It writes changes back to `db.json`, which REST in Pieces does not: its [session](#sessions-keeping-writes) keeps writes in memory only, until a reset or a restart. Both have relations: json-server's `_embed` over the data you wrote, REST in Pieces' [nested routes and `expand`](#relations) over generated data that already joins up. REST in Pieces has generated, seeded, localized data, paging, formats, sign-in and failure drills with nothing to write. |
 | [MSW](https://mswjs.io/) | Request interception in the browser and Node | Not a rival but a host: MSW intercepts, REST in Pieces answers. Use the [MSW handlers](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#mock-service-worker). |
 | [Mirage JS](https://miragejs.com/) | A fake server in the tab, with models and factories you define | Mirage wants a schema and routes; REST in Pieces needs no setup. Both keep writes in memory (REST in Pieces with `session: true`) and both have relations: Mirage between the models you define, any shape you like; REST in Pieces between its own datasets only. |
-| [Prism](https://github.com/stoplightio/prism) | A mock server generated from your OpenAPI file | Use Prism when you have a contract to mock; use REST in Pieces when you do not, and want realistic data rather than examples. |
+| [Prism](https://github.com/stoplightio/prism) | A mock server generated from your OpenAPI file | Both mock from an OpenAPI file. Prism answers with the examples you wrote and validates strictly; REST in Pieces makes seeded, realistic data from the schemas (`serve --openapi`, [below](#mock-your-own-api-from-its-openapi-document)), with delay, error and trickle drills, and without the examples, a security check or a proxy mode. With no contract to mock, it has [datasets](#endpoints) as well. |
 | [Mockoon](https://mockoon.com/) | A desktop app and CLI for hand-templated mock routes | Better for people who prefer a GUI and per-route templates; REST in Pieces is code-first, with seeds and locales built in. |
 | [DummyJSON](https://dummyjson.com/), [JSONPlaceholder](https://jsonplaceholder.typicode.com/) | Hosted fake APIs at public URLs | Nothing to install, but fixed English data and no failure drills. Both answer writes without keeping them, as REST in Pieces does by default. JSONPlaceholder's posts, comments, todos and users have the same shapes here, and [`/jsonplaceholder`](#a-jsonplaceholder-tutorial-with-a-new-base-url) answers with its defaults, so its tutorials work by changing the base URL; its albums and photos have no counterpart. DummyJSON has more kinds of data (carts, recipes, quotes) and image URLs of its own; REST in Pieces has seeds, fifteen locales, safe values and self-hosted SVG avatars. DummyJSON's login, refresh and bearer-token routes match [REST in Pieces' sign-in](#sign-in-fake-auth) closely; REST in Pieces adds roles with `403`s, `?auth=` on any endpoint, tokens that expire on demand (`expiresIn=0`) and `WWW-Authenticate` headers. The [static API](#nothing-to-install-a-public-static-api), the [fixtures](#fixtures) and the live demo are the hosted side here. |
 | [Mockaroo](https://www.mockaroo.com/) | A hosted generator: design a schema in the browser, download CSV, JSON, SQL and more | Mockaroo has far more field types, formulas, its own datasets and saved schemas, and limits rows and API calls on its free plan. REST in Pieces runs locally and free with no account; `/generate` takes Faker's types with [arguments, weighted choices and blank rates](#custom-fields-arguments-choices-and-blanks), and answers in NDJSON and SQL as well, seeded so the same URL gives the same file. It has no formulas between fields. |
@@ -471,25 +480,7 @@ INSERT INTO "people" ("id", "firstName", "lastName", "username", "email", "avata
 
 ## Custom fields: arguments, choices and blanks
 
-`/generate` takes a type for each field, and a type may take arguments, a list of choices and a blank rate:
-
-```sh
-curl 'http://localhost:6800/generate?fields=age:number.int(18,65),price:commerce.price(5,500,2),status:pick(active,paused,closed|70,20,10),nickname:person.firstName?blank=15'
-```
-
-| Write | Means |
-| ----- | ----- |
-| `age:number.int(18,65)` | Arguments in parentheses, in the order `GET /generators` lists them under `parameters` (`number.int: "min, max"`). |
-| `joined:date.between(2020-01-01,2025-12-31)` | Dates as `YYYY-MM-DD`. `date.between` is known only with its arguments. |
-| `status:pick(active,paused,closed)` | One of the choices, evenly. Choices are text: at most 50, each up to 64 characters, with no `,`, `(`, `)` or `\|` inside. |
-| `status:pick(active,paused,closed\|70,20,10)` | Weighted: one weight per choice after a `\|`, any numbers of 0 or more, not all 0. |
-| `nickname:person.firstName?blank=15` | `null` in about 15% of records. `15%` works too (write it `15%25` in a URL, though a bare `%` is accepted). Goes after the arguments: `number.int(1,9)?blank=50`. |
-
-- **Types that take arguments**: `number.int`, `number.float`, `commerce.price`, `finance.amount`, `date.past`, `date.future`, `date.recent`, `date.soon`, `date.between`, `date.birthdate`, `string.alpha`, `string.alphanumeric`, `string.numeric`, `string.hexadecimal`, `string.sample`, `lorem.words`, `lorem.sentence`, `lorem.sentences`, `lorem.paragraph`, `lorem.paragraphs`, `lorem.lines`, `word.words`, `internet.password`, `person.firstName`, `person.lastName`, `person.fullName` (`male` or `female`), `location.latitude`, `location.longitude`, `finance.creditCardNumber` (a network), `image.url` (width and height), and the distributions `number.normal`, `number.lognormal`, `number.exponential` and `number.zipf`.
-- **Coherent records.** `age:=age(born)` is a derived field worked out from the others by a small, safe expression language (no `eval`), `constraints=end>start` puts two fields in order, and `number.normal`, `number.lognormal`, `number.exponential` and `number.zipf` draw values that bunch like real ones. Every expression is capped at 400 characters, 150 tokens, 12 deep and 100 parts, and a schema at 10 derived fields. See [docs/coherent-records.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/coherent-records.md).
-- **From a schema.** `POST /generate` with `{ "schema": { … } }` (a JSON Schema) or `{ "openapi": { … }, "component": "Pet" }` makes seeded records that match it: types, `enum`, `const`, `required`, string lengths, `pattern` (a subset, made by a parser rather than run), `format`, number bounds, arrays, `allOf`, `oneOf`, `anyOf` and local `$ref`s, including ones that loop. A keyword it cannot honour is a `400` that names it, a `$ref` outside the document is refused and nothing is fetched, and depth, array length, string length and values per request are capped. See [docs/schema-generation.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/schema-generation.md).
-- **Bounded.** Every argument has a range (lengths up to 256 characters, at most 50 words, 20 sentences or 10 paragraphs, sides up to 4,000), on top of the existing caps of 50 fields and 1,000 records; nothing is evaluated as code.
-- **Clear errors.** A type that takes no arguments, a wrong count, a value that is not a number or a date, one out of range, a `min` above its `max`, a bad choice or weight, or a blank rate outside 0–100 answers `422` with `{ "error": "Field \"age\": …", "field": "age" }`. An unknown type is still a `400`, as before. The same syntax works in a `POST /generate` body: `{ "fields": { "age": "number.int(18,65)" } }`.
+`/generate` takes a type for each field, and a type may take arguments, a list of choices and a blank rate: `/generate?fields=age:number.int(18,65),status:pick(active,paused,closed|70,20,10),nickname:person.firstName?blank=15`. Derived fields (`age:=age(born)`), constraints, JSON Schema input and the limits are in [docs/custom-fields.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/custom-fields.md), [docs/coherent-records.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/coherent-records.md) and [docs/schema-generation.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/schema-generation.md).
 
 ## Synthetic patients (FHIR R4-shaped)
 
