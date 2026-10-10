@@ -155,9 +155,7 @@ describe('write routes', () => {
         }
       });
 
-      // Every record of every locale, built and checked: real work, not a wait. /comments took 5.2 s and 6.6 s on a
-      // GitHub runner with coverage on (the release runs of 2.14.0 and 2.15.0), past vitest's 5 s default.
-      it('accepts every record it serves back as a PUT body, in every locale', { timeout: 30_000 }, () => {
+      it('accepts every record it serves back as a PUT body, in every locale', () => {
         for (const locale of LOCALE_CODES) {
           for (const record of resource.load(1, locale).records) {
             const parsed = resource.input?.safeParse(record);

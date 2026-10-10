@@ -4,11 +4,15 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Fixed
+
+- The test suite allows 20 seconds a test, not vitest's 5: the release runner, with coverage on, took longer than 5 over the few tests that build every locale or a request at its size limit, which stopped the release runs of 2.14.0, 2.15.0 and 2.19.1 before publishing. This release is the first on npm since 2.13.0 and carries everything listed for 2.14.0 to 2.19.1.
+
 ## 2.19.1 - 2026-10-09
 
 ### Fixed
 
-- The release check's slowest test (every record of every locale accepted back as a `PUT` body) has the time it needs. It ran past vitest's 5-second default on GitHub's runner, so the release runs of 2.14.0 and 2.15.0 stopped before publishing, and 2.16.0 to 2.19.0 were never tagged on GitHub. This release is the first on npm since 2.13.0 and carries everything listed for 2.14.0 to 2.19.0.
+- The release check's slowest test (every record of every locale accepted back as a `PUT` body) has the time it needs. It ran past vitest's 5-second default on GitHub's runner, so the release runs of 2.14.0 and 2.15.0 stopped before publishing, and 2.16.0 to 2.19.0 were never tagged on GitHub. Its own release run then stopped on another slow test, which 2.19.2 fixes for the whole suite.
 
 ## 2.19.0 - 2026-10-09
 
