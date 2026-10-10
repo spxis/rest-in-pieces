@@ -15,6 +15,7 @@ async function call(path: string, init: RequestInit = {}, target = app) {
   } catch {
     // Not JSON.
   }
+  // biome-ignore lint/suspicious/noExplicitAny: the tests read whatever shape the mocked response has
   return { res, status: res.status, body: body as any, text };
 }
 
@@ -444,7 +445,7 @@ describe('a document that cannot be mocked', () => {
     expect(message).toContain('GET /a');
     expect(message).toContain('200 response');
     expect(message).toContain('"not"');
-    expect(refuses(only({ if: {}, then: {} }))).toContain('"if"');
+    expect(refuses(only({ if: {}, else: {} }))).toContain('"if"');
   });
 
   it('refuses a schema reference that is not in the document, and one that points outside it', () => {
