@@ -152,8 +152,8 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
     back: 'This is not a JSON object, so it cannot be sent.',
   },
   'schema.note': {
-    text: 'POST /generate として送信されます。参照できるのはドキュメント内のみで、外部からは何も取得しません。未対応のキーワードがあると、そのキーワード名を添えて 400 エラーが返ります。',
-    back: 'It is sent as POST /generate. Only references inside the document can be followed, and nothing is fetched from outside. If there is an unsupported keyword, a 400 error comes back with that keyword name attached.',
+    text: 'POST /generate として送信されます。参照できるのはドキュメント内のみで、外部からは何も取得しません。未対応のキーワードがあると、そのキーワード名を添えて 400 エラーが返ります。OpenAPI ドキュメントが記述する API 全体をモックするには、`rest-in-pieces serve --openapi <ファイル>` を実行します。',
+    back: 'It is sent as POST /generate. Only references inside the document can be followed, and nothing is fetched from outside. If there is an unsupported keyword, a 400 error comes back with that keyword name attached. To mock the whole API that an OpenAPI document describes, run `rest-in-pieces serve --openapi <file>`.',
   },
   'fields.derivedGroup': { text: '派生フィールド', back: 'Derived fields' },
   'fields.derived': { text: '= 他のフィールドから計算', back: '= calculated from other fields' },

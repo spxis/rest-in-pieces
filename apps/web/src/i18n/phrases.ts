@@ -96,7 +96,7 @@ export const PHRASES = {
   'schema.component': 'Schema to use in the OpenAPI document (components.schemas)',
   'schema.invalid': 'This is not a JSON object, so there is nothing to send.',
   'schema.note':
-    'Sent as POST /generate. References must point inside the document and nothing is fetched; a keyword the generator cannot honour answers 400 and names itself.',
+    'Sent as POST /generate. References must point inside the document and nothing is fetched; a keyword the generator cannot honour answers 400 and names itself. To mock a whole API from its OpenAPI document, run `rest-in-pieces serve --openapi <file>`.',
   'fields.derivedGroup': 'Worked out',
   'fields.derived': '= derived from other fields',
   'fields.expression': 'Expression',
