@@ -156,7 +156,7 @@ A country's map is its outline (Natural Earth 1:50m) for 238 countries; a subdiv
 
 ## Addresses: `/addresses`
 
-Addresses in the United States, Canada, Japan, Australia, the United Kingdom, France and Germany, each in its own country's format and with a postcode that exists in the right region. They are invented: the street and place names are Faker's, so no address is a real person's; only the postcode is checked against the real tables.
+Addresses in the United States, Canada, Japan, Australia, the United Kingdom, France and Germany, each in its own country's format and with a postcode that exists in the right region. They are invented: the street names are Faker's, and Japanese town names come from a short list of common ones (`JP_TOWNS`), so no address is a real person's; only the postcode is checked against the real tables.
 
 ```sh
 curl 'http://localhost:6800/addresses?country=JP&limit=3'

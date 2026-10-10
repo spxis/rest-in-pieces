@@ -34,12 +34,9 @@ importers:
       '@johnmorrisdotca/address-plus':
         specifier: ^1.6.0
         version: 1.6.0
-      '@johnmorrisdotca/chizu':
-        specifier: ^1.4.0
-        version: 1.4.0
       '@johnmorrisdotca/kuni':
-        specifier: ^1.2.0
-        version: 1.2.0
+        specifier: ^1.3.0
+        version: 1.3.0
       '@scalar/hono-api-reference':
         specifier: ^0.12.6
         version: 0.12.6(hono@4.13.9)
@@ -56,6 +53,9 @@ importers:
         specifier: ^4.6.5
         version: 4.6.5
     devDependencies:
+      '@johnmorrisdotca/chizu':
+        specifier: ^1.4.0
+        version: 1.4.0
       '@johnmorrisdotca/hata':
         specifier: ^1.4.0
         version: 1.4.0
@@ -509,8 +509,8 @@ packages:
     resolution: {integrity: sha512-HmJiAPe/7g/NhXv6npbwlzHC05Ans8JnaIV8magED2jVXek5aun0yNW70suH0AHuv5FWoipUnxa50NSXFm7rCg==}
     engines: {node: '>=24'}
 
-  '@johnmorrisdotca/kuni@1.2.0':
-    resolution: {integrity: sha512-dyLpDrQlsp8lY3BHNHjk9kqSxZltEWIurEQ+MhIWGVbkwTAMYK2aFXDjj5OQz9OeMliEo5GsRvVTwdx1LjyFFQ==}
+  '@johnmorrisdotca/kuni@1.3.0':
+    resolution: {integrity: sha512-pf9il0pHBd/Gzar25BEoPul+by2/D16irJgq3Npo5jgJ5SQP3sYT12+3OD6T7YwRmPkc5VF+8Z1vDqosSPiuhQ==}
     engines: {node: '>=24'}
 
   '@jridgewell/resolve-uri@3.1.2':
@@ -1867,7 +1867,7 @@ snapshots:
 
   '@johnmorrisdotca/hata@1.4.0': {}
 
-  '@johnmorrisdotca/kuni@1.2.0': {}
+  '@johnmorrisdotca/kuni@1.3.0': {}
 
   '@jridgewell/resolve-uri@3.1.2': {}
 
