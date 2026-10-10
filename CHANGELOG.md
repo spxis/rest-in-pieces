@@ -4,9 +4,7 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
-### Geographic features (one minor release)
-
-#### Added
+### Added
 
 - `GET /geo/features` and `/geo/features/{id}`: the world's 2,790 named physical features from [Chizu](https://github.com/johnmorrisdotca/chizu) (Natural Earth, public domain; names from Natural Earth and Wikidata, CC0): oceans, seas, gulfs, bays, straits, lakes, reservoirs, rivers, deserts, mountain ranges, plateaus, plains, peninsulas and the other landforms, and peaks. Each record has an `id` (its Wikidata item, else Natural Earth's `ne-…`), `wikidata`, `kind`, `group`, `name` (Japanese for `locale=ja` where there is one) and `names { en, ja }`, `reading` in kana, `rank`, a peak's `elevation`, a `location` point, a `bbox` (never a shape; `west` is greater than `east` across the 180th meridian), the `countries` whose map holds it, and a `map` path that lights it. Filter by `kind`, `group`, `countries` and `rank[lte]`; search names in English, Japanese or kana with `q`.
 - `GET /countries/{code}/features`, and `expand=countries` on a feature.
@@ -15,7 +13,7 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 - The static API holds the dataset whole, in the default locale only, in JSON, CSV, NDJSON and SQL: `api/features.json`, `api/features/{id}.json` and `api/countries/{code}/features.json`. A Features tab in the playground lists them with a map thumbnail that lights each one; the GitHub Pages copy of the API inside a tab has no such tab, because it cannot load Chizu.
 - The Postman and Bruno collections have the new requests; [docs/reference-data.md](docs/reference-data.md) has the fields, the rules for `countries` and `bbox`, and the licence line; the README lists the route; the npm keywords gain `geographic-features` and `natural-earth`.
 
-#### Changed
+### Changed
 
 - The static API is about 65,000 files and 81 MB (it was 52,000 and 67 MB); the geographic features are 13.5 MB of it. `apps/web/scripts/staticApi.ts` skips a feature's own `countries` list, which `countries` on the record already holds.
 - The playground's UI preview draws a feature as a card, and `mapAddress` follows a feature's `map`.
