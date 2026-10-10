@@ -90,6 +90,10 @@ npx @johnmorrisdotca/rest-in-pieces serve --openapi ./openapi.yaml
 
 Every operation of your OpenAPI 3.x or Swagger 2.0 document (JSON or YAML) answers with seeded data in the shape of its response schema, and each request is checked against the document: a path parameter that is not an integer, a missing required header or a body that breaks its schema is a `400` (or `422`) naming the fault. `?delay=`, `?status=404` (the body your document gives that status), `?fail=0.3` and `?trickle=` work on every route. References must be local, writes are answered but not kept, and only JSON bodies are made. [docs/mock-your-openapi.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/mock-your-openapi.md) has the rules, the limits and `createMockApp` for tests.
 
+### Live streams
+
+`GET /streams/{messages|notifications|metrics|logs}` plays a dataset as Server-Sent Events, one record per event, seeded: `new EventSource('http://localhost:6800/streams/logs?count=20&every=500')`. A stream is capped at 500 events and 60 seconds a connection, resumes with `Last-Event-ID`, and can `drop` on purpose to rehearse a reconnecting client. The playground's Streams tab shows one live. [docs/streams.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/streams.md) says what works where (npx, Docker, the Vite plugin, MSW, the page itself, Vercel).
+
 ### Nothing to install: a public static API
 
 For a tutorial, a CodePen or a classroom, the demo site also serves a small read-only copy of the API as plain files, with CORS open and no key. A page number is in the path, and every address ends in `.json`:
@@ -262,6 +266,7 @@ curl -N 'http://localhost:6800/users?delay=200-800&trickle=200'
 | `GET /generate`            | Records from a field list, e.g. `fields=name:person.fullName,email:internet.email`. |
 | `POST /generate`           | The same, with the fields, `count` and `seed` in a JSON body, or a JSON Schema or OpenAPI schema to generate from. |
 | `GET /generators`          | Every generator type, flat and grouped by module, and the arguments of those that take them. |
+| `GET /streams/{name}`      | Server-Sent Events playing `messages`, `notifications`, `metrics` or `logs` one record at a time. See [Live streams](#live-streams). |
 | `GET /resources`           | The datasets and their fields, per locale, with what each can `expand` and list under a record. |
 | `GET /locales`             | The data locales, with their names, BCP 47 tag, country, currency and the tax rate orders use. |
 | `GET /health`              | Status, version and uptime. |
