@@ -83,9 +83,13 @@ export const PHRASES = {
   'dataset.todos': 'To-do items, each owned by a user.',
   'dataset.reviews': "Product reviews by users, with ratings close to the product's own.",
   'dataset.countries':
-    'Every country and territory with ISO codes, names in English and Japanese, currencies, languages, calling codes, capital, time zones, population, area, coordinates, land borders and driving side. Real reference data from Kuni, so `seed` has no effect. For compatibility it returns every country as a bare array unless `metadata=true` is given. The codes ISO has withdrawn are at `/countries/withdrawn`.',
+    'Every country and territory with ISO codes, names in English and Japanese, currencies, languages, calling codes, capital, time zones, population, area, coordinates, land borders and driving side. Real reference data from Kuni, so `seed` has no effect. For compatibility it returns every country as a bare array unless `metadata=true` is given. Its subdivisions are at `/countries/{code}/subdivisions`; the codes ISO has withdrawn are at `/countries/withdrawn`.',
   'dataset.withdrawn':
     'The countries whose ISO 3166-3 codes were withdrawn: the Soviet Union (SU), Yugoslavia (YU), Czechoslovakia (CS), East Germany (DD), Zaire (ZR) and more. Each has the codes it held, names in English and Japanese, the years its code was in use and the countries that came after it. They are not in `/countries`. Real reference data, so `seed` has no effect.',
+  'dataset.subdivisions':
+    'The states, provinces, prefectures, counties, regions and Länder of 200 countries: 5,050 ISO 3166-2 subdivisions with their code, kind, level, parent, names in English and Japanese, capital, population, area and coordinates. Real reference data, so `seed` has no effect. Narrow it with `country=JP`, `type=prefecture` or `level=1`.',
+  'dataset.groupings':
+    "Groups of countries (the EU, the G7, ASEAN) and regions inside a country: 107 in all, from the seven continents and the UN regions to 23 international bodies with the days members joined and left, 16 informal groupings (the Middle East, the Balkans) and Japan's regions. Real reference data, so `seed` has no effect. Narrow it with `kind=membership` or `members=JP`.",
 
   'scenario.heading': 'REPEATABLE SCENARIOS',
   'scenario.share': 'Share link',

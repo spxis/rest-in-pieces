@@ -9,6 +9,7 @@
  * the session holds a copy, a lookup table is built once per request, over at most a few thousand records.
  */
 
+import { regionOf } from '../data/kuni.ts';
 import { childRange, type OwnedDataset, ownership } from '../data/owners.ts';
 import type { Locale } from './locale.ts';
 import { messyRecord } from './messy.ts';
@@ -39,13 +40,22 @@ export interface ToList {
   key: string;
 }
 
+/**
+ * A record whose `country` and `province` name a first-level subdivision: a user in Ontario is in `CA-ON`. Worked out
+ * from the two fields, so it adds nothing to the record; a province that is not one of the country's is `null`.
+ */
+export interface ToRegion {
+  kind: 'region';
+  target: string;
+}
+
 /** An array field whose entries point at other records: an order's `items`, each with a `productId`. */
 export interface Embedded {
   kind: 'items';
   relations: Record<string, ToOne>;
 }
 
-export type Relation = ToOne | ToMany | ToList | Embedded;
+export type Relation = ToOne | ToMany | ToList | ToRegion | Embedded;
 
 /** What the relations need to know about a dataset. `Resource` has all of it. */
 export interface RelatedResource extends SessionResource {
@@ -324,6 +334,11 @@ function expandOne(record: Fields, resource: RelatedResource, tree: ExpandTree, 
     if (relation.kind === 'one') {
       const key = record[relation.key];
       const at = key === null || key === undefined ? -1 : data.indexOf(target, key);
+      data.spend(1);
+      out[name] = at < 0 ? null : expandOne(data.present(target, at), target, subtree, data);
+    } else if (relation.kind === 'region') {
+      const region = regionOf(record.country, record.province);
+      const at = region ? data.indexOf(target, region.code) : -1;
       data.spend(1);
       out[name] = at < 0 ? null : expandOne(data.present(target, at), target, subtree, data);
     } else if (relation.kind === 'list') {

@@ -190,6 +190,7 @@ describe('/countries, now made from Kuni', () => {
     const countries = catalog.find((one) => one.name === 'countries');
     expect(countries?.fields.slice(0, 9)).toEqual(OLD_FIELDS);
     expect(countries?.fields).toContain('population');
+    expect(countries?.nested).toEqual(['subdivisions', 'groupings']);
     expect(catalog.find((one) => one.name === 'withdrawn')?.path).toBe('/countries/withdrawn');
     const spec = (
       await request<{ components: { schemas: Record<string, { properties: Record<string, unknown> }> } }>(

@@ -13,10 +13,17 @@ import {
 import { FHIR_FIELDS, loadConditions, loadEncounters, loadObservations, loadPatients } from './data/fhir.ts';
 import {
   type CountryRecord,
+  countriesNamed,
   countryRecords,
   findCountry,
+  findGrouping,
+  findSubdivision,
   findWithdrawn,
+  groupingRecords,
   loadCountries,
+  loadGroupings,
+  loadSubdivisionData,
+  subdivisionRecords,
   withdrawnRecords,
 } from './data/kuni.ts';
 import { loadComments, loadOrders, loadPosts, loadReviews, loadTodos } from './data/related.ts';
@@ -44,6 +51,7 @@ import {
   Company,
   CompanyInput,
   Country,
+  Grouping,
   Order,
   OrderInput,
   Person,
@@ -54,6 +62,7 @@ import {
   ProductInput,
   Review,
   ReviewInput,
+  Subdivision,
   Todo,
   TodoInput,
   User,
@@ -99,6 +108,8 @@ const STATIC_DATE = new Date('2026-09-27T00:00:00Z');
 const fieldsOf = (schema: z.ZodType): string[] => Object.keys((schema as z.ZodObject).shape);
 const COUNTRY_FIELDS = fieldsOf(Country);
 const WITHDRAWN_FIELDS = fieldsOf(WithdrawnCountry);
+const SUBDIVISION_FIELDS = fieldsOf(Subdivision);
+const GROUPING_FIELDS = fieldsOf(Grouping);
 
 function seededResource<T extends object>(
   name: string,
@@ -133,6 +144,7 @@ export const resources: Resource[] = [
     idDescription: 'Zero-based `index` of the person.',
     defaults: { limit: 10, metadata: true },
     find: byNumericField('index'),
+    relations: { subdivision: { kind: 'region', target: 'subdivisions' } },
     ...seededResource('names', PEOPLE),
   },
   {
@@ -176,13 +188,14 @@ export const resources: Resource[] = [
     idDescription: 'One-based `id` of the company.',
     defaults: { limit: 10, metadata: true },
     find: byNumericField('id'),
+    relations: { subdivision: { kind: 'region', target: 'subdivisions' } },
     ...seededResource('companies', COMPANIES),
   },
   {
     name: 'countries',
     title: 'Country',
     description:
-      "Every country and territory with ISO codes, names in English and Japanese (and the request's `locale`), currencies, languages, calling codes, capital, time zones, top-level domain, population, area, coordinates, land borders, driving side and calendar conventions: real reference data from Kuni (Unicode CLDR, Wikidata, IANA, countries-list), so `seed` has no effect. For compatibility it returns every country as a bare array unless `metadata=true` is given. The codes ISO has withdrawn (the Soviet Union, Yugoslavia, Zaire) are at `/countries/withdrawn`.",
+      "Every country and territory with ISO codes, names in English and Japanese (and the request's `locale`), currencies, languages, calling codes, capital, time zones, top-level domain, population, area, coordinates, land borders, driving side and calendar conventions: real reference data from Kuni (Unicode CLDR, Wikidata, IANA, countries-list), so `seed` has no effect. For compatibility it returns every country as a bare array unless `metadata=true` is given. Its subdivisions are at `/countries/{code}/subdivisions` and its groupings (the EU, the G7) at `/countries/{code}/groupings`; the codes ISO has withdrawn (the Soviet Union, Yugoslavia, Zaire) are at `/countries/withdrawn`.",
     schema: Country,
     idField: 'alpha2',
     idDescription: 'ISO 3166 alpha-2, alpha-3 or numeric code, e.g. `CA`, `CAN` or `124`.',
@@ -192,6 +205,10 @@ export const resources: Resource[] = [
     load: (_, locale) => ({ records: countryRecords(locale) as object[], generatedAt: STATIC_DATE }),
     fields: () => COUNTRY_FIELDS,
     find: (records, id) => findCountry(records as readonly CountryRecord[], id),
+    relations: {
+      subdivisions: { kind: 'many', target: 'subdivisions', key: 'country' },
+      groupings: { kind: 'many', target: 'groupings', key: 'members' },
+    },
   },
   {
     name: 'withdrawn',
@@ -209,6 +226,54 @@ export const resources: Resource[] = [
     fields: () => WITHDRAWN_FIELDS,
     find: (records, id) => findWithdrawn(records as never, id),
     relations: { successors: { kind: 'list', target: 'countries', key: 'successors' } },
+  },
+  {
+    name: 'subdivisions',
+    title: 'Subdivision',
+    description:
+      "The states, provinces, prefectures, counties, regions and Länder of 200 countries — 5,050 ISO 3166-2 subdivisions — with their code, kind, level, parent, name in English and Japanese, capital, population, area and coordinates: real reference data from Kuni (Unicode CLDR, Wikidata), so `seed` has no effect. Filter by `country=JP`, `type=prefecture` or `level=1`; `/countries/{code}/subdivisions` lists one country's. The first request for a country loads its data; one without a `country` loads all of them. A record's `province` links here: `expand=subdivision` on `/users` or `/names`.",
+    schema: Subdivision,
+    idField: 'code',
+    idDescription: 'ISO 3166-2 code, e.g. `JP-13` or `CA-ON`.',
+    seeded: false,
+    defaults: { limit: 10, metadata: true },
+    ready: (request) =>
+      loadSubdivisionData(
+        countriesNamed(
+          request?.query?.country,
+          request?.query?.code,
+          request?.query?.parent,
+          request?.id,
+          ...(request?.hint ?? []),
+        ),
+      ),
+    load: (_, locale) => ({ records: subdivisionRecords(locale) as object[], generatedAt: STATIC_DATE }),
+    fields: () => SUBDIVISION_FIELDS,
+    find: (records, id) => findSubdivision(records as never, id),
+    relations: {
+      country: { kind: 'one', target: 'countries', key: 'country' },
+      parent: { kind: 'one', target: 'subdivisions', key: 'parent' },
+      children: { kind: 'many', target: 'subdivisions', key: 'parent' },
+    },
+  },
+  {
+    name: 'groupings',
+    title: 'Grouping',
+    description:
+      "107 groupings of countries and of the subdivisions inside one: the seven continents, the UN M49 areas, 23 international bodies (the UN, the EU, the euro area, Schengen, NATO, the G7 and G20, ASEAN and more) with the days members joined and left, 16 informal groupings (the Middle East, the Balkans, Scandinavia) each with the definition it follows, and regions inside a country (Japan's 地方, the US Census regions). Real reference data from Kuni, so `seed` has no effect. Filter by `kind=membership` or `members=JP`; `/groupings/{id}/countries` lists a grouping's members and `/countries/{code}/groupings` the groupings a country is in.",
+    schema: Grouping,
+    idField: 'id',
+    idDescription: "The grouping's id, e.g. `eu`, `g7`, `asean` or `jp-kanto`.",
+    seeded: false,
+    defaults: { limit: 10, metadata: true },
+    ready: () => loadGroupings(),
+    load: (_, locale) => ({ records: groupingRecords(locale) as object[], generatedAt: STATIC_DATE }),
+    fields: () => GROUPING_FIELDS,
+    find: (records, id) => findGrouping(records as never, id),
+    relations: {
+      countries: { kind: 'list', target: 'countries', key: 'members' },
+      subdivisions: { kind: 'list', target: 'subdivisions', key: 'members' },
+    },
   },
   ...related(),
   ...domains(),

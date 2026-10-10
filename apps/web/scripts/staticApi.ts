@@ -38,6 +38,11 @@ export const PLACEHOLDER_NESTED: Readonly<Record<string, readonly string[]>> = {
   todos: [],
 };
 export const STATIC_INDEX_FILE = 'index.json';
+/**
+ * Lists a record owns that the static API does not write: a subdivision's `children` are the subdivisions whose `parent` it
+ * is, and 5,050 files of them (most empty) would add nothing the country's own list (`countries/FR/subdivisions.json`) lacks.
+ */
+export const STATIC_SKIP_NESTED: Readonly<Record<string, readonly string[]>> = { subdivisions: ['children'] };
 
 /** Where a dataset's routes are: `/users`, or the `path` the API gives (`/countries/withdrawn`). */
 const route = (resource: { name: string; path?: string }): string => resource.path ?? `/${resource.name}`;
@@ -172,6 +177,7 @@ export async function writeStaticApi(app: FetchApp, dir: string, baseUrl: string
       const pages = Math.ceil(records / STATIC_PAGE_SIZE);
       const held = (page: number) => (page >= 1 && page <= pages ? url(pageFile(page)) : null);
       const ids: string[] = [];
+      const nestedHeld = resource.nested.filter((list) => !STATIC_SKIP_NESTED[name]?.includes(list));
       for (let page = 1; page <= pages; page += 1) {
         const response =
           page === 1
@@ -191,7 +197,7 @@ export async function writeStaticApi(app: FetchApp, dir: string, baseUrl: string
       for (const id of new Set(ids)) {
         if (!SAFE_ID.test(id)) throw new Error(`${name} has an id that cannot be a file name: ${id}`);
         write(`${folder}${name}/${id}.json`, await (await ok(app, `${route(resource)}/${id}?${query}`)).text());
-        for (const list of resource.nested) {
+        for (const list of nestedHeld) {
           const response = await ok(app, `${route(resource)}/${id}/${list}?${query}&limit=1000`);
           const body = (await response.json()) as { metadata?: { total?: number } };
           const own = `${folder}${name}/${id}/${list}.json`;
@@ -200,7 +206,7 @@ export async function writeStaticApi(app: FetchApp, dir: string, baseUrl: string
           write(own, JSON.stringify(relink(body, (page) => (page === 1 ? url(own) : null))));
         }
       }
-      datasets[code].push({ name, idField: resource.idField, records, pages, nested: resource.nested });
+      datasets[code].push({ name, idField: resource.idField, records, pages, nested: nestedHeld });
     }
   }
 

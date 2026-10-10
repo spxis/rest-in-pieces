@@ -346,6 +346,71 @@ export const WithdrawnCountry = z
   })
   .openapi('WithdrawnCountry');
 
+export const Subdivision = z
+  .object({
+    code: z.string().openapi({ description: 'ISO 3166-2 code.', example: 'JP-13' }),
+    country: z.string().openapi({ description: 'The alpha-2 code of the country it is in.', example: 'JP' }),
+    shortCode: z.string().openapi({ description: 'The part after the hyphen.', example: '13' }),
+    type: z.string().nullable().openapi({
+      description: 'prefecture, state, province, county, region, Land and the rest.',
+      example: 'prefecture',
+    }),
+    level: z
+      .number()
+      .int()
+      .openapi({ description: "1 for a first division; 2 for those inside one (France's departments).", example: 1 }),
+    parent: z.string().nullable().openapi({ description: 'The code of the subdivision it is inside, for level 2.' }),
+    name: z.string().openapi({ description: 'In Japanese for `ja`, English otherwise.', example: 'Tokyo' }),
+    names: z.object({ en: z.string(), ja: z.string().nullable() }),
+    reading: z.string().nullable().openapi({ description: "The name in hiragana (Japan's prefectures)." }),
+    capital: z.object({ en: z.string(), ja: z.string().nullable(), reading: z.string().nullable() }).nullable(),
+    population: z.number().nullable(),
+    populationYear: z.number().nullable(),
+    areaKm2: z.number().nullable(),
+    areaYear: z.number().nullable(),
+    location: Point.nullable(),
+    capitalLocation: Point.nullable(),
+  })
+  .openapi('Subdivision');
+
+export const Grouping = z
+  .object({
+    id: z.string().openapi({ description: 'A stable id in kebab case.', example: 'eu' }),
+    kind: z
+      .string()
+      .openapi({ description: 'continent, m49, membership, informal or subdivision.', example: 'membership' }),
+    name: z.string().openapi({ description: 'In Japanese for `ja`, English otherwise.', example: 'European Union' }),
+    names: z.object({ en: z.string(), ja: z.string() }),
+    shortName: z.object({ en: z.string().nullable(), ja: z.string().nullable() }),
+    reading: z.string().nullable(),
+    informal: z.boolean().openapi({
+      description: 'True for a grouping no body defines (the Middle East); `definition` says what its members follow.',
+    }),
+    country: z.string().nullable().openapi({ description: 'For a grouping of subdivisions: the country they are in.' }),
+    parent: z.string().nullable(),
+    members: z
+      .array(z.string())
+      .openapi({ description: 'Alpha-2 codes, or ISO 3166-2 codes for a grouping inside a country.' }),
+    memberCount: z.number().int(),
+    definition: z.string(),
+    note: z.string().nullable(),
+    source: z.object({ name: z.string(), url: z.string(), licence: z.string() }),
+    asOf: z.string().openapi({ description: 'The day the list was true.' }),
+    periods: z
+      .array(z.object({ code: z.string(), since: z.string().nullable(), until: z.string().nullable() }))
+      .nullable()
+      .openapi({
+        description: 'For an international body: every period of membership, with its dates.',
+      }),
+    others: z
+      .array(z.object({ code: z.string(), status: z.string() }))
+      .nullable()
+      .openapi({
+        description: 'For a body: candidates, associates, observers and suspended members.',
+      }),
+  })
+  .openapi('Grouping');
+
 export const GeneratedRecord = z
   .object({ index: z.number().int() })
   .catchall(z.unknown())

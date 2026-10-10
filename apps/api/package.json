@@ -1,7 +1,7 @@
 {
   "name": "@johnmorrisdotca/rest-in-pieces",
   "version": "2.24.1",
-  "description": "A mock REST API and test data generator with realistic, seeded fake data for building and testing frontends: related datasets with referential integrity, paging, sorting, filters, errors and delays on demand, safe values, SVG avatars, real country data (names in English and Japanese, ISO codes, withdrawn codes) and NDJSON and SQL exports. Run it with npx, in Vite, through MSW or inside a browser tab.",
+  "description": "A mock REST API and test data generator with realistic, seeded fake data for building and testing frontends: related datasets with referential integrity, paging, sorting, filters, errors and delays on demand, safe values, SVG avatars, real country and region data (names in English and Japanese, ISO codes, states, provinces and prefectures, withdrawn codes) and NDJSON and SQL exports. Run it with npx, in Vite, through MSW or inside a browser tab.",
   "keywords": [
     "mock-api",
     "fake-api",
@@ -96,7 +96,11 @@
     "country-codes",
     "countries-api",
     "reference-data",
-    "withdrawn-country-codes"
+    "withdrawn-country-codes",
+    "iso-3166-2",
+    "subdivisions",
+    "states-provinces",
+    "prefectures"
   ],
   "homepage": "https://spxis.github.io/rest-in-pieces/",
   "bugs": "https://github.com/spxis/rest-in-pieces/issues",

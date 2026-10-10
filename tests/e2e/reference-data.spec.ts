@@ -1,0 +1,43 @@
+import { expect, test } from '@playwright/test';
+
+const snippet = (page: import('@playwright/test').Page) => page.getByTestId('request-snippet');
+const send = (page: import('@playwright/test').Page) => page.getByRole('button', { name: /Send request/ }).click();
+
+test.beforeEach(async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByText('LOCAL API')).toBeVisible();
+});
+
+test('lists a country, its subdivisions and the countries a withdrawn one led to', async ({ page }) => {
+  await page.getByRole('tab', { name: /Countries/ }).click();
+  const relations = page.getByTestId('relations');
+  await relations.getByRole('combobox', { name: 'List' }).selectOption('subdivisions');
+  // A dataset keyed by code starts on a record that exists, not on id 1.
+  await expect(relations.getByRole('textbox', { name: 'Record id' })).toHaveValue('JP');
+  await expect(snippet(page)).toContainText('/countries/JP/subdivisions?');
+  await send(page);
+  await expect(page.getByTestId('response-status')).toHaveText(/200/);
+  await expect(page.getByRole('cell', { name: 'JP-01', exact: true })).toBeVisible();
+
+  await page.getByRole('tab', { name: /Withdrawn/ }).click();
+  await send(page);
+  await expect(page.getByRole('cell', { name: 'AIDJ', exact: true })).toBeVisible();
+  await expect(snippet(page)).toContainText('/countries/withdrawn?');
+});
+
+test('links a person’s province to its subdivision, and lists a grouping’s countries', async ({ page }) => {
+  await page.getByRole('tab', { name: /Names/ }).click();
+  await page.getByTestId('relations').getByRole('button', { name: 'subdivision', exact: true }).click();
+  await expect(snippet(page)).toContainText('expand=subdivision');
+  await send(page);
+  await page.getByRole('tab', { name: /Body/ }).click();
+  await expect(page.locator('.response-body')).toContainText('"subdivision": {');
+
+  await page.getByRole('tab', { name: /Groupings/ }).click();
+  await page.getByTestId('relations').getByRole('combobox', { name: 'List' }).selectOption('countries');
+  await page.getByTestId('relations').getByRole('textbox', { name: 'Record id' }).fill('g7');
+  await send(page);
+  await expect(page.getByTestId('response-status')).toHaveText(/200/);
+  await page.getByRole('tab', { name: /Body/ }).click();
+  await expect(page.locator('.response-body')).toContainText('"alpha2": "JP"');
+});

@@ -171,6 +171,35 @@ describe('relink', () => {
   });
 });
 
+describe('the real reference data', () => {
+  it("holds every subdivision and grouping, in the default locale only, and each country's own list", () => {
+    const default_ = index.datasets[index.defaultLocale] ?? [];
+    expect(default_.find((dataset) => dataset.name === 'subdivisions')).toMatchObject({
+      records: 5050,
+      pages: 505,
+      idField: 'code',
+      nested: [],
+    });
+    expect(default_.find((dataset) => dataset.name === 'groupings')?.records).toBe(107);
+    expect(default_.find((dataset) => dataset.name === 'countries')?.records).toBe(250);
+    expect(default_.find((dataset) => dataset.name === 'withdrawn')).toMatchObject({
+      records: 31,
+      nested: ['successors'],
+    });
+    const japanese = index.datasets.ja?.map((dataset) => dataset.name) ?? [];
+    expect(japanese).toContain('countries');
+    expect(japanese).not.toContain('subdivisions');
+    expect(japanese).not.toContain('groupings');
+    const japan = read('countries/JP/subdivisions.json').results ?? [];
+    expect(japan).toHaveLength(47);
+    expect(read('subdivisions/JP-13.json').names).toEqual({ en: 'Tokyo', ja: '東京都' });
+    expect(read('groupings/eu.json').memberCount).toBe(27);
+    // The countries a withdrawn country led to are a list of countries, and /countries answers a bare array.
+    expect(read('withdrawn/SUHH/successors.json')).toHaveLength(15);
+    expect(files.has('subdivisions/JP-13/children.json')).toBe(false);
+  });
+});
+
 describe('a build that cannot be right', () => {
   const answer = (routes: Record<string, () => Response>) => ({
     request: (path: string) => {

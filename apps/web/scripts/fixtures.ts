@@ -27,7 +27,7 @@ const FORMATS = ['json', 'csv'] as const;
 /**
  * Datasets whose fixtures are written for the default locale only. The synthetic FHIR resources are large and what a
  * locale changes in them is a name and an address, and `/metrics` and `/logs` are the same series in every locale, so a
- * copy per locale would add tens of megabytes of files that say nothing new. Every locale still answers them from the API.
+ * copy per locale would add tens of megabytes of files that say nothing new. The same goes for the 5,050 subdivisions and the 107 groupings, which hold their names in both languages. Every locale still answers them from the API.
  */
 export const DEFAULT_LOCALE_ONLY: ReadonlySet<string> = new Set([
   'patients',
@@ -36,6 +36,9 @@ export const DEFAULT_LOCALE_ONLY: ReadonlySet<string> = new Set([
   'encounters',
   'metrics',
   'logs',
+  // Real reference data with both languages in every record (`names`): only `name` follows the locale.
+  'subdivisions',
+  'groupings',
 ]);
 
 interface FetchApp {

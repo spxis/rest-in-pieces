@@ -1,11 +1,11 @@
 meta {
-  name: List companies
+  name: List one subdivision's children
   type: http
-  seq: 23
+  seq: 10
 }
 
 get {
-  url: {{baseUrl}}/companies
+  url: {{baseUrl}}/subdivisions/:id/children
   body: none
   auth: none
 }
@@ -36,8 +36,12 @@ params:query {
   ~expand: 
 }
 
+params:path {
+  id: 1
+}
+
 docs {
-  Companies with industry, website, contact details, size and founding year.
+  The children whose `parent` is this subdivision's id, in id order: the same records `/subdivisions?parent={id}` returns, found without a scan. Paging, sorting, filters, search, formats, `expand`, `messy`, `safe` and the simulation all work as they do on `/subdivisions`.
 
   Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
 }

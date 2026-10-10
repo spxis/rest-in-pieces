@@ -85,10 +85,16 @@ async function checkCli(): Promise<void> {
     assert(japan.name === 'Japan' && japan.capital.ja === '東京', `/countries/JP answered ${JSON.stringify(japan)}`);
     const soviet = (await (await fetch(`${base}/countries/withdrawn/SU`)).json()) as { code: string };
     assert(soviet.code === 'SUHH', `/countries/withdrawn/SU answered ${JSON.stringify(soviet)}`);
+    const tokyo = (await (await fetch(`${base}/subdivisions/JP-13`)).json()) as { names: { ja: string } };
+    assert(tokyo.names.ja === '東京都', `/subdivisions/JP-13 answered ${JSON.stringify(tokyo)}`);
+    const eu = (await (await fetch(`${base}/groupings/eu`)).json()) as { memberCount: number };
+    assert(eu.memberCount === 27, `/groupings/eu answered ${JSON.stringify(eu)}`);
     const home = await (await fetch(`${base}/`)).text();
     assert(home.includes('<div id="root">'), 'The CLI did not serve the packed playground at /.');
     assert(output.includes(`REST in Pieces ${version} is running at ${base}`), `Unexpected start-up line: ${output}`);
-    step(`CLI on ${base}: /health, /users?limit=1, /countries/JP, /countries/withdrawn/SU and the playground answered`);
+    step(
+      `CLI on ${base}: /health, /users?limit=1, /countries/JP, /countries/withdrawn/SU, /subdivisions/JP-13, /groupings/eu and the playground answered`,
+    );
   } finally {
     cli.kill('SIGTERM');
   }

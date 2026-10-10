@@ -30,6 +30,21 @@ Fixed:
 
 - The test of `delay` and `trickle` together moves its fake clock only to the timers the response sets, never by a fixed step, which could carry it past the finish on a slow machine. That stopped the release run of 2.24.0 before publishing, so this release is the first on npm with the starters and the Postman and Bruno collections listed for 2.24.0.
 
+### Regions: subdivisions and groupings (one minor release)
+
+Added:
+
+- `GET /subdivisions` and `/subdivisions/{code}`: the 5,050 ISO 3166-2 subdivisions of 200 countries (states, provinces, prefectures, counties, Länder, France's departments) with `code`, `country`, `shortCode`, `type`, `level`, `parent`, `name` (Japanese for `ja`, English otherwise), `names` (`{ en, ja }`), `reading`, `capital`, `population`, `populationYear`, `areaKm2`, `areaYear`, `location` and `capitalLocation`, from Kuni (Unicode CLDR and Wikidata). Filter by `country=JP`, `type=prefecture` or `level=1`, sort by `population:numeric`, search with `q`. The first request for a country loads only that country's subdivisions and facts; a request that names none loads all 200, once.
+- `GET /countries/{code}/subdivisions` (by alpha-2, alpha-3 or numeric code) and `/countries/{code}/groupings`; `/subdivisions/{code}/children`; and `expand=subdivisions`, `groupings`, `country`, `parent` and `children`.
+- `expand=subdivision` on `/names` and `/companies`: the first-level subdivision a record's `province` names in its `country`, matched by English or Japanese name (`Ontario` is `CA-ON`, `東京都` is `JP-13`), or `null`. It adds nothing to a record unless asked, so the seeded output is unchanged.
+- `GET /groupings` and `/groupings/{id}`: Kuni's 107 groupings (the seven continents, the UN M49 areas, 23 international bodies with the days members joined and left, 16 informal groupings with their definitions, and regions inside a country such as Japan's 地方), with `members`, `memberCount`, `periods`, `others`, `definition`, `source` and `asOf`. `members=JP` finds the groupings that hold Japan; `/groupings/{id}/countries` and `/groupings/{id}/subdivisions` list the members and `expand=countries` embeds them.
+- The static API and the fixtures hold all 5,050 subdivisions and all 107 groupings, in the default locale only (every record carries both languages in `names`), each country's own list at `countries/{code}/subdivisions.json`.
+- [docs/reference-data.md](docs/reference-data.md) has the fields, the province link and the sources; the README lists the new routes; the playground has Subdivisions and Groupings tabs, in English and Japanese.
+
+Changed:
+
+- The README's Relations section moves to [docs/relations.md](docs/relations.md), leaving a summary and a link, to make room.
+
 ## 2.24.0 - 2026-10-09
 
 ### Added

@@ -4,7 +4,7 @@
 
 The people, companies, orders and messages REST in Pieces makes are invented, and none of them is a real person. The places they live in are real: a record from `en-CA` lives in Ontario, in Canada, and the country, the province, its capital, its flag and its postcode are the ones on the map. Real reference data about places is public fact, not personal data, so it is served as it is: the same way a test-data tool serves a real list of currencies. Nothing about a real person is in here, and nothing is ever added.
 
-The reference data comes from the family of packages this project is part of, starting with [Kuni](https://github.com/johnmorrisdotca/kuni), which holds the countries. It is loaded the first time a request needs it, so starting the server, and every request that does not ask for a country, pays nothing for it. Nothing here runs on a timer, and every request is bounded.
+The reference data comes from the family of packages this project is part of: [Kuni](https://github.com/johnmorrisdotca/kuni) for countries and the regions inside them, [Hata](https://github.com/johnmorrisdotca/hata) for flags, [Chizu](https://github.com/johnmorrisdotca/chizu) for maps, [address-plus](https://github.com/johnmorrisdotca/address-plus) for addresses. Each is loaded the first time a request needs it, so starting the server, and every request that does not ask for a place, pays nothing for them. None of them is called while the server waits: nothing here runs on a timer, and every request is bounded.
 
 Reference datasets have no `seed` (they are real, so a seed would change nothing), are read-only, and take every list parameter the other datasets do: paging, `sortBy`, field filters, `q`, `format` (JSON, CSV, YAML, XML, NDJSON, SQL), `expand` and `locale`.
 
@@ -36,6 +36,8 @@ curl 'http://localhost:6800/countries?format=csv'
 | `drivingSide`, `weekStart`, `measurement`, `paper`, `hourCycle` | `left`, the first day of the week, the measurement system, the paper size and the clock (CLDR). |
 | `subdivisionType` | What most of its first-level subdivisions are: `prefecture`, `state`, `province`. |
 
+A country's lists are `/countries/{code}/subdivisions` and `/countries/{code}/groupings`.
+
 ### What changed from the country-data list
 
 `/countries` used to be made from the npm package `country-data`. It is made from Kuni now, which has everything that package had, and more. The nine old fields keep their names, order and types for every code, and a test compares them with the old list for all 250 (`apps/api/test/countries.test.ts`; `country-data` stays a dev dependency for it). The values that differ:
@@ -49,6 +51,67 @@ curl 'http://localhost:6800/countries?format=csv'
 - **The list itself** is the 250 current countries. The old list also held the 29 codes ISO had deleted and 10 reserved codes (`status` `deleted` and `reserved`), so that five codes (`AI`, `BQ`, `BY`, `CS`, `GE`) appeared twice. The deleted codes are at `/countries/withdrawn`, with `status: "deleted"`. The reserved ones (`EU`, `UK`, `AC`, `CP`, `DG`, `EA`, `IC`, `TA`) are exceptional reservations, not countries, and are not served; `FX` and `SU` were reserved there and are withdrawn countries here.
 
 Names and facts are in English and Japanese; `locale=de` names a country in German through the runtime's CLDR, as it did.
+
+A country's lists are `/countries/{code}/subdivisions` and `/countries/{code}/groupings`.
+
+## Subdivisions: `/subdivisions`
+
+The 5,050 ISO 3166-2 subdivisions of 200 countries: Japan's 47 prefectures, the American states, Canada's provinces and territories, France's regions and departments, Germany's Länder, and the rest. The first request for a country loads that country's data (Japan's is under 3 KB); a request that names none loads all 200, once.
+
+```sh
+curl 'http://localhost:6800/subdivisions?country=JP&limit=50'
+curl 'http://localhost:6800/subdivisions/JP-13?locale=ja'          # 東京都
+curl 'http://localhost:6800/subdivisions?country=FR&level=2&limit=100'   # France's departments
+curl 'http://localhost:6800/countries/CA/subdivisions?metadata=true'     # a country's own list, by alpha-2, alpha-3 or numeric code
+curl 'http://localhost:6800/subdivisions?type=state&sortBy=population:numeric&sortDirection=desc&limit=5'
+curl 'http://localhost:6800/subdivisions/FR-69?expand=country,parent'
+```
+
+| Field | What it holds |
+| ----- | ------------- |
+| `code`, `country`, `shortCode` | `JP-13`, `JP`, `13`. `/subdivisions/{code}` takes the code in either case. |
+| `type`, `level` | `prefecture`, `state`, `province`, `county`, `region`, `department`…; `1` for a first division and `2` for one inside another (France's departments, inside its regions). |
+| `parent` | The code of the subdivision it is inside, for level 2: `FR-ARA` for `FR-69`. |
+| `name`, `names` | The name in the locale (Japanese for `ja`, English otherwise) and `{ en, ja }`; `ja` is `null` where no source has one, never an English name copied in. |
+| `reading` | The name in hiragana, for Japan's prefectures (`とうきょうと`). |
+| `capital`, `population`, `populationYear`, `areaKm2`, `areaYear`, `location`, `capitalLocation` | Wikidata's figures with their years, where it has them: complete for Japan's 47 prefectures, patchy elsewhere, `null` where it has none. |
+
+`expand=country`, `parent` and `children` embed the related records, and `/subdivisions/{code}/children` lists them.
+
+### A record's province links to its subdivision
+
+People, companies and the like have a `province` and a `country` (a state, a prefecture, a region). `expand=subdivision` on `/names` or `/companies` embeds the first-level subdivision they name, found by its English or Japanese name in that country: a Canadian person in `Ontario` is in `CA-ON`, a Japanese one in `東京都` is in `JP-13`.
+
+```sh
+curl 'http://localhost:6800/names?limit=3&expand=subdivision'
+curl 'http://localhost:6800/names?locale=ja&limit=3&expand=subdivision.country'
+```
+
+It adds nothing to the record unless asked, so the seeded output does not change. A province that is not one of the country's subdivisions by name (Faker draws German, French and some other regions that are not ISO's) gives `null`; the Canadian, American and Japanese locales match every record.
+
+## Groupings: `/groupings`
+
+107 groupings of countries, and of the subdivisions inside one country: the seven continents, the 30 UN M49 areas, 23 international bodies (the UN, the EU, the euro area, Schengen, NATO, the G7 and G20, ASEAN, the African Union and more) with the days members joined and left, 16 informal groupings (the Middle East, the Balkans, Scandinavia, the Sahel), each with the definition it follows, and regions inside a country (Japan's eight 地方, the US Census regions, Canada's five regions).
+
+```sh
+curl 'http://localhost:6800/groupings/eu'
+curl 'http://localhost:6800/groupings?kind=membership&members=JP&metadata=true'   # the bodies Japan belongs to
+curl 'http://localhost:6800/groupings/g7/countries?metadata=true'                 # the seven, as countries
+curl 'http://localhost:6800/countries/NO/groupings?kind=membership&metadata=true'
+curl 'http://localhost:6800/groupings/jp-kanto?expand=subdivisions'
+```
+
+| Field | What it holds |
+| ----- | ------------- |
+| `id`, `kind` | `eu`; `continent`, `m49`, `membership`, `informal` or `subdivision`. |
+| `name`, `names`, `shortName`, `reading` | In the locale (Japanese for `ja`), in both languages, the short form (`EU`, `国連`) and the Japanese reading. |
+| `informal`, `definition`, `note` | An informal grouping says what its members follow, and where definitions disagree, why. |
+| `members`, `memberCount` | The alpha-2 codes (ISO 3166-2 codes for a grouping inside a country), in order. `members=JP` finds the groupings that hold Japan. |
+| `periods`, `others` | For a body: every period of membership with its `since` and `until`, and the countries that stand with it without being members (candidates, observers). |
+| `country`, `parent` | For a grouping inside a country, the country; for a UN M49 area, the area that holds it. |
+| `source`, `asOf` | Where the list comes from, with its terms, and the day it was true. |
+
+`/groupings/{id}/countries` and `/groupings/{id}/subdivisions` list the members, and `expand=countries` embeds them.
 
 ## Withdrawn countries: `/countries/withdrawn`
 

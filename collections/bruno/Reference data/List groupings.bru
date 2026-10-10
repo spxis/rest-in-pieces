@@ -1,0 +1,43 @@
+meta {
+  name: List groupings
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{baseUrl}}/groupings
+  body: none
+  auth: none
+}
+
+params:query {
+  limit: 10
+  ~offset: 0
+  ~page: 
+  ~pageSize: 
+  ~cursor: 
+  ~max: 
+  ~sortBy: 
+  ~sortDirection: 
+  ~q: 
+  ~metadata: 
+  ~resultsName: 
+  seed: 1
+  ~locale: 
+  ~messy: 
+  ~format: 
+  ~delay: 
+  ~trickle: 
+  ~status: 
+  ~fail: 
+  ~auth: 
+  ~safe: 
+  ~table: 
+  ~expand: 
+}
+
+docs {
+  107 groupings of countries and of the subdivisions inside one: the seven continents, the UN M49 areas, 23 international bodies (the UN, the EU, the euro area, Schengen, NATO, the G7 and G20, ASEAN and more) with the days members joined and left, 16 informal groupings (the Middle East, the Balkans, Scandinavia) each with the definition it follows, and regions inside a country (Japan's 地方, the US Census regions). Real reference data from Kuni, so `seed` has no effect. Filter by `kind=membership` or `members=JP`; `/groupings/{id}/countries` lists a grouping's members and `/countries/{code}/groupings` the groupings a country is in.
+
+  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
+}

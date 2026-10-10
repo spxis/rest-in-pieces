@@ -9,7 +9,7 @@
 
 [![Ask for seeded people, then break the backend on purpose: a request, the same five people every time, and a 503 drill](https://raw.githubusercontent.com/spxis/rest-in-pieces/main/docs/images/use-cases.svg)](https://spxis.github.io/rest-in-pieces/use-cases/)
 
-Seeded, realistic, localized data plus latency, error and messy-data drills, as a REST API, a function call or a patch on `fetch`. The people are invented; the places are real: countries and their withdrawn codes, from the same family of packages.
+Seeded, realistic, localized data plus latency, error and messy-data drills, as a REST API, a function call or a patch on `fetch`. The people are invented; the places are real: countries, states, provinces and prefectures, groupings like the EU, and withdrawn country codes, from the same family of packages.
 
 A free, open-source **mock data generator and test data generator**: rule-based synthetic data (sample data, seed data and mock data for database seeding), and relational test data with **referential integrity** between users, products, orders, posts, comments, todos and reviews, plus invoices, transactions, events, messages, notifications, jobs, places, metrics and logs that each agree with themselves, **safe values** that cannot reach a real person, self-hosted **placeholder images** and **avatars**, and exports as JSON, CSV, YAML, XML, **NDJSON** and **SQL INSERT** statements. A **JSONPlaceholder alternative**, **DummyJSON alternative** and **Mockaroo alternative** that runs on your machine.
 
@@ -125,7 +125,7 @@ Vite, Mock Service Worker, Storybook, Next.js, Playwright, Cypress, typed client
 - **Safe values.** `?safe=true` writes emails at `example.com`, phone numbers kept for fiction, test card numbers, documentation IP addresses and avatars served by the API itself, so seeded data never mails, rings or loads anything real. See [Safe values](#safe-values).
 - **Placeholder images and avatars, self-hosted.** `/avatars/{seed}.svg` and `/images/{w}x{h}.svg`, drawn from the URL alone. See [Images](#images-avatars-and-placeholders).
 - **Fifteen countries, and a global mix.** `?locale=de`, `?locale=pt-BR` or `?locale=ko` writes every dataset for that country: native names, addresses, postal codes and phone numbers, and prices in the local currency. `?locale=global` mixes them record by record, the way a real international user table looks, and still repeats per seed. See [Data locales](#data-locales).
-- **Real places, invented people.** `/countries` and `/countries/withdrawn` are real reference data (names in English and Japanese, capitals, population, borders, time zones, the Soviet Union's old code and its successors), served with the paging, filters and formats of the invented datasets. See [Real places, invented people](#real-places-invented-people).
+- **Real places, invented people.** `/countries`, `/subdivisions`, `/groupings` and `/countries/withdrawn` are real reference data (countries with names in English and Japanese, capitals, population and borders; states, provinces and prefectures; the EU and the G7; the Soviet Union's old code and its successors), served with the paging, filters and formats of the invented datasets. See [Real places, invented people](#real-places-invented-people).
 - **Hand-built Japanese data.** `?locale=ja` gives kanji names with katakana readings, real prefectures and cities, 〒 postal codes, mobile numbers, yen prices and Japanese country names.
 - **Everything a list screen needs.** Paging, sorting, field filters with ranges, free-text search, `X-Total-Count` and `Link` headers, and ETags.
 - **The unhappy path on demand.** `?delay=1500`, `?status=503` or `?fail=0.2` rehearse slow, failing and flaky backends without touching your client.
@@ -247,7 +247,9 @@ curl -N 'http://localhost:6800/users?delay=200-800&trickle=200'
 | `GET /users`               | Application users with profile, avatar, contact details and account status. |
 | `GET /products`            | Catalogue products with SKU, department, price in the locale's currency (`currency` is ISO 4217), rating and stock. |
 | `GET /companies`           | Companies with industry, website, size, founding year and location. |
-| `GET /countries`           | Every country and territory: ISO codes, names in English and Japanese, currencies, languages, calling codes, capital, time zones, population, area, borders. Real data from [Kuni](https://github.com/johnmorrisdotca/kuni). See [Real places, invented people](#real-places-invented-people). |
+| `GET /countries`           | Every country and territory: ISO codes, names in English and Japanese, currencies, languages, calling codes, capital, time zones, population, area, borders. Real data from [Kuni](https://github.com/johnmorrisdotca/kuni), with a country's `/subdivisions` and `/groupings` under it. See [Real places, invented people](#real-places-invented-people). |
+| `GET /subdivisions` | The 5,050 states, provinces, prefectures, counties and Länder of 200 countries (ISO 3166-2): code, kind, level, parent, names in English and Japanese, capital, population, area, coordinates. `/countries/{code}/subdivisions` lists one country's, and `expand=subdivision` on `/names` links a person's province. |
+| `GET /groupings` | 107 groupings of countries (the EU, the G7, ASEAN, continents, UN regions) and of subdivisions (Japan's 地方), with members, the dates they joined, and the definition each follows. `/groupings/{id}/countries`, `/countries/{code}/groupings`. |
 | `GET /countries/withdrawn` | The 31 countries ISO 3166-3 withdrew (`SU`, `YU`, `CS`, `DD`, `ZR`…), with the codes they held, the years, and the countries that came after. |
 | `GET /orders`              | Orders with their line items, joined to `/users` by `userId` and each item to `/products` by `productId`, totals and tax in the buyer's currency. See [Relations](#relations). |
 | `GET /posts`               | Blog posts by users, in JSONPlaceholder's shape plus `createdAt`. |
@@ -354,15 +356,7 @@ Opt-in, in memory only, with nothing on a timer: `--session`, `REST_IN_PIECES_SE
 
 ## Relations
 
-Five datasets are joined to `/users` and `/products`, and to each other, by ids that always resolve:
-
-| Dataset | Points at | Owned by | About, at seed 1 |
-| ------- | --------- | -------- | ---------------- |
-| `/orders` | `userId` → `/users`, each item's `productId` → `/products` | a user: 0 to 5 each | 1,680 |
-| `/posts` | `userId` → `/users` | a user: 0 to 5 each | 1,160 |
-| `/comments` | `postId` → `/posts`, `userId` → `/users` | a post: 0 to 6 each | 3,128 |
-| `/todos` | `userId` → `/users` | a user: 0 to 8 each | 4,480 |
-| `/reviews` | `productId` → `/products`, `userId` → `/users` | a product: 0 to 6 each | 2,349 |
+Five datasets are joined to `/users` and `/products`, and to each other, by ids that always resolve: `/orders` (with line items), `/posts`, `/comments`, `/todos` and `/reviews`. Real reference data joins up the same way: a country has `/subdivisions` and `/groupings`, a person's `province` links to its subdivision.
 
 ```sh
 curl 'http://localhost:6800/users/2/orders'                          # user 2's orders
@@ -371,35 +365,7 @@ curl 'http://localhost:6800/posts?userId=1&expand=comments'          # a user's 
 curl 'http://localhost:6800/comments?limit=5&expand=post.user,user'  # two levels: the post's author too
 ```
 
-```json
-{
-  "id": 4,
-  "userId": 2,
-  "orderStatus": "delivered",
-  "items": [
-    { "productId": 960, "name": "Soft Metal Car", "quantity": 1, "unitPrice": 553.99, "lineTotal": 553.99 },
-    { "productId": 106, "name": "Recycled Bronze Fish", "quantity": 2, "unitPrice": 888.5, "lineTotal": 1777 }
-  ],
-  "itemCount": 3,
-  "currency": "CAD",
-  "subtotal": 2330.99,
-  "taxRate": 0.13,
-  "tax": 303.03,
-  "total": 2634.02,
-  "createdAt": "2025-06-28T03:37:44.000Z",
-  "shippedAt": "2025-06-29T17:20:36.000Z",
-  "deliveredAt": "2025-07-01T22:35:32.000Z"
-}
-```
-
-- **Who owns what depends on the seed alone.** Each parent owns a seeded number of children, the same in every locale, and one prefix sum per seed turns the counts into id ranges: user 2's orders are a range worked out by arithmetic, never found by a scan, so `/users/2/orders` costs what a page costs. The first ten users, posts and products always own at least one child, so the records a tutorial asks for first are never empty.
-- **Nested routes are lists.** `/users/{id}/orders`, `/users/{id}/posts`, `/users/{id}/todos`, `/posts/{id}/comments` and `/products/{id}/reviews` return exactly what the filter (`/orders?userId=2`) does, with paging, sorting, filters, search, formats, `expand`, `messy`, `safe`, locales, ETags and the simulation. A parent that does not exist is a `404`; one with no children is an empty page.
-- **`expand` embeds related records**: a record it points at (`user`, `product`, `post`), a record's children (`orders`, `posts`, `todos`, `comments`, `reviews`), or what an order's items point at (`items.product`). `GET /resources` lists what each dataset takes. It applies to the page only, goes two levels deep at most (`post.user`), takes six paths at most, and embeds at most 5,000 records in one response, answering `400` past any of these. An embedded record reads exactly as its own route shows it, `safe` and `messy` included; one that no longer exists (deleted in a session) is `null`. Embeds are presentation: a cursor carries across a change of `expand`.
-- **Totals add up.** Each line is `quantity × unitPrice`, `subtotal` adds the lines, `tax` is the subtotal times the buyer's locale's headline rate (the `taxRate` column of [Data locales](#data-locales)), and `total` adds the two, all in whole units of the currency's smallest coin, so they add up exactly. In `global`, an order is in its buyer's currency and holds only products priced in it.
-- **Dates follow one another.** An order is placed after its buyer joined; a `shipped` order has `shippedAt` after `createdAt`, a `delivered` or `refunded` one `deliveredAt` after that; recent orders are still `pending` or `paid`. A comment comes after its post and after the comments before it, a review after the product was listed and the reviewer joined, a todo's `dueOn` after it was made.
-- **And more that agrees.** Nobody comments on their own post. Review ratings gather around the product's own `rating`, and their words match their stars. A comment's `name` and `email` are its author's.
-- **Writes keep relations whole**, with the session on or off: see [Sessions](#sessions-keeping-writes). `POST /orders` takes `{ "userId": 3, "items": [{ "productId": 5, "quantity": 2 }] }` and works out the names, prices, totals, tax and dates itself; a `PATCH` of `orderStatus` moves `shippedAt` and `deliveredAt` on, and one without `items` keeps what was charged.
-- **Words.** Posts and comments are Faker's lorem in the locale's language, as JSONPlaceholder's are; todos and reviews are hand-written English; `ja` has hand-written Japanese for all four.
+Nested routes (`/users/{id}/orders`) return exactly what the filter (`/orders?userId=2`) does, with every list parameter; `expand` embeds related records two levels deep at most; totals add up with the buyer's local tax, dates follow one another, and writes keep relations whole. **[Who owns what, the order that adds up, every `expand` rule and the dates are in docs/relations.md.](https://github.com/spxis/rest-in-pieces/blob/main/docs/relations.md)**
 
 ### A JSONPlaceholder tutorial with a new base URL
 
@@ -427,15 +393,18 @@ await fetch(`${BASE}/posts`, {
 
 ## Real places, invented people
 
-People, companies and orders are invented; places are not. `/countries` serves the 250 ISO 3166-1 countries and territories with names in English and Japanese, ISO codes, capital, time zones, population, area, coordinates, land borders, driving side and calendar conventions, and `/countries/withdrawn` the 31 countries ISO 3166-3 withdrew, each with the codes it held, the years and the countries that came after it. Real reference data is public fact, not personal data; the rule stays that no real person is ever served.
+People, companies and orders are invented; places are not. `/countries` serves the 250 ISO 3166-1 countries and territories with names in English and Japanese, ISO codes, capital, time zones, population, area, coordinates, land borders, driving side and calendar conventions; `/subdivisions` the 5,050 states, provinces, prefectures and counties inside them; `/groupings` the EU, the G7, ASEAN, the continents and Japan's regions; and `/countries/withdrawn` the 31 countries ISO 3166-3 withdrew, each with the codes it held, the years and the countries that came after it. Real reference data is public fact, not personal data; the rule stays that no real person is ever served.
 
 ```sh
 curl 'http://localhost:6800/countries/JP?locale=ja'             # 日本, 東京, Asia/Tokyo, left-hand traffic
 curl 'http://localhost:6800/countries?borders=FR&limit=20'      # France's neighbours
+curl 'http://localhost:6800/subdivisions?country=JP&limit=3'      # 北海道, 青森県, 岩手県, with capital and population
+curl 'http://localhost:6800/names?limit=3&expand=subdivision'  # a person's province, as its ISO 3166-2 record
+curl 'http://localhost:6800/groupings/g7/countries'            # the seven
 curl 'http://localhost:6800/countries/withdrawn/SU/successors'  # the fifteen countries that followed the USSR
 ```
 
-The data is [Kuni](https://github.com/johnmorrisdotca/kuni)'s, loaded the first time a request asks for it; a reference dataset has no `seed` and is read-only. **[Fields, what changed from the old `country-data` list, and the licence of every source are in docs/reference-data.md.](https://github.com/spxis/rest-in-pieces/blob/main/docs/reference-data.md)**
+The data is [Kuni](https://github.com/johnmorrisdotca/kuni)'s, loaded the first time a request asks for it (a country's subdivisions when that country is asked for); a reference dataset has no `seed` and is read-only. **[Fields, what changed from the old `country-data` list, and the licence of every source are in docs/reference-data.md.](https://github.com/spxis/rest-in-pieces/blob/main/docs/reference-data.md)**
 
 **Data sources.** Unicode CLDR (Unicode-3.0), Wikidata (CC0), countries-list (MIT), IANA time zones and top-level domains (public domain) and Natural Earth (public domain), all through Kuni; the full table is in the document above.
 

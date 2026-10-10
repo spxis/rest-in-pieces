@@ -7,6 +7,9 @@ type Update = (patch: Partial<PlaygroundConfig>) => void;
 
 /** A record that has the lists under it, for a dataset whose ids are codes and not numbers. */
 const SAMPLE_PARENT: Readonly<Record<string, string>> = {
+  countries: 'JP',
+  groupings: 'eu',
+  subdivisions: 'JP-13',
   withdrawn: 'SU',
 };
 

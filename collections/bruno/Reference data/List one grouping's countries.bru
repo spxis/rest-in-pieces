@@ -1,11 +1,11 @@
 meta {
-  name: List companies
+  name: List one grouping's countries
   type: http
-  seq: 23
+  seq: 13
 }
 
 get {
-  url: {{baseUrl}}/companies
+  url: {{baseUrl}}/groupings/:id/countries
   body: none
   auth: none
 }
@@ -36,8 +36,12 @@ params:query {
   ~expand: 
 }
 
+params:path {
+  id: 1
+}
+
 docs {
-  Companies with industry, website, contact details, size and founding year.
+  The countries this grouping lists in its `members`, in the order it lists them. Paging, sorting, filters, search, formats, `expand`, `messy`, `safe` and the simulation all work as they do on `/countries`.
 
   Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
 }

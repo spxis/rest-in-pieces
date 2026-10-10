@@ -168,7 +168,7 @@
                 {
                   "key": "expand",
                   "value": "",
-                  "description": "Embeds related records, comma-separated: `successors`. Paths go 2 levels deep at most, apply to the page only, and embed at most 5000 records in all; a related record that no longer exists is `null`.",
+                  "description": "Embeds related records, comma-separated: `successors`, `successors.subdivisions`, `successors.groupings`. Paths go 2 levels deep at most, apply to the page only, and embed at most 5000 records in all; a related record that no longer exists is `null`.",
                   "disabled": true
                 }
               ]
@@ -237,7 +237,7 @@
                 {
                   "key": "expand",
                   "value": "",
-                  "description": "Embeds related records, comma-separated: `successors`. Paths go 2 levels deep at most, apply to the page only, and embed at most 5000 records in all; a related record that no longer exists is `null`.",
+                  "description": "Embeds related records, comma-separated: `successors`, `successors.subdivisions`, `successors.groupings`. Paths go 2 levels deep at most, apply to the page only, and embed at most 5000 records in all; a related record that no longer exists is `null`.",
                   "disabled": true
                 }
               ],
@@ -400,6 +400,12 @@
                   "value": "",
                   "description": "With `format=sql`: the table the `INSERT` statements name. Defaults to the dataset's name. A letter or `_`, then letters, digits or `_`, up to 63 characters.",
                   "disabled": true
+                },
+                {
+                  "key": "expand",
+                  "value": "",
+                  "description": "Embeds related records, comma-separated: `subdivisions`, `subdivisions.country`, `subdivisions.parent`, `subdivisions.children`, `groupings`, `groupings.countries`, `groupings.subdivisions`. Paths go 2 levels deep at most, apply to the page only, and embed at most 5000 records in all; a related record that no longer exists is `null`.",
+                  "disabled": true
                 }
               ],
               "variable": [
@@ -558,10 +564,16 @@
                   "value": "",
                   "description": "With `format=sql`: the table the `INSERT` statements name. Defaults to the dataset's name. A letter or `_`, then letters, digits or `_`, up to 63 characters.",
                   "disabled": true
+                },
+                {
+                  "key": "expand",
+                  "value": "",
+                  "description": "Embeds related records, comma-separated: `subdivisions`, `subdivisions.country`, `subdivisions.parent`, `subdivisions.children`, `groupings`, `groupings.countries`, `groupings.subdivisions`. Paths go 2 levels deep at most, apply to the page only, and embed at most 5000 records in all; a related record that no longer exists is `null`.",
+                  "disabled": true
                 }
               ]
             },
-            "description": "Every country and territory with ISO codes, names in English and Japanese (and the request's `locale`), currencies, languages, calling codes, capital, time zones, top-level domain, population, area, coordinates, land borders, driving side and calendar conventions: real reference data from Kuni (Unicode CLDR, Wikidata, IANA, countries-list), so `seed` has no effect. For compatibility it returns every country as a bare array unless `metadata=true` is given. The codes ISO has withdrawn (the Soviet Union, Yugoslavia, Zaire) are at `/countries/withdrawn`.\n\nAny other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`)."
+            "description": "Every country and territory with ISO codes, names in English and Japanese (and the request's `locale`), currencies, languages, calling codes, capital, time zones, top-level domain, population, area, coordinates, land borders, driving side and calendar conventions: real reference data from Kuni (Unicode CLDR, Wikidata, IANA, countries-list), so `seed` has no effect. For compatibility it returns every country as a bare array unless `metadata=true` is given. Its subdivisions are at `/countries/{code}/subdivisions` and its groupings (the EU, the G7) at `/countries/{code}/groupings`; the codes ISO has withdrawn (the Soviet Union, Yugoslavia, Zaire) are at `/countries/withdrawn`.\n\nAny other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`)."
           }
         },
         {
@@ -620,6 +632,12 @@
                   "value": "",
                   "description": "With `format=sql`: the table the `INSERT` statements name. Defaults to the dataset's name. A letter or `_`, then letters, digits or `_`, up to 63 characters.",
                   "disabled": true
+                },
+                {
+                  "key": "expand",
+                  "value": "",
+                  "description": "Embeds related records, comma-separated: `subdivisions`, `subdivisions.country`, `subdivisions.parent`, `subdivisions.children`, `groupings`, `groupings.countries`, `groupings.subdivisions`. Paths go 2 levels deep at most, apply to the page only, and embed at most 5000 records in all; a related record that no longer exists is `null`.",
+                  "disabled": true
                 }
               ],
               "variable": [
@@ -631,6 +649,1300 @@
               ]
             },
             "description": ""
+          }
+        },
+        {
+          "name": "List one country's subdivisions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/countries/:id/subdivisions?limit=10&seed=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "countries",
+                ":id",
+                "subdivisions"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Records per page, 0 to 1000. Aliases: `size`, `length`, `pageSize`.",
+                  "disabled": false
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "description": "Records to skip.",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "",
+                  "description": "One-based page number in pages of `limit`: `page=3&pageSize=20` is `offset=40&limit=20`.",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "",
+                  "description": "Alias of `limit`, for use with `page`.",
+                  "disabled": true
+                },
+                {
+                  "key": "cursor",
+                  "value": "",
+                  "description": "An opaque cursor from `metadata.nextCursor` or `prevCursor`. Overrides `page` and `offset`; an empty `cursor=` starts on the first page with cursor links. A cursor used with different filters, sort, `q`, `seed`, `locale`, `messy` or `max` returns 400.",
+                  "disabled": true
+                },
+                {
+                  "key": "max",
+                  "value": "",
+                  "description": "Caps the dataset size to test end-of-data handling. Defaults to every record: 1000, or more after creates with the session on. Alias: `maxRecords`.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "",
+                  "description": "Field to sort by. Append `:numeric` to compare as numbers, e.g. `age:numeric`.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "",
+                  "description": "`asc` or `desc` (also `reverse`, `rev`, `backwards`, `-1`). Alias: `sortOrder`.",
+                  "disabled": true
+                },
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": "Case-insensitive text search across every field.",
+                  "disabled": true
+                },
+                {
+                  "key": "metadata",
+                  "value": "",
+                  "description": "`false` returns the bare array instead of the metadata envelope.",
+                  "disabled": true
+                },
+                {
+                  "key": "resultsName",
+                  "value": "",
+                  "description": "Renames the results key, e.g. `rows`.",
+                  "disabled": true
+                },
+                {
+                  "key": "seed",
+                  "value": "1",
+                  "description": "Selects a repeatable dataset. The same seed always returns the same records.",
+                  "disabled": false
+                },
+                {
+                  "key": "locale",
+                  "value": "",
+                  "description": "Which country the data is written for: `en-CA` (English (Canada)), `en-US` (English (United States)), `en-IN` (English (India)), `zh-CN` (Chinese (China)), `pt-BR` (Portuguese (Brazil)), `en-GB` (English (United Kingdom)), `ru` (Russian (Russia)), `de` (German (Germany)), `id` (Indonesian (Indonesia)), `ja` (Japanese (Japan)), `fr` (French (France)), `fr-CA` (French (Canada)), `ko` (Korean (South Korea)), `es-MX` (Spanish (Mexico)), `vi` (Vietnamese (Vietnam)), or `global` (Global mix): every record from a locale chosen by the seed, weighted toward the bigger developer populations, with `country` saying which. `en-CA` is the default. Names, addresses, phone numbers, prices (in the local currency) and country names follow the locale; `ja` adds katakana readings. Field names never change, so `province` and `postal` hold whatever the country uses. `GET /locales` lists them all.",
+                  "disabled": true
+                },
+                {
+                  "key": "messy",
+                  "value": "",
+                  "description": "Rewrites a share of values into the ones that break layouts and parsers: null and missing keys, empty and whitespace-only strings, very long strings (120 characters, 2,000 for descriptions), emoji, combining marks and zero-width joiners, right-to-left text, leading and trailing whitespace, numbers at the edges (0, negative, very large, many decimals) and dates at the edges (the epoch, the far future, 29 February). `true` rewrites about 15% of values; a number from 0 to 1 sets the share, so `0.5` rewrites half and `1` every one. Which values change comes from `seed` and each record's position, so the same URL returns the same mess every time. Values keep their type (a string field holds a string, a number field a number, a date field a date in the same format), but while `messy` is on every field except the id may be null or missing, whatever the schema says.",
+                  "disabled": true
+                },
+                {
+                  "key": "format",
+                  "value": "",
+                  "description": "`json` (default), `csv`, `yaml`, `xml`, `ndjson` (one record per line) or `sql` (one `INSERT` per record, into `table=`). CSV, NDJSON and SQL hold the page's records without the metadata. The `Accept` header works too (`text/csv`, `application/x-ndjson`, `application/sql`).",
+                  "disabled": true
+                },
+                {
+                  "key": "delay",
+                  "value": "",
+                  "description": "Wait this many milliseconds before responding, up to 10000. A range such as `200-800` picks a wait inside it from the request, seed included, so the same URL always waits the same time.",
+                  "disabled": true
+                },
+                {
+                  "key": "trickle",
+                  "value": "",
+                  "description": "Send the headers at once and the body in pieces this many milliseconds apart, whatever the format. With `delay`, the whole response takes no more than 10000 ms.",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Respond with this status (200–599). 4xx and 5xx return a simulated error.",
+                  "disabled": true
+                },
+                {
+                  "key": "fail",
+                  "value": "",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "disabled": true
+                },
+                {
+                  "key": "auth",
+                  "value": "",
+                  "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "safe",
+                  "value": "",
+                  "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. Off by default in 2.x, so existing output does not change; it becomes the default in 3.0.",
+                  "disabled": true
+                },
+                {
+                  "key": "table",
+                  "value": "",
+                  "description": "With `format=sql`: the table the `INSERT` statements name. Defaults to the dataset's name. A letter or `_`, then letters, digits or `_`, up to 63 characters.",
+                  "disabled": true
+                },
+                {
+                  "key": "expand",
+                  "value": "",
+                  "description": "Embeds related records, comma-separated: `country`, `country.subdivisions`, `country.groupings`, `parent`, `parent.country`, `parent.parent`, `parent.children`, `children`, `children.country`, `children.parent`, `children.children`. Paths go 2 levels deep at most, apply to the page only, and embed at most 5000 records in all; a related record that no longer exists is `null`.",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "ISO 3166 alpha-2, alpha-3 or numeric code, e.g. `CA`, `CAN` or `124`."
+                }
+              ]
+            },
+            "description": "The subdivisions whose `country` is this country's id, in id order: the same records `/subdivisions?country={id}` returns, found without a scan. Paging, sorting, filters, search, formats, `expand`, `messy`, `safe` and the simulation all work as they do on `/subdivisions`.\n\nAny other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`)."
+          }
+        },
+        {
+          "name": "List one country's groupings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/countries/:id/groupings?limit=10&seed=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "countries",
+                ":id",
+                "groupings"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Records per page, 0 to 1000. Aliases: `size`, `length`, `pageSize`.",
+                  "disabled": false
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "description": "Records to skip.",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "",
+                  "description": "One-based page number in pages of `limit`: `page=3&pageSize=20` is `offset=40&limit=20`.",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "",
+                  "description": "Alias of `limit`, for use with `page`.",
+                  "disabled": true
+                },
+                {
+                  "key": "cursor",
+                  "value": "",
+                  "description": "An opaque cursor from `metadata.nextCursor` or `prevCursor`. Overrides `page` and `offset`; an empty `cursor=` starts on the first page with cursor links. A cursor used with different filters, sort, `q`, `seed`, `locale`, `messy` or `max` returns 400.",
+                  "disabled": true
+                },
+                {
+                  "key": "max",
+                  "value": "",
+                  "description": "Caps the dataset size to test end-of-data handling. Defaults to every record: 1000, or more after creates with the session on. Alias: `maxRecords`.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "",
+                  "description": "Field to sort by. Append `:numeric` to compare as numbers, e.g. `age:numeric`.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "",
+                  "description": "`asc` or `desc` (also `reverse`, `rev`, `backwards`, `-1`). Alias: `sortOrder`.",
+                  "disabled": true
+                },
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": "Case-insensitive text search across every field.",
+                  "disabled": true
+                },
+                {
+                  "key": "metadata",
+                  "value": "",
+                  "description": "`false` returns the bare array instead of the metadata envelope.",
+                  "disabled": true
+                },
+                {
+                  "key": "resultsName",
+                  "value": "",
+                  "description": "Renames the results key, e.g. `rows`.",
+                  "disabled": true
+                },
+                {
+                  "key": "seed",
+                  "value": "1",
+                  "description": "Selects a repeatable dataset. The same seed always returns the same records.",
+                  "disabled": false
+                },
+                {
+                  "key": "locale",
+                  "value": "",
+                  "description": "Which country the data is written for: `en-CA` (English (Canada)), `en-US` (English (United States)), `en-IN` (English (India)), `zh-CN` (Chinese (China)), `pt-BR` (Portuguese (Brazil)), `en-GB` (English (United Kingdom)), `ru` (Russian (Russia)), `de` (German (Germany)), `id` (Indonesian (Indonesia)), `ja` (Japanese (Japan)), `fr` (French (France)), `fr-CA` (French (Canada)), `ko` (Korean (South Korea)), `es-MX` (Spanish (Mexico)), `vi` (Vietnamese (Vietnam)), or `global` (Global mix): every record from a locale chosen by the seed, weighted toward the bigger developer populations, with `country` saying which. `en-CA` is the default. Names, addresses, phone numbers, prices (in the local currency) and country names follow the locale; `ja` adds katakana readings. Field names never change, so `province` and `postal` hold whatever the country uses. `GET /locales` lists them all.",
+                  "disabled": true
+                },
+                {
+                  "key": "messy",
+                  "value": "",
+                  "description": "Rewrites a share of values into the ones that break layouts and parsers: null and missing keys, empty and whitespace-only strings, very long strings (120 characters, 2,000 for descriptions), emoji, combining marks and zero-width joiners, right-to-left text, leading and trailing whitespace, numbers at the edges (0, negative, very large, many decimals) and dates at the edges (the epoch, the far future, 29 February). `true` rewrites about 15% of values; a number from 0 to 1 sets the share, so `0.5` rewrites half and `1` every one. Which values change comes from `seed` and each record's position, so the same URL returns the same mess every time. Values keep their type (a string field holds a string, a number field a number, a date field a date in the same format), but while `messy` is on every field except the id may be null or missing, whatever the schema says.",
+                  "disabled": true
+                },
+                {
+                  "key": "format",
+                  "value": "",
+                  "description": "`json` (default), `csv`, `yaml`, `xml`, `ndjson` (one record per line) or `sql` (one `INSERT` per record, into `table=`). CSV, NDJSON and SQL hold the page's records without the metadata. The `Accept` header works too (`text/csv`, `application/x-ndjson`, `application/sql`).",
+                  "disabled": true
+                },
+                {
+                  "key": "delay",
+                  "value": "",
+                  "description": "Wait this many milliseconds before responding, up to 10000. A range such as `200-800` picks a wait inside it from the request, seed included, so the same URL always waits the same time.",
+                  "disabled": true
+                },
+                {
+                  "key": "trickle",
+                  "value": "",
+                  "description": "Send the headers at once and the body in pieces this many milliseconds apart, whatever the format. With `delay`, the whole response takes no more than 10000 ms.",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Respond with this status (200–599). 4xx and 5xx return a simulated error.",
+                  "disabled": true
+                },
+                {
+                  "key": "fail",
+                  "value": "",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "disabled": true
+                },
+                {
+                  "key": "auth",
+                  "value": "",
+                  "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "safe",
+                  "value": "",
+                  "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. Off by default in 2.x, so existing output does not change; it becomes the default in 3.0.",
+                  "disabled": true
+                },
+                {
+                  "key": "table",
+                  "value": "",
+                  "description": "With `format=sql`: the table the `INSERT` statements name. Defaults to the dataset's name. A letter or `_`, then letters, digits or `_`, up to 63 characters.",
+                  "disabled": true
+                },
+                {
+                  "key": "expand",
+                  "value": "",
+                  "description": "Embeds related records, comma-separated: `countries`, `countries.subdivisions`, `countries.groupings`, `subdivisions`, `subdivisions.country`, `subdivisions.parent`, `subdivisions.children`. Paths go 2 levels deep at most, apply to the page only, and embed at most 5000 records in all; a related record that no longer exists is `null`.",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "ISO 3166 alpha-2, alpha-3 or numeric code, e.g. `CA`, `CAN` or `124`."
+                }
+              ]
+            },
+            "description": "The groupings whose `members` is this country's id, in id order: the same records `/groupings?members={id}` returns, found without a scan. Paging, sorting, filters, search, formats, `expand`, `messy`, `safe` and the simulation all work as they do on `/groupings`.\n\nAny other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`)."
+          }
+        },
+        {
+          "name": "List subdivisions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/subdivisions?limit=10&seed=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "subdivisions"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Records per page, 0 to 1000. Aliases: `size`, `length`, `pageSize`.",
+                  "disabled": false
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "description": "Records to skip.",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "",
+                  "description": "One-based page number in pages of `limit`: `page=3&pageSize=20` is `offset=40&limit=20`.",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "",
+                  "description": "Alias of `limit`, for use with `page`.",
+                  "disabled": true
+                },
+                {
+                  "key": "cursor",
+                  "value": "",
+                  "description": "An opaque cursor from `metadata.nextCursor` or `prevCursor`. Overrides `page` and `offset`; an empty `cursor=` starts on the first page with cursor links. A cursor used with different filters, sort, `q`, `seed`, `locale`, `messy` or `max` returns 400.",
+                  "disabled": true
+                },
+                {
+                  "key": "max",
+                  "value": "",
+                  "description": "Caps the dataset size to test end-of-data handling. Defaults to every record: 1000, or more after creates with the session on. Alias: `maxRecords`.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "",
+                  "description": "Field to sort by. Append `:numeric` to compare as numbers, e.g. `age:numeric`.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "",
+                  "description": "`asc` or `desc` (also `reverse`, `rev`, `backwards`, `-1`). Alias: `sortOrder`.",
+                  "disabled": true
+                },
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": "Case-insensitive text search across every field.",
+                  "disabled": true
+                },
+                {
+                  "key": "metadata",
+                  "value": "",
+                  "description": "`false` returns the bare array instead of the metadata envelope.",
+                  "disabled": true
+                },
+                {
+                  "key": "resultsName",
+                  "value": "",
+                  "description": "Renames the results key, e.g. `rows`.",
+                  "disabled": true
+                },
+                {
+                  "key": "seed",
+                  "value": "1",
+                  "description": "Selects a repeatable dataset. The same seed always returns the same records.",
+                  "disabled": false
+                },
+                {
+                  "key": "locale",
+                  "value": "",
+                  "description": "Which country the data is written for: `en-CA` (English (Canada)), `en-US` (English (United States)), `en-IN` (English (India)), `zh-CN` (Chinese (China)), `pt-BR` (Portuguese (Brazil)), `en-GB` (English (United Kingdom)), `ru` (Russian (Russia)), `de` (German (Germany)), `id` (Indonesian (Indonesia)), `ja` (Japanese (Japan)), `fr` (French (France)), `fr-CA` (French (Canada)), `ko` (Korean (South Korea)), `es-MX` (Spanish (Mexico)), `vi` (Vietnamese (Vietnam)), or `global` (Global mix): every record from a locale chosen by the seed, weighted toward the bigger developer populations, with `country` saying which. `en-CA` is the default. Names, addresses, phone numbers, prices (in the local currency) and country names follow the locale; `ja` adds katakana readings. Field names never change, so `province` and `postal` hold whatever the country uses. `GET /locales` lists them all.",
+                  "disabled": true
+                },
+                {
+                  "key": "messy",
+                  "value": "",
+                  "description": "Rewrites a share of values into the ones that break layouts and parsers: null and missing keys, empty and whitespace-only strings, very long strings (120 characters, 2,000 for descriptions), emoji, combining marks and zero-width joiners, right-to-left text, leading and trailing whitespace, numbers at the edges (0, negative, very large, many decimals) and dates at the edges (the epoch, the far future, 29 February). `true` rewrites about 15% of values; a number from 0 to 1 sets the share, so `0.5` rewrites half and `1` every one. Which values change comes from `seed` and each record's position, so the same URL returns the same mess every time. Values keep their type (a string field holds a string, a number field a number, a date field a date in the same format), but while `messy` is on every field except the id may be null or missing, whatever the schema says.",
+                  "disabled": true
+                },
+                {
+                  "key": "format",
+                  "value": "",
+                  "description": "`json` (default), `csv`, `yaml`, `xml`, `ndjson` (one record per line) or `sql` (one `INSERT` per record, into `table=`). CSV, NDJSON and SQL hold the page's records without the metadata. The `Accept` header works too (`text/csv`, `application/x-ndjson`, `application/sql`).",
+                  "disabled": true
+                },
+                {
+                  "key": "delay",
+                  "value": "",
+                  "description": "Wait this many milliseconds before responding, up to 10000. A range such as `200-800` picks a wait inside it from the request, seed included, so the same URL always waits the same time.",
+                  "disabled": true
+                },
+                {
+                  "key": "trickle",
+                  "value": "",
+                  "description": "Send the headers at once and the body in pieces this many milliseconds apart, whatever the format. With `delay`, the whole response takes no more than 10000 ms.",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Respond with this status (200–599). 4xx and 5xx return a simulated error.",
+                  "disabled": true
+                },
+                {
+                  "key": "fail",
+                  "value": "",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "disabled": true
+                },
+                {
+                  "key": "auth",
+                  "value": "",
+                  "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "safe",
+                  "value": "",
+                  "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. Off by default in 2.x, so existing output does not change; it becomes the default in 3.0.",
+                  "disabled": true
+                },
+                {
+                  "key": "table",
+                  "value": "",
+                  "description": "With `format=sql`: the table the `INSERT` statements name. Defaults to the dataset's name. A letter or `_`, then letters, digits or `_`, up to 63 characters.",
+                  "disabled": true
+                },
+                {
+                  "key": "expand",
+                  "value": "",
+                  "description": "Embeds related records, comma-separated: `country`, `country.subdivisions`, `country.groupings`, `parent`, `parent.country`, `parent.parent`, `parent.children`, `children`, `children.country`, `children.parent`, `children.children`. Paths go 2 levels deep at most, apply to the page only, and embed at most 5000 records in all; a related record that no longer exists is `null`.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "The states, provinces, prefectures, counties, regions and Länder of 200 countries — 5,050 ISO 3166-2 subdivisions — with their code, kind, level, parent, name in English and Japanese, capital, population, area and coordinates: real reference data from Kuni (Unicode CLDR, Wikidata), so `seed` has no effect. Filter by `country=JP`, `type=prefecture` or `level=1`; `/countries/{code}/subdivisions` lists one country's. The first request for a country loads its data; one without a `country` loads all of them. A record's `province` links here: `expand=subdivision` on `/users` or `/names`.\n\nAny other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`)."
+          }
+        },
+        {
+          "name": "Get one subdivision",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/subdivisions/:id?seed=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "subdivisions",
+                ":id"
+              ],
+              "query": [
+                {
+                  "key": "seed",
+                  "value": "1",
+                  "description": "Selects a repeatable dataset. The same seed always returns the same records.",
+                  "disabled": false
+                },
+                {
+                  "key": "locale",
+                  "value": "",
+                  "description": "Which country the data is written for: `en-CA` (English (Canada)), `en-US` (English (United States)), `en-IN` (English (India)), `zh-CN` (Chinese (China)), `pt-BR` (Portuguese (Brazil)), `en-GB` (English (United Kingdom)), `ru` (Russian (Russia)), `de` (German (Germany)), `id` (Indonesian (Indonesia)), `ja` (Japanese (Japan)), `fr` (French (France)), `fr-CA` (French (Canada)), `ko` (Korean (South Korea)), `es-MX` (Spanish (Mexico)), `vi` (Vietnamese (Vietnam)), or `global` (Global mix): every record from a locale chosen by the seed, weighted toward the bigger developer populations, with `country` saying which. `en-CA` is the default. Names, addresses, phone numbers, prices (in the local currency) and country names follow the locale; `ja` adds katakana readings. Field names never change, so `province` and `postal` hold whatever the country uses. `GET /locales` lists them all.",
+                  "disabled": true
+                },
+                {
+                  "key": "format",
+                  "value": "",
+                  "description": "`json` (default), `csv`, `yaml`, `xml`, `ndjson` (one record per line) or `sql` (one `INSERT` per record, into `table=`). CSV, NDJSON and SQL hold the page's records without the metadata. The `Accept` header works too (`text/csv`, `application/x-ndjson`, `application/sql`).",
+                  "disabled": true
+                },
+                {
+                  "key": "messy",
+                  "value": "",
+                  "description": "Rewrites a share of values into the ones that break layouts and parsers: null and missing keys, empty and whitespace-only strings, very long strings (120 characters, 2,000 for descriptions), emoji, combining marks and zero-width joiners, right-to-left text, leading and trailing whitespace, numbers at the edges (0, negative, very large, many decimals) and dates at the edges (the epoch, the far future, 29 February). `true` rewrites about 15% of values; a number from 0 to 1 sets the share, so `0.5` rewrites half and `1` every one. Which values change comes from `seed` and each record's position, so the same URL returns the same mess every time. Values keep their type (a string field holds a string, a number field a number, a date field a date in the same format), but while `messy` is on every field except the id may be null or missing, whatever the schema says.",
+                  "disabled": true
+                },
+                {
+                  "key": "auth",
+                  "value": "",
+                  "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "safe",
+                  "value": "",
+                  "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. Off by default in 2.x, so existing output does not change; it becomes the default in 3.0.",
+                  "disabled": true
+                },
+                {
+                  "key": "table",
+                  "value": "",
+                  "description": "With `format=sql`: the table the `INSERT` statements name. Defaults to the dataset's name. A letter or `_`, then letters, digits or `_`, up to 63 characters.",
+                  "disabled": true
+                },
+                {
+                  "key": "expand",
+                  "value": "",
+                  "description": "Embeds related records, comma-separated: `country`, `country.subdivisions`, `country.groupings`, `parent`, `parent.country`, `parent.parent`, `parent.children`, `children`, `children.country`, `children.parent`, `children.children`. Paths go 2 levels deep at most, apply to the page only, and embed at most 5000 records in all; a related record that no longer exists is `null`.",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "ISO 3166-2 code, e.g. `JP-13` or `CA-ON`."
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "List one subdivision's children",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/subdivisions/:id/children?limit=10&seed=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "subdivisions",
+                ":id",
+                "children"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Records per page, 0 to 1000. Aliases: `size`, `length`, `pageSize`.",
+                  "disabled": false
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "description": "Records to skip.",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "",
+                  "description": "One-based page number in pages of `limit`: `page=3&pageSize=20` is `offset=40&limit=20`.",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "",
+                  "description": "Alias of `limit`, for use with `page`.",
+                  "disabled": true
+                },
+                {
+                  "key": "cursor",
+                  "value": "",
+                  "description": "An opaque cursor from `metadata.nextCursor` or `prevCursor`. Overrides `page` and `offset`; an empty `cursor=` starts on the first page with cursor links. A cursor used with different filters, sort, `q`, `seed`, `locale`, `messy` or `max` returns 400.",
+                  "disabled": true
+                },
+                {
+                  "key": "max",
+                  "value": "",
+                  "description": "Caps the dataset size to test end-of-data handling. Defaults to every record: 1000, or more after creates with the session on. Alias: `maxRecords`.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "",
+                  "description": "Field to sort by. Append `:numeric` to compare as numbers, e.g. `age:numeric`.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "",
+                  "description": "`asc` or `desc` (also `reverse`, `rev`, `backwards`, `-1`). Alias: `sortOrder`.",
+                  "disabled": true
+                },
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": "Case-insensitive text search across every field.",
+                  "disabled": true
+                },
+                {
+                  "key": "metadata",
+                  "value": "",
+                  "description": "`false` returns the bare array instead of the metadata envelope.",
+                  "disabled": true
+                },
+                {
+                  "key": "resultsName",
+                  "value": "",
+                  "description": "Renames the results key, e.g. `rows`.",
+                  "disabled": true
+                },
+                {
+                  "key": "seed",
+                  "value": "1",
+                  "description": "Selects a repeatable dataset. The same seed always returns the same records.",
+                  "disabled": false
+                },
+                {
+                  "key": "locale",
+                  "value": "",
+                  "description": "Which country the data is written for: `en-CA` (English (Canada)), `en-US` (English (United States)), `en-IN` (English (India)), `zh-CN` (Chinese (China)), `pt-BR` (Portuguese (Brazil)), `en-GB` (English (United Kingdom)), `ru` (Russian (Russia)), `de` (German (Germany)), `id` (Indonesian (Indonesia)), `ja` (Japanese (Japan)), `fr` (French (France)), `fr-CA` (French (Canada)), `ko` (Korean (South Korea)), `es-MX` (Spanish (Mexico)), `vi` (Vietnamese (Vietnam)), or `global` (Global mix): every record from a locale chosen by the seed, weighted toward the bigger developer populations, with `country` saying which. `en-CA` is the default. Names, addresses, phone numbers, prices (in the local currency) and country names follow the locale; `ja` adds katakana readings. Field names never change, so `province` and `postal` hold whatever the country uses. `GET /locales` lists them all.",
+                  "disabled": true
+                },
+                {
+                  "key": "messy",
+                  "value": "",
+                  "description": "Rewrites a share of values into the ones that break layouts and parsers: null and missing keys, empty and whitespace-only strings, very long strings (120 characters, 2,000 for descriptions), emoji, combining marks and zero-width joiners, right-to-left text, leading and trailing whitespace, numbers at the edges (0, negative, very large, many decimals) and dates at the edges (the epoch, the far future, 29 February). `true` rewrites about 15% of values; a number from 0 to 1 sets the share, so `0.5` rewrites half and `1` every one. Which values change comes from `seed` and each record's position, so the same URL returns the same mess every time. Values keep their type (a string field holds a string, a number field a number, a date field a date in the same format), but while `messy` is on every field except the id may be null or missing, whatever the schema says.",
+                  "disabled": true
+                },
+                {
+                  "key": "format",
+                  "value": "",
+                  "description": "`json` (default), `csv`, `yaml`, `xml`, `ndjson` (one record per line) or `sql` (one `INSERT` per record, into `table=`). CSV, NDJSON and SQL hold the page's records without the metadata. The `Accept` header works too (`text/csv`, `application/x-ndjson`, `application/sql`).",
+                  "disabled": true
+                },
+                {
+                  "key": "delay",
+                  "value": "",
+                  "description": "Wait this many milliseconds before responding, up to 10000. A range such as `200-800` picks a wait inside it from the request, seed included, so the same URL always waits the same time.",
+                  "disabled": true
+                },
+                {
+                  "key": "trickle",
+                  "value": "",
+                  "description": "Send the headers at once and the body in pieces this many milliseconds apart, whatever the format. With `delay`, the whole response takes no more than 10000 ms.",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Respond with this status (200–599). 4xx and 5xx return a simulated error.",
+                  "disabled": true
+                },
+                {
+                  "key": "fail",
+                  "value": "",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "disabled": true
+                },
+                {
+                  "key": "auth",
+                  "value": "",
+                  "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "safe",
+                  "value": "",
+                  "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. Off by default in 2.x, so existing output does not change; it becomes the default in 3.0.",
+                  "disabled": true
+                },
+                {
+                  "key": "table",
+                  "value": "",
+                  "description": "With `format=sql`: the table the `INSERT` statements name. Defaults to the dataset's name. A letter or `_`, then letters, digits or `_`, up to 63 characters.",
+                  "disabled": true
+                },
+                {
+                  "key": "expand",
+                  "value": "",
+                  "description": "Embeds related records, comma-separated: `country`, `country.subdivisions`, `country.groupings`, `parent`, `parent.country`, `parent.parent`, `parent.children`, `children`, `children.country`, `children.parent`, `children.children`. Paths go 2 levels deep at most, apply to the page only, and embed at most 5000 records in all; a related record that no longer exists is `null`.",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "ISO 3166-2 code, e.g. `JP-13` or `CA-ON`."
+                }
+              ]
+            },
+            "description": "The children whose `parent` is this subdivision's id, in id order: the same records `/subdivisions?parent={id}` returns, found without a scan. Paging, sorting, filters, search, formats, `expand`, `messy`, `safe` and the simulation all work as they do on `/subdivisions`.\n\nAny other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`)."
+          }
+        },
+        {
+          "name": "List groupings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/groupings?limit=10&seed=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "groupings"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Records per page, 0 to 1000. Aliases: `size`, `length`, `pageSize`.",
+                  "disabled": false
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "description": "Records to skip.",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "",
+                  "description": "One-based page number in pages of `limit`: `page=3&pageSize=20` is `offset=40&limit=20`.",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "",
+                  "description": "Alias of `limit`, for use with `page`.",
+                  "disabled": true
+                },
+                {
+                  "key": "cursor",
+                  "value": "",
+                  "description": "An opaque cursor from `metadata.nextCursor` or `prevCursor`. Overrides `page` and `offset`; an empty `cursor=` starts on the first page with cursor links. A cursor used with different filters, sort, `q`, `seed`, `locale`, `messy` or `max` returns 400.",
+                  "disabled": true
+                },
+                {
+                  "key": "max",
+                  "value": "",
+                  "description": "Caps the dataset size to test end-of-data handling. Defaults to every record: 1000, or more after creates with the session on. Alias: `maxRecords`.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "",
+                  "description": "Field to sort by. Append `:numeric` to compare as numbers, e.g. `age:numeric`.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "",
+                  "description": "`asc` or `desc` (also `reverse`, `rev`, `backwards`, `-1`). Alias: `sortOrder`.",
+                  "disabled": true
+                },
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": "Case-insensitive text search across every field.",
+                  "disabled": true
+                },
+                {
+                  "key": "metadata",
+                  "value": "",
+                  "description": "`false` returns the bare array instead of the metadata envelope.",
+                  "disabled": true
+                },
+                {
+                  "key": "resultsName",
+                  "value": "",
+                  "description": "Renames the results key, e.g. `rows`.",
+                  "disabled": true
+                },
+                {
+                  "key": "seed",
+                  "value": "1",
+                  "description": "Selects a repeatable dataset. The same seed always returns the same records.",
+                  "disabled": false
+                },
+                {
+                  "key": "locale",
+                  "value": "",
+                  "description": "Which country the data is written for: `en-CA` (English (Canada)), `en-US` (English (United States)), `en-IN` (English (India)), `zh-CN` (Chinese (China)), `pt-BR` (Portuguese (Brazil)), `en-GB` (English (United Kingdom)), `ru` (Russian (Russia)), `de` (German (Germany)), `id` (Indonesian (Indonesia)), `ja` (Japanese (Japan)), `fr` (French (France)), `fr-CA` (French (Canada)), `ko` (Korean (South Korea)), `es-MX` (Spanish (Mexico)), `vi` (Vietnamese (Vietnam)), or `global` (Global mix): every record from a locale chosen by the seed, weighted toward the bigger developer populations, with `country` saying which. `en-CA` is the default. Names, addresses, phone numbers, prices (in the local currency) and country names follow the locale; `ja` adds katakana readings. Field names never change, so `province` and `postal` hold whatever the country uses. `GET /locales` lists them all.",
+                  "disabled": true
+                },
+                {
+                  "key": "messy",
+                  "value": "",
+                  "description": "Rewrites a share of values into the ones that break layouts and parsers: null and missing keys, empty and whitespace-only strings, very long strings (120 characters, 2,000 for descriptions), emoji, combining marks and zero-width joiners, right-to-left text, leading and trailing whitespace, numbers at the edges (0, negative, very large, many decimals) and dates at the edges (the epoch, the far future, 29 February). `true` rewrites about 15% of values; a number from 0 to 1 sets the share, so `0.5` rewrites half and `1` every one. Which values change comes from `seed` and each record's position, so the same URL returns the same mess every time. Values keep their type (a string field holds a string, a number field a number, a date field a date in the same format), but while `messy` is on every field except the id may be null or missing, whatever the schema says.",
+                  "disabled": true
+                },
+                {
+                  "key": "format",
+                  "value": "",
+                  "description": "`json` (default), `csv`, `yaml`, `xml`, `ndjson` (one record per line) or `sql` (one `INSERT` per record, into `table=`). CSV, NDJSON and SQL hold the page's records without the metadata. The `Accept` header works too (`text/csv`, `application/x-ndjson`, `application/sql`).",
+                  "disabled": true
+                },
+                {
+                  "key": "delay",
+                  "value": "",
+                  "description": "Wait this many milliseconds before responding, up to 10000. A range such as `200-800` picks a wait inside it from the request, seed included, so the same URL always waits the same time.",
+                  "disabled": true
+                },
+                {
+                  "key": "trickle",
+                  "value": "",
+                  "description": "Send the headers at once and the body in pieces this many milliseconds apart, whatever the format. With `delay`, the whole response takes no more than 10000 ms.",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Respond with this status (200–599). 4xx and 5xx return a simulated error.",
+                  "disabled": true
+                },
+                {
+                  "key": "fail",
+                  "value": "",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "disabled": true
+                },
+                {
+                  "key": "auth",
+                  "value": "",
+                  "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "safe",
+                  "value": "",
+                  "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. Off by default in 2.x, so existing output does not change; it becomes the default in 3.0.",
+                  "disabled": true
+                },
+                {
+                  "key": "table",
+                  "value": "",
+                  "description": "With `format=sql`: the table the `INSERT` statements name. Defaults to the dataset's name. A letter or `_`, then letters, digits or `_`, up to 63 characters.",
+                  "disabled": true
+                },
+                {
+                  "key": "expand",
+                  "value": "",
+                  "description": "Embeds related records, comma-separated: `countries`, `countries.subdivisions`, `countries.groupings`, `subdivisions`, `subdivisions.country`, `subdivisions.parent`, `subdivisions.children`. Paths go 2 levels deep at most, apply to the page only, and embed at most 5000 records in all; a related record that no longer exists is `null`.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "107 groupings of countries and of the subdivisions inside one: the seven continents, the UN M49 areas, 23 international bodies (the UN, the EU, the euro area, Schengen, NATO, the G7 and G20, ASEAN and more) with the days members joined and left, 16 informal groupings (the Middle East, the Balkans, Scandinavia) each with the definition it follows, and regions inside a country (Japan's 地方, the US Census regions). Real reference data from Kuni, so `seed` has no effect. Filter by `kind=membership` or `members=JP`; `/groupings/{id}/countries` lists a grouping's members and `/countries/{code}/groupings` the groupings a country is in.\n\nAny other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`)."
+          }
+        },
+        {
+          "name": "Get one grouping",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/groupings/:id?seed=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "groupings",
+                ":id"
+              ],
+              "query": [
+                {
+                  "key": "seed",
+                  "value": "1",
+                  "description": "Selects a repeatable dataset. The same seed always returns the same records.",
+                  "disabled": false
+                },
+                {
+                  "key": "locale",
+                  "value": "",
+                  "description": "Which country the data is written for: `en-CA` (English (Canada)), `en-US` (English (United States)), `en-IN` (English (India)), `zh-CN` (Chinese (China)), `pt-BR` (Portuguese (Brazil)), `en-GB` (English (United Kingdom)), `ru` (Russian (Russia)), `de` (German (Germany)), `id` (Indonesian (Indonesia)), `ja` (Japanese (Japan)), `fr` (French (France)), `fr-CA` (French (Canada)), `ko` (Korean (South Korea)), `es-MX` (Spanish (Mexico)), `vi` (Vietnamese (Vietnam)), or `global` (Global mix): every record from a locale chosen by the seed, weighted toward the bigger developer populations, with `country` saying which. `en-CA` is the default. Names, addresses, phone numbers, prices (in the local currency) and country names follow the locale; `ja` adds katakana readings. Field names never change, so `province` and `postal` hold whatever the country uses. `GET /locales` lists them all.",
+                  "disabled": true
+                },
+                {
+                  "key": "format",
+                  "value": "",
+                  "description": "`json` (default), `csv`, `yaml`, `xml`, `ndjson` (one record per line) or `sql` (one `INSERT` per record, into `table=`). CSV, NDJSON and SQL hold the page's records without the metadata. The `Accept` header works too (`text/csv`, `application/x-ndjson`, `application/sql`).",
+                  "disabled": true
+                },
+                {
+                  "key": "messy",
+                  "value": "",
+                  "description": "Rewrites a share of values into the ones that break layouts and parsers: null and missing keys, empty and whitespace-only strings, very long strings (120 characters, 2,000 for descriptions), emoji, combining marks and zero-width joiners, right-to-left text, leading and trailing whitespace, numbers at the edges (0, negative, very large, many decimals) and dates at the edges (the epoch, the far future, 29 February). `true` rewrites about 15% of values; a number from 0 to 1 sets the share, so `0.5` rewrites half and `1` every one. Which values change comes from `seed` and each record's position, so the same URL returns the same mess every time. Values keep their type (a string field holds a string, a number field a number, a date field a date in the same format), but while `messy` is on every field except the id may be null or missing, whatever the schema says.",
+                  "disabled": true
+                },
+                {
+                  "key": "auth",
+                  "value": "",
+                  "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "safe",
+                  "value": "",
+                  "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. Off by default in 2.x, so existing output does not change; it becomes the default in 3.0.",
+                  "disabled": true
+                },
+                {
+                  "key": "table",
+                  "value": "",
+                  "description": "With `format=sql`: the table the `INSERT` statements name. Defaults to the dataset's name. A letter or `_`, then letters, digits or `_`, up to 63 characters.",
+                  "disabled": true
+                },
+                {
+                  "key": "expand",
+                  "value": "",
+                  "description": "Embeds related records, comma-separated: `countries`, `countries.subdivisions`, `countries.groupings`, `subdivisions`, `subdivisions.country`, `subdivisions.parent`, `subdivisions.children`. Paths go 2 levels deep at most, apply to the page only, and embed at most 5000 records in all; a related record that no longer exists is `null`.",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "The grouping's id, e.g. `eu`, `g7`, `asean` or `jp-kanto`."
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "List one grouping's countries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/groupings/:id/countries?limit=10&seed=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "groupings",
+                ":id",
+                "countries"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Records per page, 0 to 1000. Aliases: `size`, `length`, `pageSize`.",
+                  "disabled": false
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "description": "Records to skip.",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "",
+                  "description": "One-based page number in pages of `limit`: `page=3&pageSize=20` is `offset=40&limit=20`.",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "",
+                  "description": "Alias of `limit`, for use with `page`.",
+                  "disabled": true
+                },
+                {
+                  "key": "cursor",
+                  "value": "",
+                  "description": "An opaque cursor from `metadata.nextCursor` or `prevCursor`. Overrides `page` and `offset`; an empty `cursor=` starts on the first page with cursor links. A cursor used with different filters, sort, `q`, `seed`, `locale`, `messy` or `max` returns 400.",
+                  "disabled": true
+                },
+                {
+                  "key": "max",
+                  "value": "",
+                  "description": "Caps the dataset size to test end-of-data handling. Defaults to every record: 1000, or more after creates with the session on. Alias: `maxRecords`.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "",
+                  "description": "Field to sort by. Append `:numeric` to compare as numbers, e.g. `age:numeric`.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "",
+                  "description": "`asc` or `desc` (also `reverse`, `rev`, `backwards`, `-1`). Alias: `sortOrder`.",
+                  "disabled": true
+                },
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": "Case-insensitive text search across every field.",
+                  "disabled": true
+                },
+                {
+                  "key": "metadata",
+                  "value": "",
+                  "description": "`false` returns the bare array instead of the metadata envelope.",
+                  "disabled": true
+                },
+                {
+                  "key": "resultsName",
+                  "value": "",
+                  "description": "Renames the results key, e.g. `rows`.",
+                  "disabled": true
+                },
+                {
+                  "key": "seed",
+                  "value": "1",
+                  "description": "Selects a repeatable dataset. The same seed always returns the same records.",
+                  "disabled": false
+                },
+                {
+                  "key": "locale",
+                  "value": "",
+                  "description": "Which country the data is written for: `en-CA` (English (Canada)), `en-US` (English (United States)), `en-IN` (English (India)), `zh-CN` (Chinese (China)), `pt-BR` (Portuguese (Brazil)), `en-GB` (English (United Kingdom)), `ru` (Russian (Russia)), `de` (German (Germany)), `id` (Indonesian (Indonesia)), `ja` (Japanese (Japan)), `fr` (French (France)), `fr-CA` (French (Canada)), `ko` (Korean (South Korea)), `es-MX` (Spanish (Mexico)), `vi` (Vietnamese (Vietnam)), or `global` (Global mix): every record from a locale chosen by the seed, weighted toward the bigger developer populations, with `country` saying which. `en-CA` is the default. Names, addresses, phone numbers, prices (in the local currency) and country names follow the locale; `ja` adds katakana readings. Field names never change, so `province` and `postal` hold whatever the country uses. `GET /locales` lists them all.",
+                  "disabled": true
+                },
+                {
+                  "key": "messy",
+                  "value": "",
+                  "description": "Rewrites a share of values into the ones that break layouts and parsers: null and missing keys, empty and whitespace-only strings, very long strings (120 characters, 2,000 for descriptions), emoji, combining marks and zero-width joiners, right-to-left text, leading and trailing whitespace, numbers at the edges (0, negative, very large, many decimals) and dates at the edges (the epoch, the far future, 29 February). `true` rewrites about 15% of values; a number from 0 to 1 sets the share, so `0.5` rewrites half and `1` every one. Which values change comes from `seed` and each record's position, so the same URL returns the same mess every time. Values keep their type (a string field holds a string, a number field a number, a date field a date in the same format), but while `messy` is on every field except the id may be null or missing, whatever the schema says.",
+                  "disabled": true
+                },
+                {
+                  "key": "format",
+                  "value": "",
+                  "description": "`json` (default), `csv`, `yaml`, `xml`, `ndjson` (one record per line) or `sql` (one `INSERT` per record, into `table=`). CSV, NDJSON and SQL hold the page's records without the metadata. The `Accept` header works too (`text/csv`, `application/x-ndjson`, `application/sql`).",
+                  "disabled": true
+                },
+                {
+                  "key": "delay",
+                  "value": "",
+                  "description": "Wait this many milliseconds before responding, up to 10000. A range such as `200-800` picks a wait inside it from the request, seed included, so the same URL always waits the same time.",
+                  "disabled": true
+                },
+                {
+                  "key": "trickle",
+                  "value": "",
+                  "description": "Send the headers at once and the body in pieces this many milliseconds apart, whatever the format. With `delay`, the whole response takes no more than 10000 ms.",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Respond with this status (200–599). 4xx and 5xx return a simulated error.",
+                  "disabled": true
+                },
+                {
+                  "key": "fail",
+                  "value": "",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "disabled": true
+                },
+                {
+                  "key": "auth",
+                  "value": "",
+                  "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "safe",
+                  "value": "",
+                  "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. Off by default in 2.x, so existing output does not change; it becomes the default in 3.0.",
+                  "disabled": true
+                },
+                {
+                  "key": "table",
+                  "value": "",
+                  "description": "With `format=sql`: the table the `INSERT` statements name. Defaults to the dataset's name. A letter or `_`, then letters, digits or `_`, up to 63 characters.",
+                  "disabled": true
+                },
+                {
+                  "key": "expand",
+                  "value": "",
+                  "description": "Embeds related records, comma-separated: `subdivisions`, `subdivisions.country`, `subdivisions.parent`, `subdivisions.children`, `groupings`, `groupings.countries`, `groupings.subdivisions`. Paths go 2 levels deep at most, apply to the page only, and embed at most 5000 records in all; a related record that no longer exists is `null`.",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "The grouping's id, e.g. `eu`, `g7`, `asean` or `jp-kanto`."
+                }
+              ]
+            },
+            "description": "The countries this grouping lists in its `members`, in the order it lists them. Paging, sorting, filters, search, formats, `expand`, `messy`, `safe` and the simulation all work as they do on `/countries`.\n\nAny other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`)."
+          }
+        },
+        {
+          "name": "List one grouping's subdivisions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/groupings/:id/subdivisions?limit=10&seed=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "groupings",
+                ":id",
+                "subdivisions"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Records per page, 0 to 1000. Aliases: `size`, `length`, `pageSize`.",
+                  "disabled": false
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "description": "Records to skip.",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "",
+                  "description": "One-based page number in pages of `limit`: `page=3&pageSize=20` is `offset=40&limit=20`.",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "",
+                  "description": "Alias of `limit`, for use with `page`.",
+                  "disabled": true
+                },
+                {
+                  "key": "cursor",
+                  "value": "",
+                  "description": "An opaque cursor from `metadata.nextCursor` or `prevCursor`. Overrides `page` and `offset`; an empty `cursor=` starts on the first page with cursor links. A cursor used with different filters, sort, `q`, `seed`, `locale`, `messy` or `max` returns 400.",
+                  "disabled": true
+                },
+                {
+                  "key": "max",
+                  "value": "",
+                  "description": "Caps the dataset size to test end-of-data handling. Defaults to every record: 1000, or more after creates with the session on. Alias: `maxRecords`.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "",
+                  "description": "Field to sort by. Append `:numeric` to compare as numbers, e.g. `age:numeric`.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "",
+                  "description": "`asc` or `desc` (also `reverse`, `rev`, `backwards`, `-1`). Alias: `sortOrder`.",
+                  "disabled": true
+                },
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": "Case-insensitive text search across every field.",
+                  "disabled": true
+                },
+                {
+                  "key": "metadata",
+                  "value": "",
+                  "description": "`false` returns the bare array instead of the metadata envelope.",
+                  "disabled": true
+                },
+                {
+                  "key": "resultsName",
+                  "value": "",
+                  "description": "Renames the results key, e.g. `rows`.",
+                  "disabled": true
+                },
+                {
+                  "key": "seed",
+                  "value": "1",
+                  "description": "Selects a repeatable dataset. The same seed always returns the same records.",
+                  "disabled": false
+                },
+                {
+                  "key": "locale",
+                  "value": "",
+                  "description": "Which country the data is written for: `en-CA` (English (Canada)), `en-US` (English (United States)), `en-IN` (English (India)), `zh-CN` (Chinese (China)), `pt-BR` (Portuguese (Brazil)), `en-GB` (English (United Kingdom)), `ru` (Russian (Russia)), `de` (German (Germany)), `id` (Indonesian (Indonesia)), `ja` (Japanese (Japan)), `fr` (French (France)), `fr-CA` (French (Canada)), `ko` (Korean (South Korea)), `es-MX` (Spanish (Mexico)), `vi` (Vietnamese (Vietnam)), or `global` (Global mix): every record from a locale chosen by the seed, weighted toward the bigger developer populations, with `country` saying which. `en-CA` is the default. Names, addresses, phone numbers, prices (in the local currency) and country names follow the locale; `ja` adds katakana readings. Field names never change, so `province` and `postal` hold whatever the country uses. `GET /locales` lists them all.",
+                  "disabled": true
+                },
+                {
+                  "key": "messy",
+                  "value": "",
+                  "description": "Rewrites a share of values into the ones that break layouts and parsers: null and missing keys, empty and whitespace-only strings, very long strings (120 characters, 2,000 for descriptions), emoji, combining marks and zero-width joiners, right-to-left text, leading and trailing whitespace, numbers at the edges (0, negative, very large, many decimals) and dates at the edges (the epoch, the far future, 29 February). `true` rewrites about 15% of values; a number from 0 to 1 sets the share, so `0.5` rewrites half and `1` every one. Which values change comes from `seed` and each record's position, so the same URL returns the same mess every time. Values keep their type (a string field holds a string, a number field a number, a date field a date in the same format), but while `messy` is on every field except the id may be null or missing, whatever the schema says.",
+                  "disabled": true
+                },
+                {
+                  "key": "format",
+                  "value": "",
+                  "description": "`json` (default), `csv`, `yaml`, `xml`, `ndjson` (one record per line) or `sql` (one `INSERT` per record, into `table=`). CSV, NDJSON and SQL hold the page's records without the metadata. The `Accept` header works too (`text/csv`, `application/x-ndjson`, `application/sql`).",
+                  "disabled": true
+                },
+                {
+                  "key": "delay",
+                  "value": "",
+                  "description": "Wait this many milliseconds before responding, up to 10000. A range such as `200-800` picks a wait inside it from the request, seed included, so the same URL always waits the same time.",
+                  "disabled": true
+                },
+                {
+                  "key": "trickle",
+                  "value": "",
+                  "description": "Send the headers at once and the body in pieces this many milliseconds apart, whatever the format. With `delay`, the whole response takes no more than 10000 ms.",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Respond with this status (200–599). 4xx and 5xx return a simulated error.",
+                  "disabled": true
+                },
+                {
+                  "key": "fail",
+                  "value": "",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "disabled": true
+                },
+                {
+                  "key": "auth",
+                  "value": "",
+                  "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "safe",
+                  "value": "",
+                  "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. Off by default in 2.x, so existing output does not change; it becomes the default in 3.0.",
+                  "disabled": true
+                },
+                {
+                  "key": "table",
+                  "value": "",
+                  "description": "With `format=sql`: the table the `INSERT` statements name. Defaults to the dataset's name. A letter or `_`, then letters, digits or `_`, up to 63 characters.",
+                  "disabled": true
+                },
+                {
+                  "key": "expand",
+                  "value": "",
+                  "description": "Embeds related records, comma-separated: `country`, `country.subdivisions`, `country.groupings`, `parent`, `parent.country`, `parent.parent`, `parent.children`, `children`, `children.country`, `children.parent`, `children.children`. Paths go 2 levels deep at most, apply to the page only, and embed at most 5000 records in all; a related record that no longer exists is `null`.",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "The grouping's id, e.g. `eu`, `g7`, `asean` or `jp-kanto`."
+                }
+              ]
+            },
+            "description": "The subdivisions this grouping lists in its `members`, in the order it lists them. Paging, sorting, filters, search, formats, `expand`, `messy`, `safe` and the simulation all work as they do on `/subdivisions`.\n\nAny other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`)."
           }
         }
       ]
@@ -783,6 +2095,12 @@
                   "value": "",
                   "description": "With `format=sql`: the table the `INSERT` statements name. Defaults to the dataset's name. A letter or `_`, then letters, digits or `_`, up to 63 characters.",
                   "disabled": true
+                },
+                {
+                  "key": "expand",
+                  "value": "",
+                  "description": "Embeds related records, comma-separated: `subdivision`, `subdivision.country`, `subdivision.parent`, `subdivision.children`. Paths go 2 levels deep at most, apply to the page only, and embed at most 5000 records in all; a related record that no longer exists is `null`.",
+                  "disabled": true
                 }
               ]
             },
@@ -925,6 +2243,12 @@
                   "key": "table",
                   "value": "",
                   "description": "With `format=sql`: the table the `INSERT` statements name. Defaults to the dataset's name. A letter or `_`, then letters, digits or `_`, up to 63 characters.",
+                  "disabled": true
+                },
+                {
+                  "key": "expand",
+                  "value": "",
+                  "description": "Embeds related records, comma-separated: `subdivision`, `subdivision.country`, `subdivision.parent`, `subdivision.children`. Paths go 2 levels deep at most, apply to the page only, and embed at most 5000 records in all; a related record that no longer exists is `null`.",
                   "disabled": true
                 }
               ],
@@ -3133,6 +4457,12 @@
                   "value": "",
                   "description": "With `format=sql`: the table the `INSERT` statements name. Defaults to the dataset's name. A letter or `_`, then letters, digits or `_`, up to 63 characters.",
                   "disabled": true
+                },
+                {
+                  "key": "expand",
+                  "value": "",
+                  "description": "Embeds related records, comma-separated: `subdivision`, `subdivision.country`, `subdivision.parent`, `subdivision.children`. Paths go 2 levels deep at most, apply to the page only, and embed at most 5000 records in all; a related record that no longer exists is `null`.",
+                  "disabled": true
                 }
               ]
             },
@@ -3275,6 +4605,12 @@
                   "key": "table",
                   "value": "",
                   "description": "With `format=sql`: the table the `INSERT` statements name. Defaults to the dataset's name. A letter or `_`, then letters, digits or `_`, up to 63 characters.",
+                  "disabled": true
+                },
+                {
+                  "key": "expand",
+                  "value": "",
+                  "description": "Embeds related records, comma-separated: `subdivision`, `subdivision.country`, `subdivision.parent`, `subdivision.children`. Paths go 2 levels deep at most, apply to the page only, and embed at most 5000 records in all; a related record that no longer exists is `null`.",
                   "disabled": true
                 }
               ],
@@ -9543,6 +10879,12 @@
                   "value": "",
                   "description": "With `format=sql`: the table the `INSERT` statements name. Defaults to the dataset's name. A letter or `_`, then letters, digits or `_`, up to 63 characters.",
                   "disabled": true
+                },
+                {
+                  "key": "expand",
+                  "value": "",
+                  "description": "Embeds related records, comma-separated: `subdivision`. Paths go 2 levels deep at most, apply to the page only, and embed at most 5000 records in all; a related record that no longer exists is `null`.",
+                  "disabled": true
                 }
               ]
             },
@@ -9604,6 +10946,12 @@
                   "key": "table",
                   "value": "",
                   "description": "With `format=sql`: the table the `INSERT` statements name. Defaults to the dataset's name. A letter or `_`, then letters, digits or `_`, up to 63 characters.",
+                  "disabled": true
+                },
+                {
+                  "key": "expand",
+                  "value": "",
+                  "description": "Embeds related records, comma-separated: `subdivision`. Paths go 2 levels deep at most, apply to the page only, and embed at most 5000 records in all; a related record that no longer exists is `null`.",
                   "disabled": true
                 }
               ],

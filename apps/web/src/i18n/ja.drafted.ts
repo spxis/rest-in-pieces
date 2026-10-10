@@ -139,12 +139,20 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
     back: "Product reviews by users. Ratings come out close to the product's own rating.",
   },
   'dataset.countries': {
-    text: 'ISO の国コード・日本語と英語の名前・通貨・言語・国番号（国際電話）・首都・タイムゾーン・人口・面積・座標・陸上の国境・通行区分を持つ、すべての国と地域。Kuni の実在のデータなので `seed` は影響しません。互換性のため、`metadata=true` を指定しない限り全件を配列のまま返します。ISO が廃止した国コードは `/countries/withdrawn` にあります。',
-    back: "Every country and region with its ISO country code, names in Japanese and English, currencies, languages, calling country codes (international phone), capital, time zones, population, area, coordinates, land borders and which side of the road traffic keeps to. It is Kuni's real data, so `seed` has no effect. For compatibility it returns everything as a plain array unless `metadata=true` is given. The country codes ISO has withdrawn are at `/countries/withdrawn`.",
+    text: 'ISO の国コード・日本語と英語の名前・通貨・言語・国番号（国際電話）・首都・タイムゾーン・人口・面積・座標・陸上の国境・通行区分を持つ、すべての国と地域。Kuni の実在のデータなので `seed` は影響しません。互換性のため、`metadata=true` を指定しない限り全件を配列のまま返します。行政区画は `/countries/{code}/subdivisions`、ISO が廃止した国コードは `/countries/withdrawn` にあります。',
+    back: "Every country and region with its ISO country code, names in Japanese and English, currencies, languages, calling country codes (international phone), capital, time zones, population, area, coordinates, land borders and which side of the road traffic keeps to. It is Kuni's real data, so `seed` has no effect. For compatibility it returns everything as a plain array unless `metadata=true` is given. Administrative divisions are at `/countries/{code}/subdivisions`, and the country codes ISO has withdrawn are at `/countries/withdrawn`.",
   },
   'dataset.withdrawn': {
     text: 'ISO 3166-3 で廃止された国コードを持つ国。ソビエト連邦（SU）、ユーゴスラビア（YU）、チェコスロバキア（CS）、東ドイツ（DD）、ザイール（ZR）など。各国が使っていたコード、日本語と英語の名前、そのコードが使われた期間、後継の国を持ちます。`/countries` には含まれません。実在のデータなので `seed` は影響しません。',
     back: 'Countries whose country codes were withdrawn in ISO 3166-3: the Soviet Union (SU), Yugoslavia (YU), Czechoslovakia (CS), East Germany (DD), Zaire (ZR) and others. Each has the codes it used, names in Japanese and English, the period the code was in use, and its successor countries. They are not included in `/countries`. It is real data, so `seed` has no effect.',
+  },
+  'dataset.subdivisions': {
+    text: '州・省・県・郡・地域・ドイツの州など、ISO 3166-2 の行政区画。200 か国、5,050 件で、コード・種類・階層・親・日本語と英語の名前・州都などの中心都市・人口・面積・座標を持ちます。実在のデータなので `seed` は影響しません。`country=JP`、`type=prefecture`、`level=1` などで絞り込めます。',
+    back: 'ISO 3166-2 administrative divisions: states, provinces, prefectures, counties, regions, German states and so on. 200 countries and 5,050 entries, each with a code, kind, level, parent, names in Japanese and English, a central city such as a state capital, population, area and coordinates. It is real data, so `seed` has no effect. You can narrow it with `country=JP`, `type=prefecture`, `level=1` and so on.',
+  },
+  'dataset.groupings': {
+    text: 'EU・G7・ASEAN などの国のグループと、国内の地方区分。7 つの大陸、国連の地域区分、加盟・脱退の日付つきの国際機関 23 件、中東やバルカン半島などの非公式なグループ 16 件、日本の地方などを含む 107 件です。実在のデータなので `seed` は影響しません。`kind=membership` や `members=JP` で絞り込めます。',
+    back: 'Groups of countries such as the EU, G7 and ASEAN, and regional divisions inside a country. 107 entries, including the seven continents, the UN regional divisions, 23 international organizations with join and leave dates, 16 informal groups such as the Middle East and the Balkans, and the regions of Japan. It is real data, so `seed` has no effect. You can narrow it with `kind=membership` or `members=JP`.',
   },
 
   'scenario.heading': { text: '再現できるシナリオ', back: 'Scenarios you can reproduce' },
