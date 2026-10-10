@@ -21,6 +21,7 @@
  */
 import { mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
+import { CSV_BOM, toCsv, toNdjson, toSql } from '@johnmorrisdotca/rest-in-pieces/serialize';
 import { DEFAULT_LOCALE_ONLY, FIXTURE_SEED } from './fixtures.ts';
 
 /** How many records of each dataset the static API holds, which the API caps with `max`. */
@@ -29,6 +30,17 @@ export const STATIC_RECORDS = 100;
 export const STATIC_PAGE_SIZE = 10;
 /** Locales written besides the default one, each in a folder of its own. */
 export const STATIC_LOCALES: readonly string[] = ['ja'];
+/**
+ * Datasets the static API writes for the default locale only: those the fixtures leave out of other locales, and the
+ * countries and withdrawn countries, whose records carry their names in English and Japanese (`names`) and whose `name` is
+ * the only thing the locale changes. A Japanese copy of 250 countries and their nested lists would be 33 MB of files that
+ * say the same; `?locale=ja` on the API gives it.
+ */
+export const STATIC_DEFAULT_LOCALE_ONLY: ReadonlySet<string> = new Set([
+  ...DEFAULT_LOCALE_ONLY,
+  'countries',
+  'withdrawn',
+]);
 /** The JSONPlaceholder-shaped tree: its resources, and the lists each one owns. */
 export const PLACEHOLDER_FOLDER = 'jsonplaceholder';
 export const PLACEHOLDER_NESTED: Readonly<Record<string, readonly string[]>> = {
@@ -38,6 +50,12 @@ export const PLACEHOLDER_NESTED: Readonly<Record<string, readonly string[]>> = {
   todos: [],
 };
 export const STATIC_INDEX_FILE = 'index.json';
+/**
+ * The formats written beside every `.json`, made by the API's own serializers (`?format=csv`, `ndjson`, `sql`): CSV with the
+ * UTF-8 byte order mark the API writes, so Excel reads Japanese; one JSON record a line; and an `INSERT` for each record,
+ * into a table named for the dataset. YAML and XML are the API's, not the files'.
+ */
+export const STATIC_FORMATS = ['csv', 'ndjson', 'sql'] as const;
 /**
  * Lists a record owns that the static API does not write: a subdivision's `children` are the subdivisions whose `parent` it
  * is, and 5,050 files of them (most empty) would add nothing the country's own list (`countries/FR/subdivisions.json`) lacks.
@@ -88,7 +106,9 @@ export interface StaticApiIndex {
   defaultLocale: string;
   /** Every locale folder: the default one is the root, written `''`. */
   folders: Record<string, string>;
-  /** Templates for the paths, `{dataset}`, `{page}`, `{id}` and `{list}` filled in. */
+  /** The formats every file is written in: `json`, and beside it `csv`, `ndjson` and `sql`. */
+  formats: string[];
+  /** Templates for the paths, `{dataset}`, `{page}`, `{id}`, `{list}` and `{format}` filled in. */
   paths: { list: string; page: string; item: string; nested: string };
   datasets: Record<string, StaticDataset[]>;
   jsonplaceholder: { folder: string; lists: Record<string, number>; nested: Record<string, readonly string[]> };
@@ -150,13 +170,22 @@ export async function writeStaticApi(app: FetchApp, dir: string, baseUrl: string
   for (const code of STATIC_LOCALES) if (!known.has(code)) throw new Error(`/locales has no ${code}`);
 
   let files = 0;
-  const write = (path: string, text: string) => {
+  const write = (path: string, text: string | Uint8Array) => {
     const target = join(dir, path);
     mkdirSync(join(target, '..'), { recursive: true });
     writeFileSync(target, text);
     files += 1;
   };
   const url = (path: string) => baseUrl + path;
+  /** The same response as CSV, NDJSON and SQL, beside `stem.json`, byte for byte as the API writes it (the CSV's byte order mark too). */
+  const writeFormats = async (stems: string[], request: string) => {
+    for (const format of STATIC_FORMATS) {
+      const bytes = new Uint8Array(
+        await (await ok(app, `${request}${request.includes('?') ? '&' : '?'}format=${format}`)).arrayBuffer(),
+      );
+      for (const stem of stems) write(`${stem}.${format}`, bytes);
+    }
+  };
 
   const datasets: Record<string, StaticDataset[]> = {};
   const folders: Record<string, string> = { [defaultLocale]: '' };
@@ -165,7 +194,7 @@ export async function writeStaticApi(app: FetchApp, dir: string, baseUrl: string
   for (const [code, folder] of Object.entries(folders)) {
     datasets[code] = [];
     for (const resource of resources) {
-      if (code !== defaultLocale && DEFAULT_LOCALE_ONLY.has(resource.name)) continue;
+      if (code !== defaultLocale && STATIC_DEFAULT_LOCALE_ONLY.has(resource.name)) continue;
       // A seeded dataset is cut to its first records; real reference data (countries, regions) is whole, as it is small.
       const query = `${resource.seeded ? `seed=${FIXTURE_SEED}&` : ''}locale=${code}${resource.seeded ? `&max=${STATIC_RECORDS}` : ''}`;
       const name = resource.name;
@@ -191,12 +220,18 @@ export async function writeStaticApi(app: FetchApp, dir: string, baseUrl: string
         const text = JSON.stringify(body);
         write(pageFile(page), text);
         if (page === 1) write(`${folder}${name}.json`, text);
+        const pageStem = `${folder}${name}/page/${page}`;
+        await writeFormats(
+          page === 1 ? [pageStem, `${folder}${name}`] : [pageStem],
+          `${route(resource)}?${query}&limit=${STATIC_PAGE_SIZE}&offset=${(page - 1) * STATIC_PAGE_SIZE}`,
+        );
       }
       if (ids.length !== records) throw new Error(`${name} gave ${ids.length} records, not ${records}`);
       // A dataset may repeat an id (the country list repeats five codes); the API answers an id with its first record.
       for (const id of new Set(ids)) {
         if (!SAFE_ID.test(id)) throw new Error(`${name} has an id that cannot be a file name: ${id}`);
         write(`${folder}${name}/${id}.json`, await (await ok(app, `${route(resource)}/${id}?${query}`)).text());
+        await writeFormats([`${folder}${name}/${id}`], `${route(resource)}/${id}?${query}`);
         for (const list of nestedHeld) {
           const response = await ok(app, `${route(resource)}/${id}/${list}?${query}&limit=1000`);
           const body = (await response.json()) as { metadata?: { total?: number } };
@@ -204,11 +239,26 @@ export async function writeStaticApi(app: FetchApp, dir: string, baseUrl: string
           const count = recordsOf(body).length;
           if (count !== Number(body.metadata?.total ?? count)) throw new Error(`${own} is longer than one file holds`);
           write(own, JSON.stringify(relink(body, (page) => (page === 1 ? url(own) : null))));
+          await writeFormats(
+            [`${folder}${name}/${id}/${list}`],
+            `${route(resource)}/${id}/${list}?${query}&limit=1000`,
+          );
         }
       }
       datasets[code].push({ name, idField: resource.idField, records, pages, nested: nestedHeld });
     }
   }
+
+  /**
+   * The formats of a JSONPlaceholder list or record, written from the records as the JSON holds them, by the same functions:
+   * the compat route reshapes only its JSON (users carry `name`, `address` and `company`), so asking it for CSV would
+   * not give the records the JSON has.
+   */
+  const writeFormatsOf = (stem: string, records: readonly unknown[], table: string) => {
+    write(`${stem}.csv`, `${CSV_BOM}${toCsv(records)}`);
+    write(`${stem}.ndjson`, toNdjson(records));
+    write(`${stem}.sql`, toSql(records, table));
+  };
 
   // JSONPlaceholder's shapes: bare arrays as long as its own, and the nested lists its tutorials use.
   const lists: Record<string, number> = {};
@@ -217,13 +267,17 @@ export async function writeStaticApi(app: FetchApp, dir: string, baseUrl: string
     const records = recordsOf(await json(app, base));
     lists[name] = records.length;
     write(`${PLACEHOLDER_FOLDER}/${name}.json`, JSON.stringify(records));
+    writeFormatsOf(`${PLACEHOLDER_FOLDER}/${name}`, records, name);
     for (const record of records) {
       const id = String(record.id);
       if (!SAFE_ID.test(id)) throw new Error(`${name} has an id that cannot be a file name: ${id}`);
-      write(`${PLACEHOLDER_FOLDER}/${name}/${id}.json`, await (await ok(app, `${base}/${id}`)).text());
+      const item = await (await ok(app, `${base}/${id}`)).text();
+      write(`${PLACEHOLDER_FOLDER}/${name}/${id}.json`, item);
+      writeFormatsOf(`${PLACEHOLDER_FOLDER}/${name}/${id}`, [JSON.parse(item)], name);
       for (const list of nested) {
         const body = recordsOf(await json(app, `${base}/${id}/${list}`));
         write(`${PLACEHOLDER_FOLDER}/${name}/${id}/${list}.json`, JSON.stringify(body));
+        writeFormatsOf(`${PLACEHOLDER_FOLDER}/${name}/${id}/${list}`, body, list);
       }
     }
   }
@@ -235,11 +289,12 @@ export async function writeStaticApi(app: FetchApp, dir: string, baseUrl: string
     pageSize: STATIC_PAGE_SIZE,
     defaultLocale,
     folders,
+    formats: ['json', ...STATIC_FORMATS],
     paths: {
-      list: '{dataset}.json',
-      page: '{dataset}/page/{page}.json',
-      item: '{dataset}/{id}.json',
-      nested: '{dataset}/{id}/{list}.json',
+      list: '{dataset}.{format}',
+      page: '{dataset}/page/{page}.{format}',
+      item: '{dataset}/{id}.{format}',
+      nested: '{dataset}/{id}/{list}.{format}',
     },
     datasets,
     jsonplaceholder: { folder: PLACEHOLDER_FOLDER, lists, nested: PLACEHOLDER_NESTED },

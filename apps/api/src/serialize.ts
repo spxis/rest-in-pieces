@@ -1,6 +1,6 @@
 /**
- * NDJSON and SQL from records. Pure functions with no imports, so the API's `format=ndjson` and `format=sql`
- * and the playground's downloads write exactly the same text.
+ * CSV, NDJSON and SQL from records. Pure functions with no imports, so the API's `format=csv`, `format=ndjson` and
+ * `format=sql`, the playground's downloads and the static API's files write exactly the same text.
  */
 
 /** One JSON object per line, each line ending in `\n`: what `jq -c`, BigQuery, ClickHouse and log tools read. */
@@ -51,3 +51,21 @@ export function toSql(records: readonly unknown[], table: string): string {
   const into = `INSERT INTO ${sqlIdentifier(table)} (${columns.map(sqlIdentifier).join(', ')}) VALUES `;
   return rows.map((row) => `${into}(${columns.map((column) => sqlValue(row[column])).join(', ')});\n`).join('');
 }
+
+export function csvCell(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  const text = typeof value === 'object' ? JSON.stringify(value) : String(value);
+  return /[",\r\n]/.test(text) || text !== text.trim() ? `"${text.replaceAll('"', '""')}"` : text;
+}
+
+/** RFC 4180 CSV. A table has no room for metadata, so only the records are written; nested values become JSON. */
+export function toCsv(records: readonly unknown[]): string {
+  const rows = records.map((record) => (record && typeof record === 'object' ? record : { value: record }));
+  const columns = [...new Set(rows.flatMap((row) => Object.keys(row)))];
+  if (columns.length === 0) return '';
+  const lines = rows.map((row) => columns.map((column) => csvCell((row as Record<string, unknown>)[column])).join(','));
+  return `${[columns.map(csvCell).join(','), ...lines].join('\r\n')}\r\n`;
+}
+
+/** Excel reads a CSV without a byte-order mark as Windows-1252, which garbles anything outside ASCII. */
+export const CSV_BOM = '\uFEFF';

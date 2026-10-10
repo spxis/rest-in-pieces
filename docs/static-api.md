@@ -16,6 +16,28 @@ curl https://spxis.github.io/rest-in-pieces/api/ja/products.json       # the fir
 curl https://spxis.github.io/rest-in-pieces/api/index.json             # what is here
 ```
 
+## CSV, NDJSON and SQL beside every JSON
+
+Every `.json` has the same records as `.csv`, `.ndjson` and `.sql` beside it, so a spreadsheet, a data tool or a database can read a file as it is: `api/users.csv`, `api/users/page/2.csv`, `api/users/1.csv`, `api/users/1/orders.sql`, `api/ja/products.csv`. They are written by the API's own serializers (`?format=csv`, `ndjson` and `sql`), so they are byte for byte what the live API answers: the CSV carries the UTF-8 byte order mark Excel needs to read Japanese, the NDJSON is one JSON record a line, and the SQL is an `INSERT` for each record into a table named for the dataset (`users`, and `orders` for `users/1/orders.sql`), in standard double-quoted SQL that SQLite, PostgreSQL and DuckDB read. There is no YAML or XML here; the live API has them. `api/index.json` lists the formats (`formats`) and the path templates take a `{format}`.
+
+```sh
+curl https://spxis.github.io/rest-in-pieces/api/users.csv                        # Excel, Numbers, pandas, R
+curl https://spxis.github.io/rest-in-pieces/api/users.sql | sqlite3 test.db      # into a table you made (`users`, with these columns)
+curl https://spxis.github.io/rest-in-pieces/api/users.ndjson | jq .email         # jq, BigQuery, DuckDB
+```
+
+| Tool | How |
+| ---- | --- |
+| Google Sheets | `=IMPORTDATA("https://spxis.github.io/rest-in-pieces/api/users.csv")` |
+| Excel | Data, From Web, with the address of a `.csv` (it reads Japanese correctly because of the byte order mark) |
+| Python (pandas) | `pandas.read_csv("https://spxis.github.io/rest-in-pieces/api/ja/users.csv")` |
+| R | `read.csv("https://spxis.github.io/rest-in-pieces/api/users.csv", fileEncoding = "UTF-8-BOM")` |
+| SQLite | `curl …/users.sql \| sqlite3 test.db` into a table of that name you have made (its `INSERT`s name every column); with no table yet, `curl …/users.csv > users.csv` then `sqlite3 test.db ".import --csv users.csv users"` makes it from the header |
+| `jq` | `curl …/users.ndjson \| jq -c .` (one record a line) |
+| DuckDB | `SELECT * FROM read_csv('https://…/users.csv')` or `read_json('…/users.ndjson')` |
+
+GitHub Pages sends a `.csv` as `text/csv`, but a `.ndjson` and a `.sql` as a generic download (it knows no content type for them): `curl`, `fetch(...).text()`, pandas and DuckDB read them as they are, and a browser opens them as a download rather than showing them, which is what you want for a file to import. Each file of a list is the page it names, ten records, like its `.json`.
+
 ## Paths
 
 GitHub Pages serves files, and cannot read a query string, so the page number is in the path and every address ends in `.json`. That ending is also how Pages knows to send the file as JSON.
@@ -27,10 +49,11 @@ GitHub Pages serves files, and cannot read a query string, so the page number is
 | `api/{dataset}/page/{n}.json` | Page `n` of ten records; `metadata.links` point at the neighbouring files, and `next` is `null` on the last |
 | `api/{dataset}/{id}.json` | One record, exactly as `GET /{dataset}/{id}` answers it |
 | `api/{dataset}/{id}/{list}.json` | The records one record owns, such as `users/1/orders.json` or `posts/1/comments.json` |
+| the same, ending `.csv`, `.ndjson` or `.sql` | The same records in that format: see above |
 | `api/ja/…` | The same tree with Japanese data (`?locale=ja`) |
 | `api/jsonplaceholder/…` | The JSONPlaceholder-shaped tree, below |
 
-Every dataset is here: `names`, `users`, `products`, `companies`, `countries` (all 250), `subdivisions` (all 5,050, in the default locale only, with `countries/{code}/subdivisions.json` for each country's own list), `groupings` (all 107, default locale only), `addresses` (the first 100 at seed 1, default locale only), `withdrawn` (the 31 withdrawn countries, at `withdrawn.json`: a file cannot be under `countries/`, whose folder holds a file for each country), `orders`, `posts`, `comments`, `todos`, `reviews`, `invoices`, `transactions`, `events`, `messages`, `notifications`, `jobs`, `places`, `metrics`, `logs` and the four synthetic-patient sets. `api/index.json` lists them with their relations, so a script can discover the tree instead of hard-coding it:
+Every dataset is here: `names`, `users`, `products`, `companies`, `countries` (all 250, default locale only: `names` has both languages), `subdivisions` (all 5,050, in the default locale only, with `countries/{code}/subdivisions.json` for each country's own list), `groupings` (all 107, default locale only), `addresses` (the first 100 at seed 1, default locale only), `withdrawn` (the 31 withdrawn countries, at `withdrawn.json`: a file cannot be under `countries/`, whose folder holds a file for each country), `orders`, `posts`, `comments`, `todos`, `reviews`, `invoices`, `transactions`, `events`, `messages`, `notifications`, `jobs`, `places`, `metrics`, `logs` and the four synthetic-patient sets. `api/index.json` lists them with their relations, so a script can discover the tree instead of hard-coding it:
 
 ```js
 const index = await (await fetch(`${base}index.json`)).json();
@@ -63,4 +86,4 @@ Albums and photos have no counterpart, as with the [`/jsonplaceholder`](https://
 
 ## How it is made
 
-`pnpm --filter @rest-in-pieces/web build:pages` writes it. `apps/web/scripts/staticApi.ts` asks the API itself (`/resources` and `/locales`), so a new dataset gets its files with no change there, and `metadata.links` are rewritten to the files that answer them. It adds about 6,400 files and 6 MB, written in about a second, to the Pages build. `apps/web/scripts/staticApi.test.ts` checks that every link leads to a file, that every record on a page has its own file, that a record equals the API's answer, and that the sizes stay small.
+`pnpm --filter @rest-in-pieces/web build:pages` writes it. `apps/web/scripts/staticApi.ts` asks the API itself (`/resources` and `/locales`), so a new dataset gets its files with no change there, and `metadata.links` are rewritten to the files that answer them. It adds about 52,000 files and 67 MB (6,400 files and 6 MB before the formats and the reference data), written in under a minute, to the Pages build. `apps/web/scripts/staticApi.test.ts` checks that every link leads to a file, that every record on a page has its own file, that a record equals the API's answer, and that the sizes stay small.

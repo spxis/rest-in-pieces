@@ -100,7 +100,7 @@ Open a working React, Vue or Next.js app in your browser, with no account: [Reac
 
 ### Nothing to install: a public static API
 
-For a tutorial, a CodePen or a classroom, the demo site also serves a small read-only copy of the API as plain files, with CORS open and no key. A page number is in the path, and every address ends in `.json`:
+For a tutorial, a CodePen or a classroom, the demo site also serves a read-only copy of the API as plain files, with CORS open and no key. A page number is in the path, and every address ends in `.json`, `.csv`, `.ndjson` or `.sql`:
 
 ```js
 const base = 'https://spxis.github.io/rest-in-pieces/api/';
@@ -109,7 +109,9 @@ const user = await (await fetch(`${base}users/1.json`)).json();      // one user
 // also products/page/2.json, users/1/orders.json, ja/products.json, jsonplaceholder/posts/1/comments.json
 ```
 
-Every dataset is there, with its first 100 records at seed 1 in English (Canada) and Japanese, and a JSONPlaceholder-shaped tree. It cannot take a query string, filters, writes or a failure drill; those need the API itself (`npx`, Docker, Vite or MSW). [docs/static-api.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/static-api.md) has every path and limit.
+Every `.json` has the same records as a `.csv`, `.ndjson` and `.sql` beside it, written by the API's own serializers, so a spreadsheet or a database reads a file as it is: Google Sheets `=IMPORTDATA("…/api/users.csv")`, Excel's Data, From Web, `pandas.read_csv("…/api/users.csv")`, R `read.csv("…/api/users.csv", fileEncoding = "UTF-8-BOM")`, `curl …/api/users.sql | sqlite3 test.db`, `curl …/api/users.ndjson | jq .` (the CSV has the byte order mark Excel needs for Japanese; Pages serves the `.ndjson` and `.sql` as downloads, which suits those tools).
+
+Every dataset is there, the seeded ones with their first 100 records at seed 1 in English (Canada) and Japanese, the real reference data whole, and a JSONPlaceholder-shaped tree. It cannot take a query string, filters, writes or a failure drill; those need the API itself (`npx`, Docker, Vite or MSW). [docs/static-api.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/static-api.md) has every path, format and limit.
 
 ## Use with
 

@@ -1,7 +1,7 @@
 import { XMLBuilder } from 'fast-xml-parser';
 import type { Context } from 'hono';
 import { stringify as toYaml } from 'yaml';
-import { SQL_TABLE, SqlTableError, toNdjson, toSql } from '../serialize.ts';
+import { CSV_BOM, SQL_TABLE, SqlTableError, toCsv, toNdjson, toSql } from '../serialize.ts';
 
 export const FORMATS = ['json', 'csv', 'yaml', 'xml', 'ndjson', 'sql'] as const;
 export type Format = (typeof FORMATS)[number];
@@ -48,23 +48,7 @@ export function plain(value: unknown): unknown {
   return value;
 }
 
-export function csvCell(value: unknown): string {
-  if (value === null || value === undefined) return '';
-  const text = typeof value === 'object' ? JSON.stringify(value) : String(value);
-  return /[",\r\n]/.test(text) || text !== text.trim() ? `"${text.replaceAll('"', '""')}"` : text;
-}
-
-/** RFC 4180 CSV. A table has no room for metadata, so only the records are written; nested values become JSON. */
-export function toCsv(records: readonly unknown[]): string {
-  const rows = records.map((record) => (record && typeof record === 'object' ? record : { value: record }));
-  const columns = [...new Set(rows.flatMap((row) => Object.keys(row)))];
-  if (columns.length === 0) return '';
-  const lines = rows.map((row) => columns.map((column) => csvCell((row as Record<string, unknown>)[column])).join(','));
-  return `${[columns.map(csvCell).join(','), ...lines].join('\r\n')}\r\n`;
-}
-
-/** Excel reads a CSV without a byte-order mark as Windows-1252, which garbles anything outside ASCII. */
-export const CSV_BOM = '\uFEFF';
+export { CSV_BOM, csvCell, toCsv } from '../serialize.ts';
 
 const XML_NAME = /^[A-Za-z_][\w.-]*$/;
 

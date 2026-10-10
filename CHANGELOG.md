@@ -71,6 +71,19 @@ Changed:
 
 - The test of `delay` and `trickle` together moves its fake clock only to the timers the response sets, never by a fixed step, which could carry it past the finish on a slow machine. That stopped the release run of 2.24.0 before publishing, so this release is the first on npm with the starters and the Postman and Bruno collections listed for 2.24.0.
 
+### Static API in CSV, NDJSON and SQL (one minor release)
+
+Added:
+
+- Every `.json` of the GitHub Pages static API has the same records as a `.csv`, a `.ndjson` and a `.sql` beside it: `api/users.csv`, `api/users/page/2.csv`, `api/users/1.csv`, `api/users/1/orders.sql`, `api/ja/products.csv`, `api/jsonplaceholder/posts.ndjson`. They are made by the API's own serializers (`?format=csv`, `ndjson`, `sql`), so they are what the live API answers byte for byte: CSV with the UTF-8 byte order mark, so Excel reads Japanese; NDJSON one record a line; SQL an `INSERT` for each record into a table named for the dataset (`orders` for `users/1/orders.sql`). No YAML or XML. `api/index.json` lists them (`formats`, and `{format}` in each path template).
+- Spreadsheets and databases read a file as it is: Google Sheets `=IMPORTDATA("…/api/users.csv")`, Excel's From Web, `pandas.read_csv(url)`, R `read.csv(url)`, `curl …/users.sql | sqlite3 test.db`, `curl …/users.ndjson | jq`. Pages serves a `.csv` as `text/csv` and a `.ndjson` and `.sql` as downloads, which those tools read as they are. [docs/static-api.md](docs/static-api.md) and the README's zero-install section have the recipes.
+- `toCsv`, `csvCell` and `CSV_BOM` join `toNdjson` and `toSql` in `@johnmorrisdotca/rest-in-pieces/serialize`, the pure functions the API, the playground and the static files all use.
+- `apps/web/scripts/staticApi.test.ts` checks that every `.json` has its three siblings and every sibling its `.json`, that the NDJSON, CSV and SQL of a page, a record and a list hold the JSON's records, that the CSV is the API's bytes, and that the CSV of a Japanese page parses back to the JSON's records.
+
+Changed:
+
+- The static API is larger: 6.0 MB in 6,367 files before 2.25 (JSON only, first 100 records of each seeded dataset) and 67 MB in 51,983 files now: 19 MB of JSON (of which the real reference data, whole, is 13 MB) and 48 MB of CSV, NDJSON and SQL. The countries and withdrawn countries are written for the default locale only (their `names` hold both languages), which keeps a Japanese copy of 250 countries and their lists (33 MB) out. Written in under a minute.
+
 ## 2.24.0 - 2026-10-09
 
 ### Added

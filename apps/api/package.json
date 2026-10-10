@@ -109,7 +109,9 @@
     "postcodes",
     "address-generator",
     "fake-addresses",
-    "zip-codes"
+    "zip-codes",
+    "csv-api",
+    "google-sheets"
   ],
   "homepage": "https://spxis.github.io/rest-in-pieces/",
   "bugs": "https://github.com/spxis/rest-in-pieces/issues",

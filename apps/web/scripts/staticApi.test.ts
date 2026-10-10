@@ -4,10 +4,11 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createApp } from '@johnmorrisdotca/rest-in-pieces/core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { DEFAULT_LOCALE_ONLY } from './fixtures.ts';
 import {
   PLACEHOLDER_NESTED,
   relink,
+  STATIC_DEFAULT_LOCALE_ONLY,
+  STATIC_FORMATS,
   STATIC_INDEX_FILE,
   STATIC_LOCALES,
   STATIC_PAGE_SIZE,
@@ -54,8 +55,8 @@ describe('the static API', () => {
     expect(read(STATIC_INDEX_FILE)).toEqual(JSON.parse(JSON.stringify(index)));
     expect(index.base).toBe(BASE);
     for (const file of files) {
-      expect(file.endsWith('.json'), file).toBe(true);
-      expect(() => read(file), file).not.toThrow();
+      expect(/\.(json|csv|ndjson|sql)$/.test(file), file).toBe(true);
+      if (file.endsWith('.json')) expect(() => read(file), file).not.toThrow();
     }
   });
 
@@ -64,7 +65,9 @@ describe('the static API', () => {
     expect(Object.keys(index.datasets)).toEqual([index.defaultLocale, ...STATIC_LOCALES]);
     for (const [locale, datasets] of Object.entries(index.datasets)) {
       const folder = index.folders[locale];
-      const expected = resources.filter(({ name }) => locale === index.defaultLocale || !DEFAULT_LOCALE_ONLY.has(name));
+      const expected = resources.filter(
+        ({ name }) => locale === index.defaultLocale || !STATIC_DEFAULT_LOCALE_ONLY.has(name),
+      );
       expect(datasets.map((dataset) => dataset.name)).toEqual(expected.map(({ name }) => name));
       for (const dataset of datasets) {
         // Seeded data is cut to its first hundred; real reference data (countries, regions) is whole.
@@ -90,7 +93,7 @@ describe('the static API', () => {
 
   it('points every link at a file that exists, and never at the API or a cursor', () => {
     let linked = 0;
-    for (const file of files) {
+    for (const file of [...files].filter((one) => one.endsWith('.json'))) {
       const metadata = (read(file) as Doc).metadata;
       if (!metadata) continue;
       expect(metadata.nextCursor).toBeNull();
@@ -146,7 +149,8 @@ describe('the static API', () => {
 
   it('keeps every file small enough to open in a browser tab', () => {
     for (const file of files) {
-      expect(statSync(join(dir, file)).size, file).toBeLessThan(400_000);
+      // A JSON file is one page or one record's list; the SQL and NDJSON of the same JSONPlaceholder list are a little longer.
+      expect(statSync(join(dir, file)).size, file).toBeLessThan(file.endsWith('.json') ? 400_000 : 600_000);
     }
   });
 });
@@ -171,6 +175,130 @@ describe('relink', () => {
   });
 });
 
+describe('the formats beside every JSON file', () => {
+  const json = () => [...files].filter((file) => file.endsWith('.json') && file !== STATIC_INDEX_FILE);
+  /** The records of a JSON file, whether it is an envelope, a bare array or one record. */
+  const recordsOf = (file: string): Record<string, unknown>[] => {
+    const body = read(file) as unknown;
+    if (Array.isArray(body)) return body as Record<string, unknown>[];
+    const envelope = body as { results?: Record<string, unknown>[] };
+    return envelope.results ?? [body as Record<string, unknown>];
+  };
+
+  it('has a .csv, a .ndjson and a .sql for every .json, and lists the formats in index.json', () => {
+    expect(index.formats).toEqual(['json', 'csv', 'ndjson', 'sql']);
+    expect(index.paths.item).toBe('{dataset}/{id}.{format}');
+    for (const file of json()) {
+      for (const format of STATIC_FORMATS)
+        expect(files.has(file.replace(/\.json$/, `.${format}`)), `${file} has no .${format}`).toBe(true);
+    }
+    // And nothing else: every csv, ndjson and sql file has a .json beside it.
+    for (const file of files) {
+      if (/\.(csv|ndjson|sql)$/.test(file))
+        expect(files.has(file.replace(/\.[a-z]+$/, '.json')), `${file} has no .json`).toBe(true);
+    }
+  });
+
+  it('holds the same records as the JSON, by spot-checking a page, a record and a list in each format', () => {
+    for (const stem of [
+      'users/page/2',
+      'users/1',
+      'users/1/orders',
+      'ja/products',
+      'countries/JP',
+      'withdrawn/SUHH',
+      'jsonplaceholder/posts',
+    ]) {
+      const records = recordsOf(`${stem}.json`);
+      const ndjson = readFileSync(join(dir, `${stem}.ndjson`), 'utf8')
+        .trim()
+        .split('\n')
+        .map((line) => JSON.parse(line) as Record<string, unknown>);
+      expect(ndjson, stem).toEqual(records);
+      const csv = readFileSync(join(dir, `${stem}.csv`), 'utf8')
+        .replace(/^\uFEFF/, '')
+        .trim()
+        .split('\r\n');
+      expect(csv.length, stem).toBeGreaterThanOrEqual(records.length + 1);
+      expect(csv[0]?.split(',')[0], stem).toBe(Object.keys(records[0] ?? {})[0]);
+      const sql = readFileSync(join(dir, `${stem}.sql`), 'utf8');
+      expect(sql.match(/^INSERT INTO /gm)?.length, stem).toBe(records.length);
+    }
+  });
+
+  it('names the SQL table for the dataset, or the list it belongs to', () => {
+    expect(readFileSync(join(dir, 'users.sql'), 'utf8')).toContain('INSERT INTO "users"');
+    expect(readFileSync(join(dir, 'users/1/orders.sql'), 'utf8')).toContain('INSERT INTO "orders"');
+    expect(readFileSync(join(dir, 'ja/products.sql'), 'utf8')).toContain('INSERT INTO "products"');
+    expect(readFileSync(join(dir, 'withdrawn.sql'), 'utf8')).toContain('INSERT INTO "withdrawn"');
+  });
+
+  it("is the API's own text: the same bytes as its format=csv, with the byte order mark Excel needs for Japanese", async () => {
+    const live = new Uint8Array(
+      await (await app.request('/products?seed=1&locale=ja&max=100&limit=10&offset=0&format=csv')).arrayBuffer(),
+    );
+    const written = new Uint8Array(readFileSync(join(dir, 'ja/products.csv')));
+    expect(Array.from(written.slice(0, 3))).toEqual([0xef, 0xbb, 0xbf]);
+    expect(written).toEqual(live);
+  });
+
+  it('round-trips a Japanese page: parsing the CSV gives the records of the JSON', () => {
+    const rows = parseCsv(readFileSync(join(dir, 'ja/users.csv'), 'utf8').replace(/^\uFEFF/, ''));
+    const records = recordsOf('ja/users.json');
+    expect(rows.length).toBe(records.length);
+    const header = Object.keys(records[0] ?? {});
+    expect(header).toContain('firstNameKana');
+    rows.forEach((row, at) => {
+      const record = records[at] ?? {};
+      for (const [column, value] of Object.entries(row)) {
+        const original = record[column];
+        expect(value, `${column} of row ${at}`).toBe(
+          original === null || original === undefined
+            ? ''
+            : typeof original === 'object'
+              ? JSON.stringify(original)
+              : String(original),
+        );
+      }
+    });
+    expect(rows[0]?.firstName).toMatch(/[\u3040-\u30ff\u4e00-\u9fff]/);
+  });
+});
+
+/** A CSV as the API writes it (RFC 4180: quoted cells, doubled quotes, CRLF), as one object a row. */
+function parseCsv(text: string): Record<string, string>[] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = '';
+  let quoted = false;
+  for (let i = 0; i < text.length; i += 1) {
+    const char = text[i] as string;
+    if (quoted) {
+      if (char === '"' && text[i + 1] === '"') {
+        cell += '"';
+        i += 1;
+      } else if (char === '"') quoted = false;
+      else cell += char;
+    } else if (char === '"') quoted = true;
+    else if (char === ',') {
+      row.push(cell);
+      cell = '';
+    } else if (char === '\r' && text[i + 1] === '\n') {
+      row.push(cell);
+      rows.push(row);
+      row = [];
+      cell = '';
+      i += 1;
+    } else cell += char;
+  }
+  if (cell !== '' || row.length > 0) {
+    row.push(cell);
+    rows.push(row);
+  }
+  const [header = [], ...body] = rows;
+  return body.map((values) => Object.fromEntries(header.map((name, at) => [name, values[at] ?? ''])));
+}
+
 describe('the real reference data', () => {
   it("holds every subdivision and grouping, in the default locale only, and each country's own list", () => {
     const default_ = index.datasets[index.defaultLocale] ?? [];
@@ -187,7 +315,8 @@ describe('the real reference data', () => {
       nested: ['successors'],
     });
     const japanese = index.datasets.ja?.map((dataset) => dataset.name) ?? [];
-    expect(japanese).toContain('countries');
+    expect(japanese).not.toContain('countries');
+    expect(japanese).toContain('products');
     expect(japanese).not.toContain('subdivisions');
     expect(japanese).not.toContain('groupings');
     const japan = read('countries/JP/subdivisions.json').results ?? [];
