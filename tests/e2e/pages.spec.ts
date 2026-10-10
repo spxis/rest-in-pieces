@@ -94,6 +94,7 @@ test('opens the use cases from its own address, in Japanese, on a phone', async 
   await playAll(page);
   expect(await sidewaysOverflow(page)).toBe(0);
   expect(errors).toEqual([]);
+});
 
 // The static API: plain files with the page number in the path, so any client can fetch them with no server.
 test('serves the static API as plain JSON files that link to each other', async ({ request }) => {
