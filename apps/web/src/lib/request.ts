@@ -294,3 +294,39 @@ export function extractRows(body: unknown): Array<Record<string, unknown>> | nul
     ? (rows as Array<Record<string, unknown>>)
     : null;
 }
+
+/** The streams the API plays, by the dataset each one is. */
+export const STREAM_NAMES = ['messages', 'notifications', 'metrics', 'logs'] as const;
+export type StreamName = (typeof STREAM_NAMES)[number];
+
+/** The most events the playground asks one stream for, and the API's own ceiling. */
+export const MAX_STREAM_EVENTS = 500;
+/** The API's floor and ceiling for the time between events, in milliseconds. */
+export const STREAM_EVERY = { min: 100, max: 10_000 } as const;
+
+export interface StreamSetup {
+  stream: StreamName;
+  count: number;
+  every: number;
+  /** Close the connection after this many events, to rehearse a reconnect; 0 never. */
+  drop: number;
+  seed: number;
+  locale: string;
+}
+
+/** `GET /streams/{name}` with what the setup asks for; parameters left at the API's own defaults are left off. */
+export function buildStreamUrl(base: string, setup: StreamSetup): string {
+  const params = new URLSearchParams({ count: String(setup.count), every: String(setup.every) });
+  if (setup.seed !== 1) params.set('seed', String(setup.seed));
+  if (setup.locale !== 'en-CA') params.set('locale', setup.locale);
+  if (setup.drop > 0) params.set('drop', String(setup.drop));
+  return `${trimBase(base)}/streams/${setup.stream}?${params}`;
+}
+
+/** What a page of the reader's own would write to listen, as `EventSource` and as `curl`. */
+export function streamSnippets(url: string): { javascript: string; curl: string } {
+  return {
+    javascript: `const source = new EventSource('${url}');\nsource.onmessage = (event) => console.log(JSON.parse(event.data));\nsource.addEventListener('end', () => source.close());`,
+    curl: `curl -N '${url}'`,
+  };
+}

@@ -18,6 +18,7 @@ import {
   MapPin,
   MessageSquare,
   Pill,
+  Radio,
   Receipt,
   ScrollText,
   ShoppingCart,
@@ -53,6 +54,7 @@ const ICONS: Record<string, LucideIcon> = {
   conditions: Pill,
   encounters: Hospital,
   generate: Braces,
+  streams: Radio,
 };
 
 const label = (name: string) => name.charAt(0).toUpperCase() + name.slice(1);
@@ -67,7 +69,7 @@ export function EndpointTabs({
   onChange: (endpoint: string) => void;
 }) {
   const { say } = useSpeaker();
-  const names = [...resources.map((resource) => resource.name), 'generate'];
+  const names = [...resources.map((resource) => resource.name), 'generate', 'streams'];
   return (
     <div className="endpoint-tabs" role="tablist" aria-label={say('endpoints.label')}>
       {names.map((name) => {

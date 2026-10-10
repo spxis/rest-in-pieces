@@ -10,6 +10,7 @@ import { ResponsePanel } from './components/ResponsePanel.tsx';
 import { SCENARIO_SHARE, ScenarioPresets } from './components/ScenarioPresets.tsx';
 import { SessionPanel } from './components/SessionPanel.tsx';
 import { SignInPanel } from './components/SignInPanel.tsx';
+import { StreamsView } from './components/StreamsView.tsx';
 import { Topbar } from './components/Topbar.tsx';
 import { MethodPicker, WriteRequest } from './components/WriteControls.tsx';
 import { useAuth } from './hooks/useAuth.ts';
@@ -80,6 +81,7 @@ export default function App() {
   const nested = config.nested && resource?.nested?.includes(config.nested) ? config.nested : '';
   const listed = nested ? catalog.resources.find((r) => r.name === nested) : resource;
   const isGenerate = config.endpoint === 'generate';
+  const isStreams = config.endpoint === 'streams';
   const schemaMode = isSchemaRequest(config);
   const fields = isGenerate
     ? ['index', ...(schemaMode ? schemaProperties(config.schema) : config.fields.map((field) => field.name))]
@@ -208,137 +210,150 @@ export default function App() {
         </section>
 
         <div className="playground-grid">
-          <section className="request-panel" aria-label={say('app.builder')}>
-            <div className="section-bar">
-              <div className="section-title">
-                <span className="step-number">01</span>
-                <h2>{say('app.build')}</h2>
-              </div>
-              <MethodPicker
-                methods={schemaMode ? ([method] as const) : methods}
-                value={method}
-                onChange={chooseMethod}
-              />
-            </div>
-
-            <EndpointTabs resources={catalog.resources} value={config.endpoint} onChange={openEndpoint} />
-            {resource && (
-              <Description
-                text={
-                  uiLocale === 'en' || !DATASET_PHRASES[resource.name]
-                    ? resource.description
-                    : say(DATASET_PHRASES[resource.name] as PhraseKey)
-                }
-              />
-            )}
-            <ScenarioPresets
-              config={config}
-              onApply={update}
-              copied={copied}
-              onShare={() => share(SCENARIO_SHARE)}
-              simulationOnly={writing}
-            />
-
-            {isGenerate && (
-              <FieldsEditor
-                fields={config.fields}
-                generators={catalog.generators}
-                parameters={catalog.parameters}
-                state={catalog.state}
-                constraints={config.constraints}
-                schema={{
-                  on: schemaMode,
-                  ...schemaSetup,
-                  onMode: (on) => update({ schemaMode: on }),
-                  onText: (schema) => update({ schema }),
-                  onComponent: (component) => update({ component }),
-                }}
-                onChange={(next) => update({ fields: next })}
-                onConstraints={(constraints) => update({ constraints })}
-              />
-            )}
-            {writing ? (
-              <WriteRequest
-                config={{ ...config, method }}
-                idField={resource?.idField ?? 'id'}
-                onChange={update}
-                onResetBody={() => update({ body: sampleBody(config.endpoint, method) })}
-                kept={session.summary?.enabled === true}
-              />
-            ) : (
-              <>
-                <PageAndSort
-                  config={config}
-                  fields={fields}
-                  seeded={seeded}
-                  locales={catalog.locales}
-                  onChange={update}
-                />
-                <RelationsControls
-                  config={{ ...config, nested }}
-                  resource={resource}
-                  target={listed}
-                  onChange={update}
-                />
-                <SearchAndFilters config={config} fields={fields} onChange={update} />
-                <FormatPicker value={config.format} table={config.table} onChange={update} />
-              </>
-            )}
-            <SimulationPanel config={config} onChange={update} />
-            <SignInPanel auth={auth} config={config} onChange={update} />
-            <SessionPanel session={session} />
-            <RequestPreview
-              url={url}
+          {isStreams ? (
+            <StreamsView
               apiBase={config.apiBase}
-              format={config.format}
-              request={requestFor({ ...config, method: chosen })}
-              cli={generateCommand(config)}
-              account={auth.username}
-              session={session.summary?.enabled === true}
+              locale={config.locale}
+              seed={config.seed}
               copied={copied}
               onCopy={copy}
-              onShare={() => share('setup')}
+              tabs={<EndpointTabs resources={catalog.resources} value={config.endpoint} onChange={openEndpoint} />}
             />
+          ) : (
+            <>
+              <section className="request-panel" aria-label={say('app.builder')}>
+                <div className="section-bar">
+                  <div className="section-title">
+                    <span className="step-number">01</span>
+                    <h2>{say('app.build')}</h2>
+                  </div>
+                  <MethodPicker
+                    methods={schemaMode ? ([method] as const) : methods}
+                    value={method}
+                    onChange={chooseMethod}
+                  />
+                </div>
 
-            <button
-              type="button"
-              className="send-button"
-              onClick={() => sendConfig(config)}
-              disabled={sending || problem !== null}
-            >
-              {sending ? <LoaderCircle className="spin" size={17} /> : <Send size={16} />}
-              {say(sending ? 'app.sending' : 'app.send')}
-              {!sending && <kbd>{MAC ? '⌘ ↵' : 'Ctrl ↵'}</kbd>}
-            </button>
-          </section>
+                <EndpointTabs resources={catalog.resources} value={config.endpoint} onChange={openEndpoint} />
+                {resource && (
+                  <Description
+                    text={
+                      uiLocale === 'en' || !DATASET_PHRASES[resource.name]
+                        ? resource.description
+                        : say(DATASET_PHRASES[resource.name] as PhraseKey)
+                    }
+                  />
+                )}
+                <ScenarioPresets
+                  config={config}
+                  onApply={update}
+                  copied={copied}
+                  onShare={() => share(SCENARIO_SHARE)}
+                  simulationOnly={writing}
+                />
 
-          <ResponsePanel
-            apiBase={config.apiBase}
-            result={result}
-            error={error}
-            sending={sending}
-            copied={copied}
-            onCopy={copy}
-            onRetry={() => sendConfig(config)}
-            onSignIn={() =>
-              void auth
-                .signIn('viewer', '15m', { seed: config.seed, locale: config.locale })
-                .then((fresh) => fresh && sendConfig(config, fresh))
-            }
-            pager={
-              writing
-                ? null
-                : {
-                    offset: config.offset,
-                    limit: config.limit,
-                    onPage: (offset) => {
-                      const next = { ...config, offset };
-                      update({ offset });
-                      sendConfig(next);
-                    },
-                  }
-            }
-          />
+                {isGenerate && (
+                  <FieldsEditor
+                    fields={config.fields}
+                    generators={catalog.generators}
+                    parameters={catalog.parameters}
+                    state={catalog.state}
+                    constraints={config.constraints}
+                    schema={{
+                      on: schemaMode,
+                      ...schemaSetup,
+                      onMode: (on) => update({ schemaMode: on }),
+                      onText: (schema) => update({ schema }),
+                      onComponent: (component) => update({ component }),
+                    }}
+                    onChange={(next) => update({ fields: next })}
+                    onConstraints={(constraints) => update({ constraints })}
+                  />
+                )}
+                {writing ? (
+                  <WriteRequest
+                    config={{ ...config, method }}
+                    idField={resource?.idField ?? 'id'}
+                    onChange={update}
+                    onResetBody={() => update({ body: sampleBody(config.endpoint, method) })}
+                    kept={session.summary?.enabled === true}
+                  />
+                ) : (
+                  <>
+                    <PageAndSort
+                      config={config}
+                      fields={fields}
+                      seeded={seeded}
+                      locales={catalog.locales}
+                      onChange={update}
+                    />
+                    <RelationsControls
+                      config={{ ...config, nested }}
+                      resource={resource}
+                      target={listed}
+                      onChange={update}
+                    />
+                    <SearchAndFilters config={config} fields={fields} onChange={update} />
+                    <FormatPicker value={config.format} table={config.table} onChange={update} />
+                  </>
+                )}
+                <SimulationPanel config={config} onChange={update} />
+                <SignInPanel auth={auth} config={config} onChange={update} />
+                <SessionPanel session={session} />
+                <RequestPreview
+                  url={url}
+                  apiBase={config.apiBase}
+                  format={config.format}
+                  request={requestFor({ ...config, method: chosen })}
+                  cli={generateCommand(config)}
+                  account={auth.username}
+                  session={session.summary?.enabled === true}
+                  copied={copied}
+                  onCopy={copy}
+                  onShare={() => share('setup')}
+                />
+
+                <button
+                  type="button"
+                  className="send-button"
+                  onClick={() => sendConfig(config)}
+                  disabled={sending || problem !== null}
+                >
+                  {sending ? <LoaderCircle className="spin" size={17} /> : <Send size={16} />}
+                  {say(sending ? 'app.sending' : 'app.send')}
+                  {!sending && <kbd>{MAC ? '⌘ ↵' : 'Ctrl ↵'}</kbd>}
+                </button>
+              </section>
+
+              <ResponsePanel
+                apiBase={config.apiBase}
+                result={result}
+                error={error}
+                sending={sending}
+                copied={copied}
+                onCopy={copy}
+                onRetry={() => sendConfig(config)}
+                onSignIn={() =>
+                  void auth
+                    .signIn('viewer', '15m', { seed: config.seed, locale: config.locale })
+                    .then((fresh) => fresh && sendConfig(config, fresh))
+                }
+                pager={
+                  writing
+                    ? null
+                    : {
+                        offset: config.offset,
+                        limit: config.limit,
+                        onPage: (offset) => {
+                          const next = { ...config, offset };
+                          update({ offset });
+                          sendConfig(next);
+                        },
+                      }
+                }
+              />
+            </>
+          )}
         </div>
         <footer className="page-footer">
           <span>

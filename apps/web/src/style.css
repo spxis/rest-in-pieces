@@ -1854,3 +1854,64 @@ kbd {
 .constraints-control .mono-input {
   font-family: var(--mono);
 }
+
+/* The Streams tab: the listening controls, the code to copy and the events as they arrive. */
+.stream-code {
+  margin: 0 0 8px;
+  padding: 10px 12px;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: light-dark(#3d5043, #d4ded7);
+  background: light-dark(#f5f7f3, #151a14);
+  font: 10px / 1.7 var(--mono);
+}
+.stream-code code {
+  white-space: pre;
+}
+.stream-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.stream-actions .send-button {
+  flex: 1 1 200px;
+}
+.stream-log {
+  min-height: 370px;
+  max-height: 570px;
+  margin: 0;
+  padding: 8px 2px;
+  overflow: auto;
+  list-style: none;
+  font: 10px / 1.6 var(--mono);
+}
+.stream-log li {
+  display: grid;
+  grid-template-columns: 3.2em 4.2em minmax(0, 1fr);
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid light-dark(#edf0eb, #1e241b);
+}
+.stream-log b {
+  color: light-dark(#4c8059, #99c2a3);
+  font-weight: 600;
+}
+.stream-log time {
+  color: light-dark(#879188, #828d83);
+}
+.stream-log code {
+  overflow: hidden;
+  color: light-dark(#3d5043, #d4ded7);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 720px) {
+  .stream-log li {
+    grid-template-columns: 2.6em minmax(0, 1fr);
+  }
+  .stream-log time {
+    display: none;
+  }
+}

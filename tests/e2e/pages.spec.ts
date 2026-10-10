@@ -125,3 +125,17 @@ test('serves the static API as plain JSON files that link to each other', async 
   const beyond = await request.get('./api/users/page/11.json');
   expect(beyond.headers()['content-type']).not.toContain('json');
 });
+
+// The API inside the tab streams too: the Streams tab listens with fetch, which it answers.
+test('plays a stream from the API inside the tab', async ({ page }) => {
+  await page.goto('./');
+  await expect(page.getByText('IN-BROWSER API')).toBeVisible();
+  await page.getByRole('tab', { name: /Streams/ }).click();
+  await page.getByTestId('stream-name').selectOption('metrics');
+  await page.getByTestId('stream-count').fill('4');
+  await page.getByTestId('stream-every').fill('100');
+  await page.getByTestId('stream-start').click();
+  await expect(page.getByTestId('stream-state')).toHaveAttribute('data-state', 'ended');
+  await expect(page.getByTestId('stream-log').locator('li')).toHaveCount(4);
+  await expect(page.getByTestId('stream-log')).toContainText('cpuPercent');
+});

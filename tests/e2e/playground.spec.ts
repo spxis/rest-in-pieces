@@ -238,3 +238,22 @@ test('switches to Japanese and fetches Japanese data', async ({ page }) => {
   await page.reload();
   await expect(page.getByRole('button', { name: '日本語' })).toHaveAttribute('aria-pressed', 'true');
 });
+
+test('listens to a stream from the real API, and resumes one that was cut', async ({ page }) => {
+  await page.getByRole('tab', { name: /Streams/ }).click();
+  await page.getByTestId('stream-name').selectOption('logs');
+  await page.getByTestId('stream-count').fill('6');
+  await page.getByTestId('stream-every').fill('100');
+  await page.getByTestId('stream-drop').fill('3');
+  await expect(page.getByTestId('stream-code')).toContainText('/streams/logs?count=6&every=100&drop=3');
+  await page.getByTestId('stream-start').click();
+  await expect(page.getByTestId('stream-state')).toHaveAttribute('data-state', 'dropped');
+  await expect(page.getByTestId('stream-log').locator('li')).toHaveCount(3);
+  await page.getByTestId('stream-resume').click();
+  await expect(page.getByTestId('stream-state')).toHaveAttribute('data-state', 'ended');
+  await expect(page.getByTestId('stream-log').locator('li')).toHaveCount(6);
+  await page.getByTestId('stream-drop').fill('0');
+  await page.getByTestId('stream-start').click();
+  await expect(page.getByTestId('stream-state')).toHaveAttribute('data-state', 'ended');
+  await expect(page.getByTestId('stream-count-seen')).toHaveText('6 received');
+});
