@@ -4,6 +4,8 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+## 3.1.0 - 2026-10-10
+
 ### Added
 
 - `GET /geo/features` and `/geo/features/{id}`: the world's 2,790 named physical features from [Chizu](https://github.com/johnmorrisdotca/chizu) (Natural Earth, public domain; names from Natural Earth and Wikidata, CC0): oceans, seas, gulfs, bays, straits, lakes, reservoirs, rivers, deserts, mountain ranges, plateaus, plains, peninsulas and the other landforms, and peaks. Each record has an `id` (its Wikidata item, else Natural Earth's `ne-…`), `wikidata`, `kind`, `group`, `name` (Japanese for `locale=ja` where there is one) and `names { en, ja }`, `reading` in kana, `rank`, a peak's `elevation`, a `location` point, a `bbox` (never a shape; `west` is greater than `east` across the 180th meridian), the `countries` whose map holds it, and a `map` path that lights it. Filter by `kind`, `group`, `countries` and `rank[lte]`; search names in English, Japanese or kana with `q`.
