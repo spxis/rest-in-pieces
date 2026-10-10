@@ -133,6 +133,59 @@ function checkGenerate(): void {
   step('generate wrote 25 repeatable records, and SQL and CSV, with no server');
 }
 
+/** Starts the installed `serve --openapi` on a small document and calls it, then stops it. */
+async function checkMock(): Promise<void> {
+  const first = Number(process.env.PACK_TEST_PORT ?? 6830);
+  const port = await freePort(first, first + 9);
+  const document = join(work, 'pets.yaml');
+  writeFileSync(
+    document,
+    `openapi: 3.0.3
+info: { title: Pets, version: '1.0' }
+paths:
+  /pets/{petId}:
+    get:
+      parameters:
+        - { name: petId, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/Pet' } } } }
+        '404': { description: gone, content: { application/json: { schema: { type: object, required: [message], properties: { message: { type: string } } } } } }
+components:
+  schemas:
+    Pet: { type: object, required: [id, name], properties: { id: { type: integer }, name: { type: string } } }
+`,
+  );
+  const cli = spawn(
+    join(consumer, 'node_modules', '.bin', 'rest-in-pieces'),
+    ['serve', '--openapi', document, '--port', `${port}`, '--host', '127.0.0.1'],
+    { cwd: consumer, env: { ...env, NODE_ENV: 'production' }, stdio: ['ignore', 'pipe', 'inherit'] },
+  );
+  let output = '';
+  cli.stdout?.on('data', (chunk: Buffer) => {
+    output += chunk;
+  });
+  const exited = new Promise<number | null>((resolve) => cli.once('exit', (code) => resolve(code)));
+  try {
+    const base = `http://127.0.0.1:${port}`;
+    await waitUntilUp(`${base}/__mock`, cli);
+    const pet = (await (await fetch(`${base}/pets/7`)).json()) as { id: number; name: string };
+    assert(pet.id === 7 && typeof pet.name === 'string', `/pets/7 answered ${JSON.stringify(pet)}`);
+    const again = (await (await fetch(`${base}/pets/7`)).json()) as { name: string };
+    assert(again.name === pet.name, 'The mock is not repeatable.');
+    assert((await fetch(`${base}/pets/seven`)).status === 400, 'The mock did not check the path parameter.');
+    const missing = await fetch(`${base}/pets/7?status=404`);
+    assert(
+      missing.status === 404 && typeof ((await missing.json()) as { message: string }).message === 'string',
+      'status=404 did not use the document.',
+    );
+    assert(output.includes('Mocking Pets 1.0') && output.includes('GET'), `Unexpected start-up text: ${output}`);
+    step(`serve --openapi on ${base}: an item, its repeat, a bad path parameter and the document's own 404 answered`);
+  } finally {
+    cli.kill('SIGTERM');
+  }
+  assert((await exited) === 0, 'serve --openapi did not stop cleanly on SIGTERM.');
+}
+
 try {
   // `npm pack` runs prepack, which builds the playground and dist/ first; its log shares stdout,
   // so the JSON report is the array at the end.
@@ -152,6 +205,8 @@ try {
     'dist/browser.js',
     'dist/msw.js',
     'dist/msw.d.ts',
+    'dist/mock.js',
+    'dist/mock.d.ts',
     'dist/vite.js',
     'dist/images.js',
     'dist/serialize.js',
@@ -174,6 +229,7 @@ try {
   step('installed the tarball into an empty folder');
 
   await checkCli();
+  await checkMock();
   checkGenerate();
 
   writeFileSync(
@@ -188,6 +244,7 @@ import spec from '@johnmorrisdotca/rest-in-pieces/openapi.json' with { type: 'js
 import type { components, paths } from '@johnmorrisdotca/rest-in-pieces/types';
 import { toNdjson, toSql } from '@johnmorrisdotca/rest-in-pieces/serialize';
 import { restInPieces } from '@johnmorrisdotca/rest-in-pieces/vite';
+import { createMockApp, OpenApiError } from '@johnmorrisdotca/rest-in-pieces/mock';
 
 const fail = (message: string): never => {
   throw new Error(message);
@@ -241,6 +298,16 @@ const usersPath: keyof paths = '/users';
 if (!postalIsString || !usersPath) fail('The generated types are wrong.');
 if (spec.info.version !== pkg.version || !('/users' in spec.paths)) fail('openapi.json is not the API document.');
 
+// A mock made from a document of the caller's own, in process.
+const mocked = createMockApp({ openapi: '3.0.0', paths: { '/n': { get: { responses: { '200': { description: 'ok', content: { 'application/json': { schema: { type: 'object', required: ['n'], properties: { n: { type: 'integer' } } } } } } } } } } });
+if (typeof ((await (await mocked.request('/n')).json()) as { n: number }).n !== 'number') fail('The mock entry did not answer.');
+try {
+  createMockApp({});
+  fail('The mock entry accepted a document that is not OpenAPI.');
+} catch (error) {
+  if (!(error instanceof OpenApiError)) throw error;
+}
+
 // @ts-expect-error The options are typed, so a wrong one fails the type check.
 createApp({ log: 'yes' });
 console.log(pkg.version);
@@ -271,7 +338,7 @@ console.log(pkg.version);
   const printed = run('node', [join(consumer, 'out', 'check.js')], consumer).trim();
   assert(printed === version, `The in-process check printed ${printed}.`);
   step(
-    'imported the in-process app, @johnmorrisdotca/rest-in-pieces/core, /browser, /msw, /vite, /images, /serialize, /types and /openapi.json from the install, kept, reset and signed in, and served safe values through a relation',
+    'imported the in-process app, @johnmorrisdotca/rest-in-pieces/core, /browser, /mock, /msw, /vite, /images, /serialize, /types and /openapi.json from the install, kept, reset and signed in, and served safe values through a relation',
   );
 
   step(`passed in ${((performance.now() - startedAt) / 1000).toFixed(1)} s`);

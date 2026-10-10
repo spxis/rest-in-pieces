@@ -7,19 +7,24 @@ export const MAX_SEED = 2 ** 32 - 1;
 export const DEFAULT_PORT = 6800;
 export const DEFAULT_HOST = 'localhost';
 
-export const usage = `Usage: rest-in-pieces [options]
+export const usage = `Usage: rest-in-pieces [serve] [options]
 
 Starts the REST in Pieces API, with the playground and the API docs on the same address.
 
 Options:
   --port <number>  Port to listen on (default: $PORT, then ${DEFAULT_PORT})
   --host <name>    Address to listen on (default: ${DEFAULT_HOST}; 0.0.0.0 for every interface)
+  --openapi <file> Mock the API an OpenAPI 3.x or Swagger 2.0 document (JSON or YAML) describes, instead of the
+                   built-in datasets: every operation answers with seeded data in the shape of its response schema
   --session        Keep writes in memory until POST /reset (default: $REST_IN_PIECES_SESSION, then off)
   --safe           Serve safe values unless a request says safe=false: example-domain emails and URLs,
                    fiction-range phone numbers, test card numbers, documentation IPs, self-hosted
                    avatars (default: $REST_IN_PIECES_SAFE, then off; the default from 3.0)
   -v, --version    Print the version
   -h, --help       Print this help
+
+Mock your own API:
+  rest-in-pieces serve --openapi ./openapi.yaml
 
 Offline data, with no server to run or pay for:
   rest-in-pieces generate --schema people.json --count 100000 --format sql > people.sql
@@ -51,7 +56,7 @@ Options:
   -h, --help           Print this help`;
 
 export type CliCommand =
-  | { kind: 'serve'; port: number; host: string; session: boolean; safe: boolean }
+  | { kind: 'serve'; port: number; host: string; session: boolean; safe: boolean; openapi?: string }
   | ({ kind: 'generate' } & GenerateOptions)
   | { kind: 'help' }
   | { kind: 'help-generate' }
@@ -88,8 +93,11 @@ function parsePort(value: string, from: string): number {
   return port;
 }
 
-export function parseCliArgs(argv: readonly string[], env: CliEnv = {}): CliCommand {
-  if (argv[0] === 'generate') return parseGenerateArgs(argv.slice(1));
+export function parseCliArgs(args: readonly string[], env: CliEnv = {}): CliCommand {
+  if (args[0] === 'generate') return parseGenerateArgs(args.slice(1));
+  // `serve` is the command spelled out: the options are the same without it.
+  const argv = args[0] === 'serve' ? args.slice(1) : args;
+  let openapi: string | undefined;
   let port: number | undefined;
   let host = DEFAULT_HOST;
   let session = sessionFromEnv(env);
@@ -107,16 +115,24 @@ export function parseCliArgs(argv: readonly string[], env: CliEnv = {}): CliComm
       continue;
     }
     const [name, inline] = arg.startsWith('--') && arg.includes('=') ? arg.split(/=(.*)/s, 2) : [arg, undefined];
-    if (name !== '--port' && name !== '--host') throw new CliError(`Unknown option: ${arg}`);
+    if (name !== '--port' && name !== '--host' && name !== '--openapi') throw new CliError(`Unknown option: ${arg}`);
     const value = inline ?? argv[++i];
     if (value === undefined || value === '' || (inline === undefined && value.startsWith('-'))) {
       throw new CliError(`${name} needs a value.`);
     }
     if (name === '--port') port = parsePort(value, '--port');
-    else host = value;
+    else if (name === '--openapi') {
+      if (openapi !== undefined) throw new CliError('--openapi was given twice.');
+      openapi = value;
+    } else host = value;
+  }
+  if (openapi !== undefined && argv.includes('--session')) {
+    throw new CliError(
+      '--session keeps writes to the built-in datasets; a mocked API answers writes without keeping them.',
+    );
   }
   port ??= env.PORT ? parsePort(env.PORT, 'PORT') : DEFAULT_PORT;
-  return { kind: 'serve', port, host, session, safe };
+  return { kind: 'serve', port, host, session, safe, ...(openapi === undefined ? {} : { openapi }) };
 }
 
 /** The address to print: a wildcard host is reachable as localhost. */

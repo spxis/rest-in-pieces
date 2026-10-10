@@ -45,6 +45,18 @@ export const SCHEMA_LIMITS = {
   generatorCost: 5,
 } as const;
 
+/** How one value is made when the caller bounds it differently from a generated record: see `MakeLimits`. */
+export interface MakeLimits {
+  /** Values the whole value may hold; `SCHEMA_LIMITS.recordNodes` when absent. */
+  nodes?: number;
+  /** Characters, as JSON, the whole value may take; an error past it. Unbounded when absent. */
+  chars?: number;
+  /** How many items the array at a path holds, by schema path (`''` is the root, `/data` a property of it). */
+  lengths?: ReadonlyMap<string, number> | undefined;
+  /** The most items an array whose length is chosen by `lengths` may hold. */
+  maxItems?: number;
+}
+
 /** What the generator honours, for the docs and the OpenAPI description. */
 export const SUPPORTED = {
   types: ['string', 'number', 'integer', 'boolean', 'null', 'object', 'array'],
@@ -84,7 +96,7 @@ export const SUPPORTED = {
 export class JsonSchemaError extends Error {}
 
 /** Keywords that change which values are valid and that this generator does not implement. */
-const UNSUPPORTED = [
+export const UNSUPPORTED = [
   'not',
   'if',
   'then',
@@ -168,7 +180,7 @@ const FORMAT_TYPES: Record<string, string> = {
 // ---- reading ------------------------------------------------------------------------------------------------
 
 /** Follows a local `#/a/b/c` JSON pointer inside the document. */
-function pointer(document: unknown, ref: string, path: string): Schema {
+export function pointer(document: unknown, ref: string, path: string): Schema {
   if (ref === '#') return document as Schema;
   if (!ref.startsWith('#/')) {
     throw new JsonSchemaError(
@@ -457,10 +469,12 @@ interface State {
   nodes: number;
   /** Characters those values will take as JSON, roughly: what a response is bounded by. */
   chars: number;
+  limits: { nodes: number; maxItems: number; lengths: ReadonlyMap<string, number> | undefined };
 }
 
 /** Whether the record so far is close to the most values one may hold. */
-const crowded = (state: State) => state.nodes > SCHEMA_LIMITS.recordNodes * 0.7 || state.chars > 40_000;
+const crowded = (state: State) =>
+  state.nodes > state.limits.nodes * 0.7 || state.chars > Math.max(40_000, state.limits.nodes * 80);
 
 const UNSATISFIABLE = 1_000_000;
 
@@ -624,9 +638,9 @@ function draw(
   property: string | undefined,
   optional: boolean,
 ): Value | typeof OMIT {
-  if (++state.nodes > SCHEMA_LIMITS.recordNodes) {
+  if (++state.nodes > state.limits.nodes) {
     throw new JsonSchemaError(
-      `one record needs more than ${SCHEMA_LIMITS.recordNodes} values. Lower maxItems, drop properties, or ask for fewer records.`,
+      `one record needs more than ${state.limits.nodes} values. Lower maxItems, drop properties, or ask for fewer records.`,
     );
   }
   const { faker } = state;
@@ -714,10 +728,14 @@ function draw(
   const minItems = typeof node.minItems === 'number' ? node.minItems : undefined;
   // With no maxItems, lists get shorter the deeper they are, so a tree does not fan out as wide as it is deep.
   const unsaid = depth <= 2 ? SCHEMA_LIMITS.defaultItems : depth <= 4 ? 2 : 1;
-  const cap = Math.min(
-    typeof node.maxItems === 'number' ? node.maxItems : Math.max(minItems ?? 0, unsaid),
-    SCHEMA_LIMITS.items,
-  );
+  const forced = state.limits.lengths?.get(path);
+  const cap =
+    forced === undefined
+      ? Math.min(
+          typeof node.maxItems === 'number' ? node.maxItems : Math.max(minItems ?? 0, unsaid),
+          SCHEMA_LIMITS.items,
+        )
+      : Math.min(typeof node.maxItems === 'number' ? node.maxItems : forced, state.limits.maxItems);
   // Items one level down would be too deep if they, or what they require, are objects or arrays that do not fit.
   if (depth >= SCHEMA_LIMITS.depth || depth + 1 + need(state.source, each, `${path}/items`) >= SCHEMA_LIMITS.depth) {
     if (optional) return OMIT;
@@ -729,9 +747,14 @@ function draw(
     return [];
   }
   const low = Math.min(minItems ?? (optional ? 0 : 1), cap);
+  // A length the caller chose is kept, and costs no draw, so the first items of a longer list are those of a shorter one.
   const length = Math.max(
     Math.min(prefix.length, cap),
-    crowded(state) ? low : faker.number.int({ min: low, max: cap }),
+    forced !== undefined
+      ? Math.min(Math.max(forced, minItems ?? 0), cap)
+      : crowded(state)
+        ? low
+        : faker.number.int({ min: low, max: cap }),
   );
   const items: Value[] = [];
   const seenItems = new Set<string>();
@@ -767,7 +790,11 @@ export interface PreparedSchema {
   /** The columns its records have, in order, for output with a fixed header: `index`, then every property it may make. */
   columns: string[];
   /** One value matching the schema, drawn from the locale's seeded Faker; also how many values it took. */
-  make(locale: CountryLocale, context: GenerateContext): { value: Value; nodes: number; chars: number };
+  make(
+    locale: CountryLocale,
+    context: GenerateContext,
+    limits?: MakeLimits,
+  ): { value: Value; nodes: number; chars: number };
 }
 
 /** `index` and every property a schema may make, so output with a fixed header (CSV, SQL) has a column for each. */
@@ -832,14 +859,45 @@ export function prepareSchema({ schema, openapi, component }: SchemaSource): Pre
     document = schema;
     root = schema as Schema;
   }
+  return prepareRoot(document, root);
+}
+
+/**
+ * Reads and checks one schema that lives inside a document, such as an operation's response schema: `$ref`s in it point
+ * into `document`. The value it makes is the schema's own, never wrapped in a record with an `index`.
+ */
+export function prepareSchemaIn(document: unknown, root: unknown): PreparedSchema {
+  if (typeof root !== 'boolean' && !isNode(root)) throw new JsonSchemaError('a schema must be an object or a boolean.');
+  return prepareRoot(document, root as Schema);
+}
+
+function prepareRoot(document: unknown, root: Schema): PreparedSchema {
   const source: Source = { document, flat: new WeakMap(), needs: new WeakMap() };
   const caches: Caches = { patterns: new Map(), generators: new Map() };
   check(source, root, caches);
   return {
     columns: columnsOf(source, root),
-    make(locale, context) {
-      const state: State = { faker: locale.faker, locale, context, source, caches, nodes: 0, chars: 0 };
+    make(locale, context, limits = {}) {
+      const state: State = {
+        faker: locale.faker,
+        locale,
+        context,
+        source,
+        caches,
+        nodes: 0,
+        chars: 0,
+        limits: {
+          nodes: limits.nodes ?? SCHEMA_LIMITS.recordNodes,
+          maxItems: limits.maxItems ?? SCHEMA_LIMITS.items,
+          lengths: limits.lengths,
+        },
+      };
       const value = draw(state, root, '', 0, undefined, false);
+      if (limits.chars !== undefined && state.chars > limits.chars) {
+        throw new JsonSchemaError(
+          `this schema makes more than ${limits.chars.toLocaleString('en-US')} characters, more than a response may carry. Ask for fewer items.`,
+        );
+      }
       return { value: value === OMIT ? null : value, nodes: state.nodes, chars: state.chars };
     },
   };

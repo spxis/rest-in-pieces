@@ -8,7 +8,7 @@ export const MAX_DELAY_MS = 10_000;
 /** A trickled body is cut into pieces of about this many bytes, fewer and larger when the ceiling needs it. */
 export const TRICKLE_CHUNK_BYTES = 256;
 
-const REASONS: Record<number, string> = {
+export const REASONS: Record<number, string> = {
   400: 'Bad Request',
   401: 'Unauthorized',
   403: 'Forbidden',
@@ -24,7 +24,7 @@ const REASONS: Record<number, string> = {
 };
 
 /** `fail=true` always fails; a number between 0 and 1 fails that fraction of requests. */
-function shouldFail(value: string | undefined, random: () => number): boolean {
+export function shouldFail(value: string | undefined, random: () => number): boolean {
   if (value === undefined) return false;
   const rate = Number(value);
   if (Number.isFinite(rate) && rate > 0 && rate < 1) return random() < rate;
@@ -93,7 +93,7 @@ export async function trickle(res: Response, gap: number, budget: number): Promi
   return new Response(body, init);
 }
 
-function parseStatus(value: string | undefined): number | null {
+export function parseStatus(value: string | undefined): number | null {
   const status = Number(value);
   return Number.isInteger(status) && status >= 200 && status <= 599 ? status : null;
 }

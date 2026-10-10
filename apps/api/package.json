@@ -128,6 +128,11 @@
       "types": "./dist/serialize.d.ts",
       "default": "./dist/serialize.js"
     },
+    "./mock": {
+      "rest-in-pieces:source": "./src/mock.ts",
+      "types": "./dist/mock.d.ts",
+      "default": "./dist/mock.js"
+    },
     "./msw": {
       "rest-in-pieces:source": "./src/msw.ts",
       "types": "./dist/msw.d.ts",
