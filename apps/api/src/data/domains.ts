@@ -17,17 +17,17 @@ import { hashOf } from '../lib/safe.ts';
 import type { Maker } from './build.ts';
 import { ANCHOR } from './presets.ts';
 
-const SECOND = 1000;
-const MINUTE = 60 * SECOND;
-const HOUR = 60 * MINUTE;
-const DAY = 24 * HOUR;
-const END = ANCHOR.getTime();
+export const SECOND = 1000;
+export const MINUTE = 60 * SECOND;
+export const HOUR = 60 * MINUTE;
+export const DAY = 24 * HOUR;
+export const END = ANCHOR.getTime();
 
-const iso = (time: number) => new Date(time).toISOString();
+export const iso = (time: number) => new Date(time).toISOString();
 const pad = (value: number, width: number) => String(value).padStart(width, '0');
 
 /** A moment from `from` to `to`, to the second. If `to` is before `from`, `from`. */
-function moment(faker: Faker, from: number, to: number): number {
+export function moment(faker: Faker, from: number, to: number): number {
   const high = Math.max(from, to);
   return Math.floor(faker.number.int({ min: Math.ceil(from / SECOND), max: Math.floor(high / SECOND) }) * SECOND);
 }

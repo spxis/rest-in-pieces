@@ -11,6 +11,7 @@ import {
   makePlace,
   makeTransaction,
 } from './data/domains.ts';
+import { FHIR_FIELDS, loadConditions, loadEncounters, loadObservations, loadPatients } from './data/fhir.ts';
 import { loadComments, loadOrders, loadPosts, loadReviews, loadTodos } from './data/related.ts';
 import { COMPANIES, PEOPLE, PRODUCTS, seededLoader, USERS } from './data/seeded.ts';
 import { logsFor, metricsFor } from './data/series.ts';
@@ -25,6 +26,7 @@ import {
   Place,
   Transaction,
 } from './domains.schemas.ts';
+import { FhirCondition, FhirEncounter, FhirObservation, FhirPatient } from './fhir.schemas.ts';
 import { type CollectionDefaults, MAX_RECORDS } from './lib/collection.ts';
 import { type Derive, deriveOrder } from './lib/integrity.ts';
 import { GLOBAL, LOCALES, type Locale } from './lib/locale.ts';
@@ -178,6 +180,7 @@ export const resources: Resource[] = [
   },
   ...related(),
   ...domains(),
+  ...fhir(),
 ];
 
 /** A related dataset: seeded, keyed by `id`, its fields the same in every locale. */
@@ -386,6 +389,69 @@ function domains(): Resource[] {
       'Application log lines about every fifteen seconds, ending at 2026-01-01: a level, a service, a message, a trace id, and for `api` lines a status code and duration. Timestamps always increase, and each line is a pure function of the `seed` and its position, so it is the same in every locale.',
       LogLine,
       logsFor,
+    ),
+  ];
+}
+
+/** A FHIR-shaped dataset: its ids are strings, as FHIR's are, and its record is a nested resource. */
+function fhirResource(
+  name: string,
+  title: string,
+  description: string,
+  schema: z.ZodType,
+  load: Resource['load'],
+  fields: readonly string[],
+): Resource {
+  return {
+    name,
+    title,
+    description,
+    schema,
+    idField: 'id',
+    idDescription: `The resource's \`id\`, \`1\` to \`1000\`.`,
+    seeded: true,
+    defaults: { limit: 10, metadata: true },
+    load,
+    fields: () => [...fields],
+    find: (records, id) => records.find((record) => (record as { id?: string }).id === id),
+  };
+}
+
+function fhir(): Resource[] {
+  const SYNTHETIC_NOTE =
+    " Synthetic: every record is invented, none comes from or is de-identified from a real person or record, and the codes are this project's own lists, not SNOMED CT, LOINC, ICD or CPT. For building and testing software only. `GET /fhir/{type}` answers the same data as a FHIR Bundle.";
+  return [
+    fhirResource(
+      'patients',
+      'Patient',
+      `FHIR R4-shaped Patient resources: a name, a birth date, a gender, an address, contact details that nobody answers (fiction-range phones, example.com emails), and a medical record number. Ages run from newborn to ninety, and a few of the old have died.${SYNTHETIC_NOTE}`,
+      FhirPatient,
+      loadPatients,
+      FHIR_FIELDS.Patient,
+    ),
+    fhirResource(
+      'observations',
+      'Observation',
+      `FHIR R4-shaped Observation resources for the patients in \`/patients\`: vital signs and a few laboratory values, with UCUM units, a typical reference range and an interpretation. Each is dated after its patient was born and before they died, and the value is plausible for their age. \`status\` is also the simulation parameter, so filter it as \`status[eq]=final\` here or \`status=final\` on \`/fhir/Observation\`.${SYNTHETIC_NOTE}`,
+      FhirObservation,
+      loadObservations,
+      FHIR_FIELDS.Observation,
+    ),
+    fhirResource(
+      'conditions',
+      'Condition',
+      `FHIR R4-shaped Condition resources for the patients in \`/patients\`: chronic and acute conditions from a hand-made list, each beginning after the patient was old enough for it, ending after it began when it is over.${SYNTHETIC_NOTE}`,
+      FhirCondition,
+      loadConditions,
+      FHIR_FIELDS.Condition,
+    ),
+    fhirResource(
+      'encounters',
+      'Encounter',
+      `FHIR R4-shaped Encounter resources for the patients in \`/patients\`: visits, admissions and consultations, a finished one ending after it starts, a planned one after 2026-01-01, a cancelled or in-progress one with no end. \`status\` is also the simulation parameter, so filter it as \`status[eq]=finished\` here or \`status=finished\` on \`/fhir/Encounter\`.${SYNTHETIC_NOTE}`,
+      FhirEncounter,
+      loadEncounters,
+      FHIR_FIELDS.Encounter,
     ),
   ];
 }

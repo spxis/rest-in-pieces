@@ -30,6 +30,10 @@ describe('service endpoints', () => {
       'places',
       'metrics',
       'logs',
+      'patients',
+      'observations',
+      'conditions',
+      'encounters',
     ]);
     expect(body.find((r) => r.name === 'names')?.fields).toContain('province');
     expect(body.find((r) => r.name === 'countries')?.seeded).toBe(false);

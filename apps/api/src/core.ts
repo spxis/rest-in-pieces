@@ -21,6 +21,7 @@ import { resources } from './resources.ts';
 import { authRoutes } from './routes/auth.ts';
 import { collectionRoutes } from './routes/collection.ts';
 import { compatRoutes } from './routes/compat.ts';
+import { fhirRoutes } from './routes/fhir.ts';
 import { generateRoutes } from './routes/generate.ts';
 import { home } from './routes/home.ts';
 import { imageRoutes } from './routes/images.ts';
@@ -75,7 +76,7 @@ export function createApp({
   );
 
   // Simulation and caching apply to data endpoints only, never to docs or health checks.
-  const dataPaths = [...resources.map((r) => `/${r.name}`), '/random-names', '/generate'];
+  const dataPaths = [...resources.map((r) => `/${r.name}`), '/random-names', '/generate', '/fhir'];
   // `/names/*` also matches `/names` itself, so one registration covers lists and items.
   for (const path of dataPaths) app.use(`${path}/*`, simulate(), etag());
   for (const path of ['/avatars', '/images']) app.use(`${path}/*`, etag());
@@ -99,6 +100,7 @@ export function createApp({
     app.route('/random-names', collectionRoutes(names, { deprecated: true, path: 'random-names', session, safe }));
   }
   app.route('/generate', generateRoutes({ safe }));
+  app.route('/fhir', fhirRoutes());
   imageRoutes(app);
   compatRoutes(app);
   const users = resources.find((r) => r.name === 'users');
@@ -133,6 +135,11 @@ export function createApp({
       { name: 'Datasets', description: 'Seeded fake data. The same seed always returns the same records.' },
       { name: 'Reference data', description: 'Real-world lookup data.' },
       { name: 'Custom data', description: 'Records built from your own field list.' },
+      {
+        name: 'Synthetic patients (FHIR R4)',
+        description:
+          'Invented patients in the shape of FHIR R4: Patient, Observation, Condition and Encounter, as a FHIR server answers them. Synthetic test data: not real people, not real records, not de-identified data, and not coded with SNOMED CT, LOINC, ICD or CPT.',
+      },
       { name: 'Images', description: 'Self-hosted SVG avatars and placeholder images, drawn from the URL alone.' },
       {
         name: 'Compatibility',
