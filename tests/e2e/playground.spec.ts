@@ -149,6 +149,17 @@ test('offers the offline command beside the request snippets, for generated reco
   await expect(page.getByRole('tab', { name: 'CLI', exact: true })).toHaveCount(0);
 });
 
+test('shows the synthetic patients with their disclaimer beside them', async ({ page }) => {
+  await page.getByRole('tab', { name: /Patients/ }).click();
+  await expect(page.locator('.endpoint-description')).toContainText('Synthetic: every record is invented');
+  await expect(page.locator('.endpoint-description')).toContainText('not SNOMED CT, LOINC, ICD or CPT');
+  await page.getByRole('button', { name: /Send request/ }).click();
+  await expect(page.getByTestId('response-status')).toHaveText(/200/);
+  await page.getByRole('tab', { name: /Table/ }).click();
+  await expect(page.getByRole('columnheader', { name: 'resourceType' })).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'Patient', exact: true }).first()).toBeVisible();
+});
+
 test('rehearses a create, a validation error and a delete', async ({ page }) => {
   await page.getByRole('tab', { name: /Users/ }).click();
   await page.getByRole('button', { name: 'POST', exact: true }).click();

@@ -10,15 +10,19 @@ import {
   ChartLine,
   FileText,
   Globe2,
+  HeartPulse,
+  Hospital,
   ListTodo,
   type LucideIcon,
   Mail,
   MapPin,
   MessageSquare,
+  Pill,
   Receipt,
   ScrollText,
   ShoppingCart,
   Star,
+  Stethoscope,
   Users,
 } from 'lucide-react';
 import type { ResourceInfo } from '../hooks/useCatalog.ts';
@@ -44,6 +48,10 @@ const ICONS: Record<string, LucideIcon> = {
   places: MapPin,
   metrics: ChartLine,
   logs: ScrollText,
+  patients: HeartPulse,
+  observations: Stethoscope,
+  conditions: Pill,
+  encounters: Hospital,
   generate: Braces,
 };
 

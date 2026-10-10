@@ -6,6 +6,7 @@ import { createApp } from '@johnmorrisdotca/rest-in-pieces/core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   checkFixtures,
+  DEFAULT_LOCALE_ONLY,
   type FixtureIndex,
   filesOnDisk,
   INDEX_FILE,
@@ -52,6 +53,11 @@ describe('the static fixtures', () => {
       const folder = locale.default ? '' : `${locale.code}/`;
       if (locale.default) expect(index.defaultLocale).toBe(locale.code);
       for (const { name } of resources) {
+        // The large and locale-neutral datasets are written for the default locale only.
+        if (!locale.default && DEFAULT_LOCALE_ONLY.has(name)) {
+          expect(paths, folder + name).not.toContain(`${folder}${name}.json`);
+          continue;
+        }
         for (const file of [`${name}.json`, `${name}.csv`, `${name}.page-1.json`, `${name}.page-1.csv`]) {
           expect(paths, folder + file).toContain(folder + file);
         }
@@ -59,7 +65,10 @@ describe('the static fixtures', () => {
         expect(items.filter((file) => file.locale === locale.code)).toHaveLength(ITEM_COUNT);
       }
     }
-    expect(index.files).toHaveLength(locales.length * resources.length * (4 + ITEM_COUNT));
+    const written = locales.flatMap((locale) =>
+      resources.filter(({ name }) => locale.default || !DEFAULT_LOCALE_ONLY.has(name)),
+    );
+    expect(index.files).toHaveLength(written.length * (4 + ITEM_COUNT));
   });
 
   it('hold the responses the API gives to the requests they name', async () => {

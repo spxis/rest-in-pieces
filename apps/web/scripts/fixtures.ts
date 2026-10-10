@@ -21,6 +21,20 @@ export const INDEX_FILE = 'index.json';
 
 const FORMATS = ['json', 'csv'] as const;
 
+/**
+ * Datasets whose fixtures are written for the default locale only. The synthetic FHIR resources are large and what a
+ * locale changes in them is a name and an address, and `/metrics` and `/logs` are the same series in every locale, so a
+ * copy per locale would add tens of megabytes of files that say nothing new. Every locale still answers them from the API.
+ */
+export const DEFAULT_LOCALE_ONLY: ReadonlySet<string> = new Set([
+  'patients',
+  'observations',
+  'conditions',
+  'encounters',
+  'metrics',
+  'logs',
+]);
+
 interface FetchApp {
   request(path: string): Response | Promise<Response>;
 }
@@ -121,6 +135,7 @@ export async function writeFixtures(app: FetchApp, dir: string, baseUrl: string)
   for (const locale of locales) {
     const folder = locale.code === defaultLocale ? '' : `${locale.code}/`;
     for (const resource of resources) {
+      if (locale.code !== defaultLocale && DEFAULT_LOCALE_ONLY.has(resource.name)) continue;
       const query = `${resource.seeded ? `seed=${FIXTURE_SEED}&` : ''}locale=${locale.code}`;
       const about = { dataset: resource.name, locale: locale.code };
       for (const format of FORMATS) {

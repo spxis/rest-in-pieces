@@ -89,6 +89,55 @@ export function cardOf(row: Row): {
       ...author,
     };
   }
+  // Synthetic FHIR resources: a record says what it is, and is shown by what a clinician would look at first.
+  if (row.resourceType === 'Patient') {
+    const name = Array.isArray(row.name) ? ((row.name[0] as Row | undefined)?.text ?? '') : '';
+    return {
+      title: cellText(name) || `Patient ${text('id')}`,
+      subtitle: [text('gender'), text('birthDate') && `born ${text('birthDate')}`].filter(Boolean).join(' · '),
+      aside: `#${text('id')}`,
+      avatar: null,
+      thing: false,
+      person: cellText(name),
+    };
+  }
+  if (row.resourceType === 'Observation' || row.resourceType === 'Condition' || row.resourceType === 'Encounter') {
+    const concept = (key: string) => {
+      const value = row[key] as Row | Row[] | undefined;
+      const first = Array.isArray(value) ? value[0] : value;
+      return cellText((first as Row | undefined)?.text ?? '');
+    };
+    const subject = cellText((row.subject as Row | undefined)?.reference ?? '');
+    if (row.resourceType === 'Observation') {
+      const quantity = (row.valueQuantity ?? {}) as Row;
+      return {
+        title: concept('code'),
+        subtitle: [subject, text('effectiveDateTime').slice(0, 10)].filter(Boolean).join(' · '),
+        aside: [cellText(quantity.value ?? ''), cellText(quantity.unit ?? '')].filter(Boolean).join(' '),
+        avatar: null,
+        thing: true,
+      };
+    }
+    if (row.resourceType === 'Condition') {
+      const status = ((row.clinicalStatus as Row | undefined)?.coding as Row[] | undefined)?.[0]?.code;
+      return {
+        title: concept('code'),
+        subtitle: [subject, text('onsetDateTime').slice(0, 10)].filter(Boolean).join(' · '),
+        aside: cellText(status ?? ''),
+        avatar: null,
+        thing: true,
+      };
+    }
+    return {
+      title: concept('type'),
+      subtitle: [subject, text('status'), cellText(((row.period ?? {}) as Row).start ?? '').slice(0, 10)]
+        .filter(Boolean)
+        .join(' · '),
+      aside: cellText((row.class as Row | undefined)?.code ?? ''),
+      avatar: null,
+      thing: true,
+    };
+  }
   if ('invoiceStatus' in row) {
     return {
       title: [text('number'), text('customer')].filter(Boolean).join(' · '),
