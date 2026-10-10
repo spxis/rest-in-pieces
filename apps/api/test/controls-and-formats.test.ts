@@ -116,15 +116,16 @@ describe('response simulation', () => {
         for await (const chunk of res.body as ReadableStream<Uint8Array>) chunks.push(chunk);
         return { chunks, finished: Date.now() };
       })();
-      // Small steps, so the stream's own work between timers gets its turn. A real macrotask between steps
-      // (setImmediate is not faked) lets that work finish before the clock moves on, so a slow machine cannot
-      // read a later finish than the timers allowed. Stop once the body is read.
+      // Move the clock only to timers the response has actually set, never by a fixed step: a step can carry the
+      // clock past the moment the body was finished (12.7 s read on a slow runner, 2.24.0), while running only
+      // pending timers makes the clock read exactly what the response waited. A real macrotask between rounds
+      // (setImmediate is not faked) lets the stream do its work and set its next timer. Stop once the body is read.
       let done = false;
       void pending.then(() => {
         done = true;
       });
-      for (let elapsed = 0; !done && elapsed < 2 * MAX_DELAY_MS; elapsed += 50) {
-        await vi.advanceTimersByTimeAsync(50);
+      for (let round = 0; !done && round < 10_000; round += 1) {
+        await vi.runOnlyPendingTimersAsync();
         await new Promise((resolve) => setImmediate(resolve));
       }
       const { chunks, finished } = await pending;
