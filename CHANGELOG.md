@@ -4,6 +4,8 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+## 2.22.0 - 2026-10-09
+
 ### Added
 
 - `rest-in-pieces serve --openapi ./openapi.yaml` (also `--openapi` on the main command) answers every operation of an OpenAPI 3.x or Swagger 2.0 document, JSON or YAML, with seeded data in the shape of its response schema. The answer is the operation's lowest `2xx` response, made by the generator behind `POST /generate`, seeded from the seed, the method and the address: the same request gives the same body, `/pets/1` and `/pets/2` differ, and a path parameter lands in the matching property. A list is as long as the `limit`, `pageSize`, `per_page`, … the operation declares (ten when none, at most 100); the fields a write sends are put into its answer; the headers the document lists are made.
