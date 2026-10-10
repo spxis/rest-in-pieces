@@ -4,6 +4,12 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Added
+
+- A use cases page in the playground, at `use-cases/` on GitHub Pages and `?view=use-cases` everywhere else, linked from the top bar and the README, in English and 日本語, light and dark, and laid out for a 390 px phone. Ten use cases, each with the problem in a line, the request or code that solves it (one press copies it) and a short animation: a front end built before its backend (a table fills with people, then an order with its buyer and products), a JSONPlaceholder tutorial that takes a `POST`, loading, flaky, down and empty states (`delay`, `trickle`, `fail=0.3`, `status=503`), data that breaks layouts (`messy`), sign-in with a token that expires and is refreshed, the same seed twice, seeding a database (`format=sql` and `ndjson`), mock records from a JSON Schema, one seed in four locales, and invented FHIR patients, invoices and transactions. The animations are not recordings: each sends the requests shown beside it to the API (inside the page on GitHub Pages) and draws what comes back, plays once when it scrolls into view, can be replayed, never loops, and shows its finished state at once for a reader who asks for reduced motion.
+- `docs/use-cases.md`: the same ten in prose with the requests.
+- `docs/images/use-cases.svg`, the animation at the top of the README, written by `pnpm readme:animation` from the API's own answers (the people at a fixed seed, ten answers to `fail=0.3` with a fixed random sequence, a `503` with its `Retry-After`). It is one small CSS-animated SVG that plays inside an `<img>` on GitHub and npm, rests on the finished picture, and shows it straight away with animation off. A test holds the committed file to what the API draws today.
+
 ## 2.19.2 - 2026-10-09
 
 ### Fixed

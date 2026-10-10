@@ -19,6 +19,7 @@
     "format": "biome check --write .",
     "lint": "biome check .",
     "pack:test": "pnpm --filter @johnmorrisdotca/rest-in-pieces pack:test",
+    "readme:animation": "node scripts/readme-animation.ts",
     "release": "node scripts/release.ts",
     "start": "pnpm --filter @johnmorrisdotca/rest-in-pieces start",
     "test": "pnpm -r test",

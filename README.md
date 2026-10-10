@@ -7,11 +7,13 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-7-3178c6)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/spxis/rest-in-pieces/blob/main/LICENSE)
 
+[![Ask for seeded people, then break the backend on purpose: a request, the same five people every time, and a 503 drill](https://raw.githubusercontent.com/spxis/rest-in-pieces/main/docs/images/use-cases.svg)](https://spxis.github.io/rest-in-pieces/use-cases/)
+
 Seeded, realistic, localized data plus latency, error and messy-data drills, as a REST API, a function call or a patch on `fetch`.
 
 A free, open-source **mock data generator and test data generator**: rule-based synthetic data (sample data, seed data and mock data for database seeding), and relational test data with **referential integrity** between users, products, orders, posts, comments, todos and reviews, plus invoices, transactions, events, messages, notifications, jobs, places, metrics and logs that each agree with themselves, **safe values** that cannot reach a real person, self-hosted **placeholder images** and **avatars**, and exports as JSON, CSV, YAML, XML, **NDJSON** and **SQL INSERT** statements. A **JSONPlaceholder alternative**, **DummyJSON alternative** and **Mockaroo alternative** that runs on your machine.
 
-**Try it: [spxis.github.io/rest-in-pieces](https://spxis.github.io/rest-in-pieces/).** The live demo runs the whole API inside the page, so there is no server behind it and nothing to install.
+**Try it: [spxis.github.io/rest-in-pieces](https://spxis.github.io/rest-in-pieces/).** The live demo runs the whole API inside the page, so there is no server behind it and nothing to install. **Ten use cases**, each with the request and an animation drawn from the real API, are on the [use cases page](https://spxis.github.io/rest-in-pieces/use-cases/) and written out in [docs/use-cases.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-cases.md).
 
 **A repeatable test backend for frontend development.** Build tables, pagination, sorting, filters, loading states, empty states, error handling, CRUD forms and sign-in against realistic data, before a real backend exists.
 
