@@ -4,13 +4,6 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
-### The eleventh use case (docs only: rides with the next release)
-
-Added:
-
-- An eleventh use case on the use cases page and in [docs/use-cases.md](docs/use-cases.md): "Country, region and flag pickers": a country select that fills a region select and the place they name, drawn from three real requests (the G7 as countries, Canada's provinces, Ontario), with the `fetch` and `curl` that make it, in English and Japanese. The README, the page's jump list and its tests say eleven. The page needs no change to the API.
-- [docs/avatars-and-placeholders.md](docs/avatars-and-placeholders.md): the README's Images section moves there, leaving a summary, to make room.
-
 ### Countries from Kuni (one minor release)
 
 Added:
@@ -72,11 +65,6 @@ Added:
 Changed:
 
 - `@johnmorrisdotca/address-plus` is 1.6.0 (was ^1.1.0). The postcodes `/names`, `/users` and `/companies` lay over a Canadian or American region are as they were.
-## 2.24.1 - 2026-10-09
-
-### Fixed
-
-- The test of `delay` and `trickle` together moves its fake clock only to the timers the response sets, never by a fixed step, which could carry it past the finish on a slow machine. That stopped the release run of 2.24.0 before publishing, so this release is the first on npm with the starters and the Postman and Bruno collections listed for 2.24.0.
 
 ### Static API in CSV, NDJSON and SQL (one minor release)
 
@@ -90,6 +78,19 @@ Added:
 Changed:
 
 - The static API is larger: 6.0 MB in 6,367 files before 2.25 (JSON only, first 100 records of each seeded dataset) and 67 MB in 51,983 files now: 19 MB of JSON (of which the real reference data, whole, is 13 MB) and 48 MB of CSV, NDJSON and SQL. The countries and withdrawn countries are written for the default locale only (their `names` hold both languages), which keeps a Japanese copy of 250 countries and their lists (33 MB) out. Written in under a minute.
+
+### The eleventh use case (docs only: rides with the next release)
+
+Added:
+
+- An eleventh use case on the use cases page and in [docs/use-cases.md](docs/use-cases.md): "Country, region and flag pickers": a country select that fills a region select and the place they name, drawn from three real requests (the G7 as countries, Canada's provinces, Ontario), with the `fetch` and `curl` that make it, in English and Japanese. The README, the page's jump list and its tests say eleven. The page needs no change to the API.
+- [docs/avatars-and-placeholders.md](docs/avatars-and-placeholders.md): the README's Images section moves there, leaving a summary, to make room.
+
+## 2.24.1 - 2026-10-09
+
+### Fixed
+
+- The test of `delay` and `trickle` together moves its fake clock only to the timers the response sets, never by a fixed step, which could carry it past the finish on a slow machine. That stopped the release run of 2.24.0 before publishing, so this release is the first on npm with the starters and the Postman and Bruno collections listed for 2.24.0.
 
 ## 2.24.0 - 2026-10-09
 
