@@ -40,7 +40,7 @@ export interface CollectionRouteOptions {
   session?: Session;
   /** Every dataset, for relations, `expand` and the checks writes make. */
   all?: readonly Resource[];
-  /** Safe values unless a request says `safe=false`. Off by default in 2.x. */
+  /** Safe values unless a request says `safe=false`. On by default since 3.0. */
   safe?: boolean;
 }
 
@@ -63,7 +63,7 @@ export function collectionRoutes(
     path = resource.name,
     session = createSession(false),
     all = [resource],
-    safe: safeByDefault = false,
+    safe: safeByDefault = true,
   }: CollectionRouteOptions = {},
 ) {
   const id = path.replaceAll('-', '_');

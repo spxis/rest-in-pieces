@@ -107,7 +107,8 @@ export function placeRoutes(app: OpenAPIHono, { flags = 'auto' }: PlaceOptions =
       },
       404: { description: 'No map for that code.', content: { 'application/json': { schema: ErrorBody } } },
       501: {
-        description: 'Chizu cannot be loaded (the API inside a browser tab has no maps).',
+        description:
+          'Chizu is not installed (an optional peer dependency, like Hata) or cannot be loaded (the API inside a browser tab has no maps). The message names the package to install.',
         content: { 'application/json': { schema: ErrorBody } },
       },
     },

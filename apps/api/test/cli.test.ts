@@ -8,7 +8,7 @@ describe('parseCliArgs', () => {
       port: DEFAULT_PORT,
       host: 'localhost',
       session: false,
-      safe: false,
+      safe: true,
     });
     expect(DEFAULT_PORT).toBe(6800);
   });
@@ -19,14 +19,14 @@ describe('parseCliArgs', () => {
       port: 6831,
       host: '0.0.0.0',
       session: false,
-      safe: false,
+      safe: true,
     });
     expect(parseCliArgs(['--port=6832', '--host=::1'])).toEqual({
       kind: 'serve',
       port: 6832,
       host: '::1',
       session: false,
-      safe: false,
+      safe: true,
     });
   });
 

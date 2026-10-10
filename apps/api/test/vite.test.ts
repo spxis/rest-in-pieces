@@ -39,8 +39,8 @@ afterAll(async () => {
 
 describe('the Vite plugin', () => {
   it('answers the API under /api on the dev server, as app.request does', async () => {
-    const response = await fetch(`${origin}/api/users?limit=1&seed=1`);
-    const direct = await createApp().request('/users?limit=1&seed=1');
+    const response = await fetch(`${origin}/api/users?limit=1&seed=1&safe=false`);
+    const direct = await createApp().request('/users?limit=1&seed=1&safe=false');
     expect(response.status).toBe(200);
     expect(response.headers.get('x-total-count')).toBe('1000');
     const body = (await response.json()) as { results: unknown[] };

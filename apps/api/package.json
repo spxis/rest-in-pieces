@@ -200,8 +200,7 @@
     "@hono/node-server": "^2.1.1",
     "@hono/zod-openapi": "^1.6.3",
     "@johnmorrisdotca/address-plus": "^1.6.0",
-    "@johnmorrisdotca/chizu": "^1.4.0",
-    "@johnmorrisdotca/kuni": "^1.2.0",
+    "@johnmorrisdotca/kuni": "^1.3.0",
     "@scalar/hono-api-reference": "^0.12.6",
     "fast-xml-parser": "^5.11.1",
     "hono": "^4.13.9",
@@ -209,11 +208,15 @@
     "zod": "^4.6.5"
   },
   "peerDependencies": {
+    "@johnmorrisdotca/chizu": ">=1",
     "@johnmorrisdotca/hata": ">=1",
     "msw": ">=2",
     "vite": ">=5"
   },
   "peerDependenciesMeta": {
+    "@johnmorrisdotca/chizu": {
+      "optional": true
+    },
     "@johnmorrisdotca/hata": {
       "optional": true
     },
@@ -225,6 +228,7 @@
     }
   },
   "devDependencies": {
+    "@johnmorrisdotca/chizu": "^1.4.0",
     "@johnmorrisdotca/hata": "^1.4.0",
     "@types/node": "^26.6.3",
     "@vitest/coverage-v8": "^5.0.2",

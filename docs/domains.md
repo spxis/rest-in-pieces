@@ -45,4 +45,4 @@ Both are limited like every dataset: at most 1,000 records and every request bou
 
 Names, companies, cities, addresses and currency follow the `locale`. Free text (descriptions and message bodies) is Faker's lorem. Fixed vocabulary (statuses, categories, subjects, skills, log messages) is English in every locale: these datasets have no hand-written Japanese.
 
-`safe=true` moves the emails in `/invoices`, `/messages` and `/events` to example domains. Meeting links are always on `meet.example.com`.
+Safe values (on by default since 3.0; `safe=false` turns them off) keep the emails in `/invoices`, `/messages` and `/events` on example domains. Meeting links are always on `meet.example.com`.

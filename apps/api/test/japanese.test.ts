@@ -92,7 +92,7 @@ describe('Japanese people', () => {
 
 describe('Japanese users, products and companies', () => {
   it('gives users kanji names, readings, romaji logins and mobile numbers', async () => {
-    const { body } = await request<Envelope<Row>>('/users?locale=ja&limit=20');
+    const { body } = await request<Envelope<Row>>('/users?locale=ja&limit=20&safe=false');
     for (const user of body.results) {
       expect(user.lastName).toMatch(HAS_JAPANESE);
       expect(user.lastNameKana).toMatch(KATAKANA);
@@ -123,7 +123,7 @@ describe('Japanese users, products and companies', () => {
   });
 
   it('names companies the Japanese way, with romaji domains', async () => {
-    const { body } = await request<Envelope<Row>>('/companies?locale=ja&limit=300');
+    const { body } = await request<Envelope<Row>>('/companies?locale=ja&limit=300&safe=false');
     for (const company of body.results) {
       expect(company.name).toMatch(/^株式会社.+|.+株式会社$/);
       expect(company.website).toMatch(/^https:\/\/[a-z]+-[a-z]+\.example\.jp$/);

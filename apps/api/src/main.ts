@@ -49,7 +49,9 @@ async function main(): Promise<void> {
       return;
     }
     const kept = session ? '\nSession: on. Writes are kept in memory until POST /reset.' : '';
-    const safely = safe ? '\nSafe values: on. Requests may still ask for safe=false.' : '';
+    const safely = safe
+      ? '\nSafe values: on (the default since 3.0). A request may ask for safe=false.'
+      : '\nSafe values: off. A request may ask for safe=true.';
     console.log(`REST in Pieces ${pkg.version} is running at ${url}\nAPI docs: ${url}/docs${kept}${safely}`);
   });
   server.on('error', (error: NodeJS.ErrnoException) => {

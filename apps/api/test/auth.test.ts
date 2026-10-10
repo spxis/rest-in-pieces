@@ -67,7 +67,7 @@ describe('POST /auth/login', () => {
   });
 
   it('takes any user by username or email, as a viewer unless they hold a role', async () => {
-    const user = (await call<Fields & { username: string; email: string }>('GET', '/users/10')).body;
+    const user = (await call<Fields & { username: string; email: string }>('GET', '/users/10?safe=false')).body;
     expect((await login(user.username)).body.user.id).toBe(10);
     const byEmail = await call<Tokens>('POST', '/auth/login', { body: { email: user.email, password: 'password' } });
     expect(byEmail.body.user).toMatchObject({ id: 10, role: 'viewer' });

@@ -17,9 +17,10 @@ Options:
   --openapi <file> Mock the API an OpenAPI 3.x or Swagger 2.0 document (JSON or YAML) describes, instead of the
                    built-in datasets: every operation answers with seeded data in the shape of its response schema
   --session        Keep writes in memory until POST /reset (default: $REST_IN_PIECES_SESSION, then off)
-  --safe           Serve safe values unless a request says safe=false: example-domain emails and URLs,
-                   fiction-range phone numbers, test card numbers, documentation IPs, self-hosted
-                   avatars (default: $REST_IN_PIECES_SAFE, then off; the default from 3.0)
+  --no-safe        Do not serve safe values. By default (since 3.0) emails and URLs are on example
+                   domains, phone numbers are fiction-range, cards are test numbers, IPs are
+                   documentation ones and avatars self-hosted, unless a request says safe=false
+                   (default: $REST_IN_PIECES_SAFE, then on; set it to false to turn them off)
   -v, --version    Print the version
   -h, --help       Print this help
 
@@ -50,8 +51,9 @@ Options:
   --transaction        sql: wrap the statements in BEGIN; and COMMIT;
   --bom                csv: start with a UTF-8 byte-order mark, which Excel needs for non-ASCII text
   --locale <code>      The data locale, as GET /locales lists them (default en-CA; global mixes them)
-  --safe               Safe values: example-domain emails, fiction-range phones, test card numbers
-  --base-url <url>     With --safe: where avatar and image links point (default http://localhost:6800)
+  --no-safe            Write real-looking emails, phones, cards and IPs: by default (since 3.0) they are
+                       example-domain emails, fiction-range phones, test card numbers and documentation IPs
+  --base-url <url>     Where avatar and image links point, with safe values (default http://localhost:6800)
   --output <file>      Write here instead of standard output (a summary then goes to standard error)
   -h, --help           Print this help`;
 
@@ -93,8 +95,11 @@ export const streamsFromEnv = (env: CliEnv): boolean => {
 export const flagsFromEnv = (env: CliEnv): 'auto' | 'cdn' =>
   env.REST_IN_PIECES_FLAGS?.trim().toLowerCase() === 'cdn' ? 'cdn' : 'auto';
 
-/** Whether `REST_IN_PIECES_SAFE` turns safe values on, read the same way. */
-export const safeFromEnv = (env: CliEnv): boolean => switchedOn(env.REST_IN_PIECES_SAFE);
+/** Whether safe values are on: since 3.0 unless `REST_IN_PIECES_SAFE` is `0`, `false`, `no` or `off`, read the same way as streams. */
+export const safeFromEnv = (env: CliEnv): boolean => {
+  const raw = env.REST_IN_PIECES_SAFE?.trim();
+  return raw === undefined || raw === '' || switchedOn(raw);
+};
 
 /** A mistake in the command line, reported with the usage text rather than a stack trace. */
 export class CliError extends Error {}
@@ -124,6 +129,10 @@ export function parseCliArgs(args: readonly string[], env: CliEnv = {}): CliComm
     }
     if (arg === '--safe') {
       safe = true;
+      continue;
+    }
+    if (arg === '--no-safe') {
+      safe = false;
       continue;
     }
     const [name, inline] = arg.startsWith('--') && arg.includes('=') ? arg.split(/=(.*)/s, 2) : [arg, undefined];
@@ -192,7 +201,7 @@ const VALUE_OPTIONS = new Set([
   '--base-url',
   '--output',
 ]);
-const FLAG_OPTIONS = new Set(['--transaction', '--bom', '--safe']);
+const FLAG_OPTIONS = new Set(['--transaction', '--bom', '--safe', '--no-safe']);
 
 function wholeNumber(name: string, text: string, min: number, max: number): number {
   const value = Number(text);
@@ -268,7 +277,7 @@ export function parseGenerateArgs(argv: readonly string[]): CliCommand {
     transaction: flags.has('--transaction'),
     bom: flags.has('--bom'),
     locale: values.get('--locale') ?? 'en-CA',
-    safe: flags.has('--safe'),
+    safe: !flags.has('--no-safe'),
     baseUrl: (values.get('--base-url') ?? 'http://localhost:6800').replace(/\/+$/, ''),
     ...(values.has('--output') ? { output: values.get('--output') as string } : {}),
   };

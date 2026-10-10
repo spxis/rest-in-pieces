@@ -83,7 +83,7 @@ export const USE_CASES: readonly UseCase[] = [
     title: 'uc.front-end.title',
     problem: 'uc.front-end.problem',
     how: 'uc.front-end.how',
-    playground: { endpoint: 'users', limit: 5, seed: 7, safe: true },
+    playground: { endpoint: 'users', limit: 5, seed: 7 },
     snippets: [
       {
         label: 'fetch',
@@ -128,7 +128,7 @@ const created = await fetch(\`\${BASE}/posts\`, {
     title: 'uc.unhappy-paths.title',
     problem: 'uc.unhappy-paths.problem',
     how: 'uc.unhappy-paths.how',
-    playground: { endpoint: 'users', limit: 3, seed: 1, safe: true, delay: '600', trickle: 200 },
+    playground: { endpoint: 'users', limit: 3, seed: 1, delay: '600', trickle: 200 },
     snippets: [
       {
         label: 'curl',

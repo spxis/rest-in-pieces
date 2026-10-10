@@ -1,8 +1,10 @@
 /**
  * Maps, from `@johnmorrisdotca/chizu`: a country's outline, or one of its regions lit on its country, drawn as SVG by the
- * same function the package uses in a page. Chizu is loaded the first time a map is asked for, each country's outline is
- * its own small file, and nothing is drawn for a request that does not ask for it. The package names are held in variables
- * so a bundler leaves them alone: the copy of this API that runs inside a browser tab has no maps, and says so.
+ * same function the package uses in a page. Chizu is an optional peer dependency, like Hata: it is loaded the first time a
+ * map is asked for, each country's outline is its own small file, and nothing is drawn for a request that does not ask
+ * for it. Without it installed, `/maps` answers `501` and names the package to install. The package names are held in
+ * variables so a bundler leaves them alone: the copy of this API that runs inside a browser tab has no maps either, and
+ * says so.
  */
 import { countryRecords, findCountry, loadCountries } from './kuni.ts';
 
@@ -27,7 +29,11 @@ interface Chizu {
 
 let chizu: Promise<Chizu | null> | undefined;
 
-/** Chizu, when it can be imported (always on Node, where it is a dependency), and `null` where it cannot. */
+/** What `/maps` answers when Chizu is not installed (or cannot be loaded, as inside a browser tab). */
+export const MAPS_NOT_INSTALLED =
+  'Maps are drawn by @johnmorrisdotca/chizu, which is not installed here: run `npm install @johnmorrisdotca/chizu` beside this package.';
+
+/** Chizu, when it can be imported (on Node, when it is installed beside this package), and `null` where it cannot. */
 function loadChizu(): Promise<Chizu | null> {
   const names = ['@johnmorrisdotca/chizu/load', '@johnmorrisdotca/chizu/draw', '@johnmorrisdotca/chizu'] as const;
   chizu ??= Promise.all(names.map((name) => import(/* @vite-ignore */ name))).then(
@@ -63,7 +69,7 @@ export function hexColor(value: string | undefined): string | null | undefined {
  */
 export async function mapFor(code: string, options: MapOptions = {}): Promise<MapResult> {
   const tools = await loadChizu();
-  if (!tools) return { error: 'Maps are drawn by @johnmorrisdotca/chizu, which cannot be loaded here.', status: 501 };
+  if (!tools) return { error: MAPS_NOT_INSTALLED, status: 501 };
   await loadCountries();
   const wanted = code.trim();
   const dash = wanted.indexOf('-');

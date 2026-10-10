@@ -153,7 +153,7 @@ describe.each(LOCALES)('locale $code', (locale) => {
   });
 
   it('places companies in its country, with usable domains', async () => {
-    for (const company of await list(`/companies?${query}`)) {
+    for (const company of await list(`/companies?${query}&safe=false`)) {
       expect(company.country).toBe(locale.country);
       expect(inScript(locale.script, company.province)).toBe(true);
       expect(company.website).toMatch(/^https:\/\/[a-z0-9-]+(\.[a-z0-9-]+)*\.example(\.jp)?$/);

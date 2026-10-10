@@ -47,7 +47,7 @@ A country's lists are `/countries/{code}/subdivisions` and `/countries/{code}/gr
 - **`currencies`** are the ones in use now, from CLDR (Cuba is `["CUP"]`, not `["CUP","CUC"]`). 20 differ.
 - **`countryCallingCodes`** hold the country calling code (`["+1"]`), not each area code the old list also gave (`["+7","+7 3","+7 4","+7 8"]`). 37 differ; `callingCode` is the same code as a string.
 - **`languages`** are still three-letter codes (`eng`, `jpn`), mapped from Kuni's two-letter ones, and the most used language is the same for 230 of the 250. The lists themselves are Kuni's, so some are shorter or ordered differently.
-- **`ioc`** is Wikidata's, newer than the old list on three (`FRO`, `LBN` and `SGP`, which the old list had as `FAI`, `LIB` and `SIN`); Guernsey and Jersey have none (the old list's `GCI` and `JCI` are the Commonwealth Games Federation's codes).
+- **`ioc`** is the International Olympic Committee's three-letter code, from Kuni 1.3 (Wikidata's, checked against the IOC's list), newer than the old list on three (`FRO`, `LBN` and `SGP`, which the old list had as `FAI`, `LIB` and `SIN`) and filled for the Falkland Islands (`FLK`); Guernsey and Jersey have none (the old list's `GCI` and `JCI` are the Commonwealth Games Federation's codes).
 - **`emoji`** is empty for Kosovo, as before.
 - **The list itself** is the 250 current countries. The old list also held the 29 codes ISO had deleted and 10 reserved codes (`status` `deleted` and `reserved`), so that five codes (`AI`, `BQ`, `BY`, `CS`, `GE`) appeared twice. The deleted codes are at `/countries/withdrawn`, with `status: "deleted"`. The reserved ones (`EU`, `UK`, `AC`, `CP`, `DG`, `EA`, `IC`, `TA`) are exceptional reservations, not countries, and are not served; `FX` and `SU` were reserved there and are withdrawn countries here.
 
@@ -152,7 +152,7 @@ curl 'http://localhost:6800/maps/CA-ON.svg'
 | `dot` | The capital's dot, hex. |
 | `lang` | `en` or `ja`: the language of the map's label for a screen reader. |
 
-A country's map is its outline (Natural Earth 1:50m) for 238 countries; a subdivision's is its country's regions with that one lit and framed, for the regions of 32 countries (Japan, Canada, the United States, Australia, the United Kingdom, Germany, France and more). Any other code is `404`, and a colour that is not hex `400`. Chizu is a dependency, loaded the first time a map is asked for; each country's outline is its own small file. The copy of this API that runs inside a browser tab, as on the demo site, has no maps (`501`), because Chizu's data is not part of that page; `npx`, Docker and `createApp()` on Node have them.
+A country's map is its outline (Natural Earth 1:50m) for 238 countries; a subdivision's is its country's regions with that one lit and framed, for the regions of 32 countries (Japan, Canada, the United States, Australia, the United Kingdom, Germany, France and more). Any other code is `404`, and a colour that is not hex `400`. Chizu is an optional peer dependency, like Hata (`npm install @johnmorrisdotca/chizu` beside this package; 22 MB of outlines, so `npx` does not install it), and is loaded the first time a map is asked for; each country's outline is its own small file. Without it, `/maps` is `501`, and the message says to run `npm install @johnmorrisdotca/chizu` beside this package. The copy of this API that runs inside a browser tab, as on the demo site, has no maps either (`501`), because Chizu's data is not part of that page. The Docker image carries Chizu, so its `/maps` works; from `npx`, install both packages in a project and run `npx rest-in-pieces` there.
 
 ## Addresses: `/addresses`
 
@@ -210,10 +210,10 @@ curl 'http://localhost:6800/countries/withdrawn/SU/successors'
 | `name`, `names` | The name in the locale (Japanese for `ja`, English otherwise) and `{ en, ja }`; `ja` is `null` where Wikidata has none. |
 | `status` | Always `deleted`, as the old country list called it. |
 | `since`, `until` | The years the alpha-2 code was in force (`1974` to `1992`), or a full day where Wikidata gives one. |
-| `successors` | The alpha-2 codes of the current countries that came after it; every record has at least one. `expand=successors` embeds them. |
+| `successors` | The alpha-2 codes of the countries that came after it, as ISO 3166-3 lists them; every record has at least one. They are current countries, except for Yugoslavia, whose successor `CS` is itself withdrawn. `expand=successors` embeds the current ones. |
 | `reusedBy` | Set when a current country now holds the alpha-2 code: `BY` was the Byelorussian SSR and is Belarus. |
 
-Where two countries held a code (`CS` was Czechoslovakia and then Serbia and Montenegro) `/countries/withdrawn/CS` is the one withdrawn last, and the list holds both.
+Where two countries held a code (`CS` was Czechoslovakia and then Serbia and Montenegro) `/countries/withdrawn/CS` is the one withdrawn last (`CSXX`), and the list holds both. That is also how a chain is followed: `YU` has the successor `CS`, so `expand=successors` on it is empty and `/countries/withdrawn/CS` (Serbia and Montenegro, whose successors are `ME` and `RS`) is the next step. The Soviet Union's successors are the thirteen countries ISO 3166-3 lists for it (`SU`'s record names no other).
 
 ## Data sources
 
@@ -232,6 +232,6 @@ Where two countries held a code (`CS` was Czechoslovakia and then Serbia and Mon
 | French postcodes and departments | La Poste's base officielle and INSEE's departments, in address-plus | Licence Ouverte 2.0 |
 | German postcodes | GeoNames' list for Germany, in address-plus | CC BY 4.0 |
 | Street and place names in `/addresses` | Faker | MIT |
-| The few years, codes, names and successors of withdrawn countries that Wikidata lacks | Written for Kuni from the list ISO 3166-3 publishes | MIT; a list of facts |
+| The codes, years and successors of the withdrawn countries | ISO 3166-3's own table, written for Kuni 1.3 and pinned by a test there; Wikidata gives only the names | MIT; a list of facts |
 
 Kuni's `NOTICE.md` has the full text of each licence. Nothing under ODbL, CC BY-SA or the GPL is used.

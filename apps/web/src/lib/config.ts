@@ -103,7 +103,7 @@ export interface PlaygroundConfig {
   parentId: string;
   /** Relations to embed with `expand=`, such as `user` or `items.product`. */
   expand: string[];
-  /** Asks for safe values: example-domain emails, fiction-range phones, test cards, self-hosted avatars. */
+  /** Safe values: example-domain emails, fiction-range phones, test cards, self-hosted avatars. On by default since 3.0; off sends `safe=false`. */
   safe: boolean;
   /** The table `format=sql` inserts into; empty for the dataset's own name. */
   table: string;
@@ -212,7 +212,7 @@ export function defaultConfig(apiBase = defaultApiBase()): PlaygroundConfig {
     nested: '',
     parentId: '1',
     expand: [],
-    safe: false,
+    safe: true,
     table: '',
   };
 }

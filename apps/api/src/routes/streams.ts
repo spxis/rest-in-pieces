@@ -74,7 +74,7 @@ export function lastEventId(header: string | undefined, query: string | undefine
 
 const clamp = (value: number, low: number, high: number) => Math.min(high, Math.max(low, value));
 
-export function streamRoutes({ safe = false }: { safe?: boolean } = {}): OpenAPIHono {
+export function streamRoutes({ safe = true }: { safe?: boolean } = {}): OpenAPIHono {
   const app = new OpenAPIHono();
 
   app.get('/', (c) => {

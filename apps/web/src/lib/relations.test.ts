@@ -18,7 +18,7 @@ describe('relations, safe values and the new formats in a setup', () => {
       nested: 'orders',
       parentId: '7',
       expand: ['user', 'items.product'],
-      safe: true,
+      safe: false,
       format: 'sql' as const,
       table: 'shop_orders',
     };
@@ -38,7 +38,7 @@ describe('relations, safe values and the new formats in a setup', () => {
         nested: 'orders',
         parentId: '7',
         expand: ['user', 'items.product'],
-        safe: true,
+        safe: false,
         format: 'sql',
         table: 'shop',
       }),
@@ -46,11 +46,13 @@ describe('relations, safe values and the new formats in a setup', () => {
     expect(url.pathname).toBe('/users/7/orders');
     expect(Object.fromEntries(url.searchParams)).toMatchObject({
       expand: 'user,items.product',
-      safe: 'true',
+      safe: 'false',
       format: 'sql',
       table: 'shop',
     });
     expect(new URL(buildRequestUrl({ ...base, table: 'x' })).searchParams.has('table')).toBe(false);
+    // Safe values are the default since 3.0, so only turning them off is written.
+    expect(new URL(buildRequestUrl(base)).searchParams.has('safe')).toBe(false);
   });
 
   it('send requests the API answers', async () => {

@@ -69,7 +69,7 @@ describe('rest-in-pieces generate: arguments', () => {
       transaction: false,
       bom: false,
       locale: 'en-CA',
-      safe: false,
+      safe: true,
       baseUrl: 'http://localhost:6800',
     });
   });
@@ -151,8 +151,9 @@ describe('rest-in-pieces generate: arguments', () => {
 
 describe('rest-in-pieces generate: the same records as the API', () => {
   it('writes ndjson that matches POST /generate, and the first records of a bigger run', async () => {
-    const api = (await postJson<{ results: unknown[] }>('/generate?limit=1000', { schema, count: 30, seed: 5 })).body
-      .results;
+    const api = (
+      await postJson<{ results: unknown[] }>('/generate?limit=1000&safe=false', { schema, count: 30, seed: 5 })
+    ).body.results;
     const offline = (await run(options({ count: 30, seed: 5 }), schema))
       .text()
       .trimEnd()

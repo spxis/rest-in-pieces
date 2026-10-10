@@ -10,9 +10,12 @@ COPY apps/web/package.json apps/web/package.json
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile
 
 COPY . .
+# Chizu (maps) is an optional peer dependency of the package, so `deploy --prod` leaves it out; the image carries it (22 MB, no dependencies of its own) so /maps works.
 RUN pnpm --filter @rest-in-pieces/web build \
   && pnpm --filter @johnmorrisdotca/rest-in-pieces build \
   && pnpm --filter @johnmorrisdotca/rest-in-pieces deploy --legacy --prod /out/api \
+  && mkdir -p /out/api/node_modules/@johnmorrisdotca \
+  && cp -RL apps/api/node_modules/@johnmorrisdotca/chizu /out/api/node_modules/@johnmorrisdotca/chizu \
   && cp -R apps/web/dist /out/web
 
 FROM node:24-alpine AS runtime

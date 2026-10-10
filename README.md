@@ -32,7 +32,7 @@ npx @johnmorrisdotca/rest-in-pieces                  # API, playground and docs 
 npx @johnmorrisdotca/rest-in-pieces --port 6900      # another port; PORT works too
 npx @johnmorrisdotca/rest-in-pieces --host 0.0.0.0   # reachable from other machines and containers
 npx @johnmorrisdotca/rest-in-pieces --session        # keep writes in memory until POST /reset
-npx @johnmorrisdotca/rest-in-pieces --safe           # safe values by default: example-domain emails, fiction-range phones
+npx @johnmorrisdotca/rest-in-pieces --no-safe        # the 2.x values: safe values (example-domain emails, fiction-range phones) are on by default
 npx @johnmorrisdotca/rest-in-pieces serve --openapi ./openapi.yaml   # mock your own API from its OpenAPI document
 ```
 
@@ -49,7 +49,7 @@ See [docs/offline-generator.md](https://github.com/spxis/rest-in-pieces/blob/mai
 ```sh
 docker run --rm -p 6800:6800 ghcr.io/spxis/rest-in-pieces
 docker run --rm -p 6800:6800 -e REST_IN_PIECES_SESSION=true ghcr.io/spxis/rest-in-pieces   # keep writes
-docker run --rm -p 6800:6800 -e REST_IN_PIECES_SAFE=true ghcr.io/spxis/rest-in-pieces      # safe values by default
+docker run --rm -p 6800:6800 -e REST_IN_PIECES_SAFE=false ghcr.io/spxis/rest-in-pieces     # the 2.x values; safe is on by default
 ```
 
 **Inside your tests**, with no port and no server to start. `createApp()` builds the API and `app.request()` answers in-process, in Vitest, Jest, Playwright or any Node script:
@@ -124,7 +124,7 @@ Vite, Mock Service Worker, Storybook, Next.js, Playwright, Cypress, typed client
 - **Repeatable data.** `?seed=42` always returns the same records. Screenshots, snapshot tests and bug reports stay stable.
 - **Realistic collections.** People, users, products, companies and the real countries, plus any shape you describe with 239 generator types, with arguments (`number.int(18,65)`), weighted choices (`pick(active,paused|80,20)`) and blank rates (`?blank=15`).
 - **Related data with referential integrity.** Orders with line items, posts, comments, todos and reviews, joined to users and products by ids that always resolve. `/users/7/orders`, `/posts/1/comments` and `/products/3/reviews` list one record's children, `expand=user,items.product` embeds related records, order totals add up with the local tax in the local currency, and dates follow one another. See [Relations](#relations).
-- **Safe values.** `?safe=true` writes emails at `example.com`, phone numbers kept for fiction, test card numbers, documentation IP addresses and avatars served by the API itself, so seeded data never mails, rings or loads anything real. See [Safe values](#safe-values).
+- **Safe values, on by default.** Every request writes emails at `example.com`, phone numbers kept for fiction, test card numbers, documentation IP addresses and avatars served by the API itself, so seeded data never mails, rings or loads anything real. See [Safe values](#safe-values).
 - **Placeholder images and avatars, self-hosted.** `/avatars/{seed}.svg` and `/images/{w}x{h}.svg`, drawn from the URL alone. See [Images](#images-avatars-and-placeholders).
 - **Fifteen countries, and a global mix.** `?locale=de`, `?locale=pt-BR` or `?locale=ko` writes every dataset for that country: native names, addresses, postal codes and phone numbers, and prices in the local currency. `?locale=global` mixes them record by record, the way a real international user table looks, and still repeats per seed. See [Data locales](#data-locales).
 - **Real places, invented people.** `/countries`, `/subdivisions`, `/groupings` and `/countries/withdrawn` are real reference data (countries with names in English and Japanese, capitals, population and borders; states, provinces and prefectures; the EU and the G7; the Soviet Union's old code and its successors), served with the paging, filters and formats of the invented datasets. See [Real places, invented people](#real-places-invented-people).
@@ -215,8 +215,8 @@ curl 'http://localhost:6800/users/2/orders?expand=user,items.product'
 curl 'http://localhost:6800/posts/1/comments'
 curl 'http://localhost:6800/products/3/reviews?expand=user'
 
-# Safe values: example-domain emails, fiction-range phones, self-hosted avatars
-curl 'http://localhost:6800/users?safe=true&limit=5'
+# Safe values are the default: example-domain emails, fiction-range phones, self-hosted avatars
+curl 'http://localhost:6800/users?limit=5'
 
 # Seed a database: SQL INSERT statements, or NDJSON for a bulk loader
 curl 'http://localhost:6800/orders?limit=1000&format=sql&table=orders' > orders.sql
@@ -255,7 +255,7 @@ curl -N 'http://localhost:6800/users?delay=200-800&trickle=200'
 | `GET /subdivisions` | The 5,050 states, provinces, prefectures, counties and Länder of 200 countries (ISO 3166-2): code, kind, level, parent, names in English and Japanese, capital, population, area, coordinates. `/countries/{code}/subdivisions` lists one country's, and `expand=subdivision` on `/names` links a person's province. |
 | `GET /groupings` | 107 groupings of countries (the EU, the G7, ASEAN, continents, UN regions) and of subdivisions (Japan's 地方), with members, the dates they joined, and the definition each follows. `/groupings/{id}/countries`, `/countries/{code}/groupings`. |
 | `GET /addresses` | Addresses in the US, Canada, Japan, Australia, the UK, France and Germany, each in its country's own postal format, with a postcode that exists in its region; `/addresses/validate` and `/addresses/format` check and write one you give. See [Addresses](https://github.com/spxis/rest-in-pieces/blob/main/docs/reference-data.md#addresses-addresses). |
-| `GET /flags/{code}.svg`, `/maps/{code}.svg` | A flag (`jp`, `jp-13`, `CA-ON`; `?shape=round`, `?fit=whole`) and a map (`JP`, `JP-13`; `?capital=true`, `?color=2f6b4f`) as SVG, like `/avatars`. A record's `flag` is the same flag's address on the CDN. See [Flags and maps](https://github.com/spxis/rest-in-pieces/blob/main/docs/reference-data.md#flags-and-maps). |
+| `GET /flags/{code}.svg`, `/maps/{code}.svg` | A flag (`jp`, `jp-13`, `CA-ON`; `?shape=round`, `?fit=whole`) and a map (`JP`, `JP-13`; `?capital=true`, `?color=2f6b4f`) as SVG, like `/avatars`. Maps need `npm install @johnmorrisdotca/chizu` (an optional peer dependency, like Hata; the Docker image has it). A record's `flag` is the same flag's address on the CDN. See [Flags and maps](https://github.com/spxis/rest-in-pieces/blob/main/docs/reference-data.md#flags-and-maps). |
 | `GET /countries/withdrawn` | The 31 countries ISO 3166-3 withdrew (`SU`, `YU`, `CS`, `DD`, `ZR`…), with the codes they held, the years, and the countries that came after. |
 | `GET /orders`              | Orders with their line items, joined to `/users` by `userId` and each item to `/products` by `productId`, totals and tax in the buyer's currency. See [Relations](#relations). |
 | `GET /posts`               | Blog posts by users, in JSONPlaceholder's shape plus `createdAt`. |
@@ -309,7 +309,7 @@ These work on every collection, including `/generate`.
 | `format`        | `json`    | `csv`, `yaml`, `xml`, `ndjson` or `sql`. The `Accept` header works too (`text/csv`, `application/x-ndjson`, `application/sql`). CSV, NDJSON and SQL hold the page's records without the metadata. See [Formats](#formats-ndjson-and-sql). |
 | `table`         | the dataset | With `format=sql`, the table the `INSERT` statements name: a letter or `_`, then letters, digits or `_`, up to 63 characters; anything else is a `400`. |
 | `expand`        | none      | Embeds related records in each record of the page: `expand=user,items.product`. See [Relations](#relations). |
-| `safe`          | off       | `true` writes values that cannot reach anybody. Off by default in 2.x; the default from 3.0. See [Safe values](#safe-values). |
+| `safe`          | on        | `true` writes values that cannot reach anybody; `false` writes the 2.x values. On by default since 3.0. See [Safe values](#safe-values). |
 | `delay`         | `0`       | Milliseconds to wait before responding, up to 10000. A range such as `200-800` picks a wait inside it from the request, seed included, so the same URL waits the same time on every machine. |
 | `trickle`       | `0`       | Sends the headers at once and the body in pieces this many milliseconds apart, in any format, so time to first byte and total time can be told apart. With `delay`, the response still takes no more than 10 s. |
 | `status`        | none      | Respond with this status. 4xx and 5xx return a simulated error; 2xx and 3xx override the success status. |
@@ -417,13 +417,13 @@ The data is [Kuni](https://github.com/johnmorrisdotca/kuni)'s, loaded the first 
 
 ## Safe values
 
-`safe=true` writes contact details and addresses that cannot reach anybody, because each comes from a range set aside for examples or fiction. It is opt-in in 2.x so that existing seeded output does not change (a test pins a sample of it), and **it becomes the default in 3.0**.
+`safe=true` writes contact details and addresses that cannot reach anybody, because each comes from a range set aside for examples or fiction. It is **on by default since 3.0**; `safe=false` writes the values 2.x did (a test pins a sample of them). See [Upgrading to 3.0](https://github.com/spxis/rest-in-pieces/blob/main/docs/upgrading-to-3.md).
 
-| Where | Turn it on |
+| Where | Turn it off |
 | ----- | ---------- |
-| One request | `?safe=true` (and `?safe=false` turns it off where it is the default) |
-| The command line | `npx @johnmorrisdotca/rest-in-pieces --safe`, or `REST_IN_PIECES_SAFE=true` |
-| In-process, Vite, MSW, a browser tab | `createApp({ safe: true })`, or `app: { safe: true }` |
+| One request | `?safe=false` (`?safe=true` is the default) |
+| The command line | `npx @johnmorrisdotca/rest-in-pieces --no-safe`, or `REST_IN_PIECES_SAFE=false` |
+| In-process, Vite, MSW, a browser tab | `createApp({ safe: false })`, or `app: { safe: false }` |
 
 What changes, and where each value comes from:
 
@@ -432,6 +432,8 @@ What changes, and where each value comes from:
 - **What it is not.** Safe values make data safe to send, call or load in a test. They are not anonymisation or de-identification: the data is fake to begin with, and nothing real goes in.
 
 **[Every value, every phone range and the `/generate` types it changes are in docs/safe-values.md.](https://github.com/spxis/rest-in-pieces/blob/main/docs/safe-values.md)**
+
+**Upgrading from 2.x?** Safe values and `/countries` are the two changes a 2.x project can see; [docs/upgrading-to-3.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/upgrading-to-3.md) has each, before and after, and how to keep the old behaviour.
 
 ## Images: avatars and placeholders
 

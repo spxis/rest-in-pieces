@@ -10,7 +10,7 @@
  *   (RFC 5737) and 2001:db8::/32 (RFC 3849).
  * - Avatars and images from this API's own `/avatars` and `/images`, never another host.
  *
- * Off by default in 2.x, so existing seeded output does not change; it becomes the default in 3.0.
+ * On by default since 3.0; `safe=false` writes the values 2.x did.
  * These rules make values safe to send, call or load. They are not anonymisation: the data is fake to begin with.
  */
 import { flagParam, pick, type Query } from './query.ts';

@@ -324,7 +324,7 @@ describe('the real reference data', () => {
     expect(read('subdivisions/JP-13.json').names).toEqual({ en: 'Tokyo', ja: '東京都' });
     expect(read('groupings/eu.json').memberCount).toBe(27);
     // The countries a withdrawn country led to are a list of countries, and /countries answers a bare array.
-    expect(read('withdrawn/SUHH/successors.json')).toHaveLength(15);
+    expect(read('withdrawn/SUHH/successors.json')).toHaveLength(13);
     expect(files.has('subdivisions/JP-13/children.json')).toBe(false);
   });
 });

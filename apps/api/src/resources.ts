@@ -225,6 +225,7 @@ export const resources: Resource[] = [
       'The four-letter ISO 3166-3 code, or the alpha-2, alpha-3 or numeric code a withdrawn country held, e.g. `SUHH` or `SU`.',
     seeded: false,
     defaults: { limit: MAX_RECORDS, metadata: true },
+    ready: () => loadCountries(),
     load: (_, locale) => ({ records: withdrawnRecords(locale) as object[], generatedAt: STATIC_DATE }),
     fields: () => WITHDRAWN_FIELDS,
     find: (records, id) => findWithdrawn(records as never, id),

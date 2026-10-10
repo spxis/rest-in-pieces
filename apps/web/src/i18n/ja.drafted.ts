@@ -270,8 +270,8 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
   'metadata.include': { text: 'レスポンスにメタデータを含める', back: 'Include metadata in the response' },
   'data.safe': { text: '安全な値', back: 'Safe values' },
   'data.safeHint': {
-    text: 'メールアドレスと URL は例示用ドメイン、電話番号はフィクション用に確保された番号帯、カード番号はテスト用番号、IP アドレスはドキュメント用の範囲、アバターはこの API が配信する画像を使います',
-    back: 'Emails and URLs use example domains, phone numbers use number ranges reserved for fiction, card numbers use test numbers, IP addresses use the range for documentation, and avatars use images this API serves',
+    text: 'メールアドレスと URL は例示用ドメイン、電話番号はフィクション用に確保された番号帯、カード番号はテスト用番号、IP アドレスはドキュメント用の範囲、アバターはこの API が配信する画像を使います。3.0 から既定でオンで、外すと 2.x の値になります',
+    back: 'Emails and URLs use example domains, phone numbers use number ranges reserved for fiction, card numbers use test numbers, IP addresses use the range for documentation, and avatars use images this API serves. It has been on by default since 3.0, and turning it off gives the 2.x values',
   },
   'relations.heading': { text: 'リレーション', back: 'Relations' },
   'relations.nested': { text: '一覧', back: 'List' },

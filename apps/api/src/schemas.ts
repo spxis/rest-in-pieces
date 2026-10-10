@@ -42,8 +42,8 @@ export const SAFE_DOCS =
   '(555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany ' +
   'and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test ' +
   'numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every ' +
-  "avatar from this API's own `/avatars/{seed}.svg`. Off by default in 2.x, so existing output does not change; " +
-  'it becomes the default in 3.0.';
+  "avatar from this API's own `/avatars/{seed}.svg`. On by default since 3.0; " +
+  '`safe=false` writes the values 2.x did.';
 
 /** The `table` description, for `format=sql`. */
 export const TABLE_DOCS =

@@ -250,21 +250,29 @@ describe('/countries/withdrawn', () => {
   it('names the Soviet Union and its successors', async () => {
     const su = (await request<Withdrawn>('/countries/withdrawn/SU')).body;
     expect(su).toMatchObject({ name: 'Soviet Union', alpha3: 'SUN', numeric: '810', since: '1974', until: '1992' });
-    expect(su.successors).toEqual(expect.arrayContaining(['RU', 'UA', 'KZ']));
+    // ISO 3166-3's list, in its order.
+    expect(su.successors).toEqual(['AM', 'AZ', 'EE', 'GE', 'KZ', 'KG', 'LV', 'LT', 'MD', 'RU', 'TJ', 'TM', 'UZ']);
     expect((await request<Withdrawn>('/countries/withdrawn/SU?locale=ja')).body.name).toBe('ソビエト連邦');
   });
 
-  it('expands its successors into countries', async () => {
-    const yu = (await request<{ successors: { alpha2: string }[] }>('/countries/withdrawn/YU?expand=successors')).body;
-    expect(yu.successors.map((one) => one.alpha2)).toEqual(['BA', 'HR', 'ME', 'MK', 'RS', 'SI']);
+  it('expands its successors into countries, and follows a successor that is itself withdrawn', async () => {
+    const serbia = (await request<{ successors: { alpha2: string }[] }>('/countries/withdrawn/CSXX?expand=successors'))
+      .body;
+    expect(serbia.successors.map((one) => one.alpha2)).toEqual(['ME', 'RS']);
     const nested = await request<Envelope<{ alpha2: string }>>(
       '/countries/withdrawn/SU/successors?metadata=true&limit=100',
     );
-    expect(nested.body.results).toHaveLength(15);
+    expect(nested.body.results).toHaveLength(13);
+    // Yugoslavia's successor is CS, which is Serbia and Montenegro (withdrawn last) and, before it, Czechoslovakia: no
+    // current country, so the expansion is empty and the chain is followed by asking for CS.
+    const yugoslavia = (await request<{ successors: unknown[] }>('/countries/withdrawn/YU?expand=successors')).body;
+    expect(yugoslavia.successors).toEqual([]);
+    expect((await request<Withdrawn>('/countries/withdrawn/YU')).body.successors).toEqual(['CS']);
+    expect((await request<Withdrawn>('/countries/withdrawn/CS')).body.code).toBe('CSXX');
   });
 
   it('filters by a country that came after: successors=RS', async () => {
     const found = (await request<Envelope<Withdrawn>>('/countries/withdrawn?successors=RS&limit=100')).body.results;
-    expect(found.map((one) => one.code).sort()).toEqual(['CSXX', 'YUCS']);
+    expect(found.map((one) => one.code)).toEqual(['CSXX']);
   });
 });

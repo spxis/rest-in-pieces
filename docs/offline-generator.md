@@ -34,8 +34,8 @@ A hundred thousand small records take about a second and a half and about 19 MB 
 | `--transaction` | SQL: wrap the statements in `BEGIN;` and `COMMIT;`, which makes a load into SQLite far faster |
 | `--bom` | CSV: start with a UTF-8 byte-order mark, which Excel needs to read non-ASCII text. The API's CSV carries one |
 | `--locale <code>` | A data locale from `GET /locales` (default `en-CA`; `global` mixes them) |
-| `--safe` | [Safe values](https://github.com/spxis/rest-in-pieces#safe-values): example-domain emails, fiction-range phone numbers, test card numbers |
-| `--base-url <url>` | With `--safe`: where avatar and image links point (default `http://localhost:6800`) |
+| `--no-safe` | Turn off [safe values](https://github.com/spxis/rest-in-pieces#safe-values) (example-domain emails, fiction-range phone numbers, test card numbers), which are on by default since 3.0 |
+| `--base-url <url>` | With safe values: where avatar and image links point (default `http://localhost:6800`) |
 | `--output <file>` | Write here instead of standard output. A file that fails half way is removed |
 
 ## Formats
@@ -49,7 +49,7 @@ The records are the API's, written the API's way:
 
 ## Same records as the API
 
-For the same schema or field list, `--seed`, `--locale` and `--safe`, the output equals the API's records, so `--count 30` matches `POST /generate` with `"count": 30`, and `--count 1000000` begins with the same 30. Dates (`date.past`, `format: date-time`) are measured from the start of today, UTC, as in the API.
+For the same schema or field list, `--seed`, `--locale` and safe values, the output equals the API's records, so `--count 30` matches `POST /generate` with `"count": 30`, and `--count 1000000` begins with the same 30. Dates (`date.past`, `format: date-time`) are measured from the start of today, UTC, as in the API.
 
 ## Limits
 

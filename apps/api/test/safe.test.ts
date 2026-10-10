@@ -99,19 +99,38 @@ describe('safe=true on the datasets', () => {
     expect((await get('/products?safe=true&limit=5')).body.results).toEqual(
       (await get('/products?limit=5')).body.results,
     );
-    expect((await get('/users?safe=false&limit=5')).body.results).toEqual((await get('/users?limit=5')).body.results);
+    // Safe is the default since 3.0, so asking for it and not asking are the same, and safe=false is the way out.
+    expect((await get('/users?safe=true&limit=5')).body.results).toEqual((await get('/users?limit=5')).body.results);
+    expect((await get('/users?safe=false&limit=5')).body.results).not.toEqual(
+      (await get('/users?limit=5')).body.results,
+    );
   });
 
-  it('is the default with createApp({ safe: true }), and safe=false still asks for the old values', async () => {
-    const safeApp = createApp({ safe: true });
+  it('is the default since 3.0, and createApp({ safe: false }) or safe=false asks for the 2.x values', async () => {
+    const safeApp = createApp();
     const user = (await (await safeApp.request('/users/1')).json()) as Fields;
     expect(user.email).toMatch(EXAMPLE_EMAIL);
     const plain = (await (await safeApp.request('/users/1?safe=false')).json()) as Fields;
-    expect(plain).toEqual((await get('/users/1')).body);
+    expect(plain.email).not.toMatch(EXAMPLE_EMAIL);
+    const off = (await (await createApp({ safe: false }).request('/users/1')).json()) as Fields;
+    expect(off).toEqual(plain);
+    // ...and then safe=true still turns them on for one request.
+    expect(((await (await createApp({ safe: false }).request('/users/1?safe=true')).json()) as Fields).email).toMatch(
+      EXAMPLE_EMAIL,
+    );
     const generated = (await (
       await safeApp.request('/generate?fields=e:internet.email&metadata=false&limit=3')
     ).json()) as Fields[];
     expect(generated.every((r) => EXAMPLE_EMAIL.test(String(r.e)))).toBe(true);
+  });
+
+  it('is on in the Node app unless REST_IN_PIECES_SAFE turns it off', async () => {
+    const { safeFromEnv } = await import('../src/cli.ts');
+    expect(safeFromEnv({})).toBe(true);
+    expect(safeFromEnv({ REST_IN_PIECES_SAFE: '' })).toBe(true);
+    for (const off of ['false', '0', 'no', 'off', 'FALSE'])
+      expect(safeFromEnv({ REST_IN_PIECES_SAFE: off }), off).toBe(false);
+    expect(safeFromEnv({ REST_IN_PIECES_SAFE: 'true' })).toBe(true);
   });
 
   it('writes avatar links under the prefix the API is mounted at', async () => {

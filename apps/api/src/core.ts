@@ -49,8 +49,8 @@ export interface AppOptions {
   session?: SessionOption | undefined;
   /**
    * Serves safe values unless a request says `safe=false`: emails and URLs on example domains, phone numbers from
-   * the ranges kept for fiction, test card numbers, documentation IP addresses and self-hosted avatars. Off by
-   * default in 2.x, so existing output does not change; `?safe=true` asks for it on one request.
+   * the ranges kept for fiction, test card numbers, documentation IP addresses and self-hosted avatars. On by
+   * default since 3.0; `safe: false`, or `?safe=false` on one request, writes the values 2.x did.
    */
   safe?: boolean | undefined;
   /**
@@ -74,7 +74,7 @@ export function createApp({
   specUrl = '/openapi.json',
   mount,
   session: option,
-  safe = false,
+  safe = true,
   streams = true,
   flags = 'auto',
 }: AppOptions = {}): OpenAPIHono {

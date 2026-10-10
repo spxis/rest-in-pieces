@@ -227,8 +227,8 @@ describe('the offline command', () => {
     expect(generateCommand(generated)).toBe(
       "npx @johnmorrisdotca/rest-in-pieces generate \\\n  --fields 'name:person.fullName,nick:pick(it'\\''s,ok)' \\\n  --constraints 'a>b' \\\n  --count 500 \\\n  --seed 3 \\\n  --format sql \\\n  --table people",
     );
-    expect(generateCommand({ ...generated, format: 'xml', constraints: '', locale: 'ja', safe: true })).toBe(
-      "npx @johnmorrisdotca/rest-in-pieces generate \\\n  --fields 'name:person.fullName,nick:pick(it'\\''s,ok)' \\\n  --count 500 \\\n  --seed 3 \\\n  --locale ja \\\n  --safe \\\n  --format ndjson",
+    expect(generateCommand({ ...generated, format: 'xml', constraints: '', locale: 'ja', safe: false })).toBe(
+      "npx @johnmorrisdotca/rest-in-pieces generate \\\n  --fields 'name:person.fullName,nick:pick(it'\\''s,ok)' \\\n  --count 500 \\\n  --seed 3 \\\n  --locale ja \\\n  --no-safe \\\n  --format ndjson",
     );
   });
 

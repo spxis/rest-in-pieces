@@ -16,8 +16,8 @@ afterAll(() => server.close());
 
 describe('restInPiecesHandlers', () => {
   it('answers a request under the base with the body app.request gives', async () => {
-    const response = await fetch(`${BASE}/users?limit=2&seed=1`);
-    const direct = await createApp().request('/users?limit=2&seed=1');
+    const response = await fetch(`${BASE}/users?limit=2&seed=1&safe=false`);
+    const direct = await createApp().request('/users?limit=2&seed=1&safe=false');
     expect(response.status).toBe(200);
     expect(response.headers.get('x-total-count')).toBe(direct.headers.get('x-total-count'));
     const { metadata: _a, ...through } = (await response.json()) as Record<string, unknown>;

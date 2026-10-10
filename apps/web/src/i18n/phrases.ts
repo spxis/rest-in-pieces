@@ -176,7 +176,7 @@ export const PHRASES = {
   'metadata.include': 'Include response metadata',
   'data.safe': 'Safe values',
   'data.safeHint':
-    'Emails and URLs on example domains, phone numbers kept for fiction, test card numbers, documentation IP addresses and avatars from this API',
+    'Emails and URLs on example domains, phone numbers kept for fiction, test card numbers, documentation IP addresses and avatars from this API. On by default since 3.0; untick for the values 2.x wrote',
 
   'relations.heading': 'RELATIONS',
   'relations.nested': 'List',

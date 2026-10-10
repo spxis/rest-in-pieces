@@ -191,7 +191,7 @@ function toFieldSpecs(fields: z.infer<typeof FieldsBody>): FieldSpec[] {
 }
 
 /** `GET` and `POST /generate`. `safe` serves safe values unless a request says `safe=false`. */
-export function generateRoutes({ safe = false }: { safe?: boolean } = {}) {
+export function generateRoutes({ safe = true }: { safe?: boolean } = {}) {
   const send = (
     c: Context,
     seed: number,

@@ -120,7 +120,8 @@ describe('write routes', () => {
       });
 
       it('updates: 200 with the record merged with the fields sent', async () => {
-        const original = (await request<Fields>(`/${name}/${firstId + 4}?seed=9`)).body;
+        // A write answers with the record as stored, and a read of it is safe by default: compare with the stored values.
+        const original = (await request<Fields>(`/${name}/${firstId + 4}?seed=9&safe=false`)).body;
         const { status, body } = await send('PATCH', `/${name}/${firstId + 4}?seed=9`, CHANGES[name]);
         expect(status).toBe(200);
         expect(body).toEqual({ ...original, ...CHANGES[name], updatedAt: body.updatedAt });

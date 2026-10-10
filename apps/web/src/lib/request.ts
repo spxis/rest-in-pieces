@@ -150,7 +150,7 @@ export function generateCommand(config: PlaygroundConfig): string | null {
   }
   parts.push(`--count ${Math.max(1, config.max)}`, `--seed ${config.seed}`);
   if (config.locale !== 'en-CA') parts.push(`--locale ${config.locale}`);
-  if (config.safe) parts.push('--safe');
+  if (!config.safe) parts.push('--no-safe');
   parts.push(`--format ${format}`);
   if (format === 'sql') parts.push(`--table ${config.table.trim() || 'generated'}`);
   // One option to a line, so the command reads in a narrow panel and pastes as it is.
@@ -190,7 +190,7 @@ export function buildRequestUrl(config: PlaygroundConfig, seeded = true): string
     if (config.constraints.trim()) params.set('constraints', config.constraints.trim());
   }
   if (config.expand.length > 0 && config.endpoint !== 'generate') params.set('expand', config.expand.join(','));
-  if (config.safe) params.set('safe', 'true');
+  if (!config.safe) params.set('safe', 'false');
   if (config.locale !== 'en-CA') params.set('locale', config.locale);
   if (config.messy > 0) params.set('messy', config.messy === DEFAULT_MESSY_SHARE ? 'true' : String(config.messy));
   if (config.format !== 'json') params.set('format', config.format);

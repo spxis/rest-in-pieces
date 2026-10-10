@@ -622,7 +622,7 @@ export function createMock(input: unknown, options: MockOptions = {}): Mock {
         return Response.json({ error: error.message, status: 400 }, { status: 400 });
       throw error;
     }
-    const safe = flagParam(context.control('safe'), options.safe ?? false);
+    const safe = flagParam(context.control('safe'), options.safe ?? true);
     const origin = publicBase(request.url, request.headers.get('x-forwarded-prefix') ?? undefined);
 
     const prepared = listed.prepared;

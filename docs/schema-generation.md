@@ -45,7 +45,7 @@ This is a rule-based generator for a practical subset of JSON Schema. It is not 
 | Combining | `allOf` (merged), `oneOf` and `anyOf` (one branch, chosen by the seed) |
 | References | `$ref` to a local JSON pointer: `#`, `#/$defs/Name`, `#/definitions/Name`, `#/components/schemas/Name` |
 
-`format` values: `date-time`, `date`, `time`, `email`, `uri` (and `url`), `hostname`, `ipv4`, `ipv6`, `uuid`, `byte`, `password`. Emails, URLs, hostnames and IP addresses honour `safe=true` (example domains and documentation ranges). Other formats are ignored.
+`format` values: `date-time`, `date`, `time`, `email`, `uri` (and `url`), `hostname`, `ipv4`, `ipv6`, `uuid`, `byte`, `password`. Emails, URLs, hostnames and IP addresses honour `safe` (on by default since 3.0) (example domains and documentation ranges). Other formats are ignored.
 
 **Names help.** A plain string property gets a matching value by what it is called: `email`, `firstName`, `lastName`, `name`, `username`, `phone`, `city`, `country`, `state`, `zip`, `address`, `url`, `avatar`, `company`, `jobTitle`, `description` and a few more. **`x-generator`** names any generator type from `GET /generators`, with its arguments: `{ "type": "string", "x-generator": "person.fullName" }` or `"commerce.price(5,500,2)"`. Both respect `locale` and `safe`. A string is cut to `maxLength` and padded to `minLength`.
 

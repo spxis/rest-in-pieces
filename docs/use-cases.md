@@ -30,7 +30,7 @@ const order = await (await fetch(`${BASE}/orders/4?expand=user,items.product&saf
 // order.user is the buyer, order.items[0].product the product
 ```
 
-`safe=true` writes emails at `example.com`, so a screenshot or a demo never shows an address that could belong to someone. The order's lines add up and its tax is the buyer's local rate. See [Relations](https://github.com/spxis/rest-in-pieces#relations).
+Safe values, the default since 3.0 (the `safe=true` above is only to say so), write emails at `example.com`, so a screenshot or a demo never shows an address that could belong to someone. The order's lines add up and its tax is the buyer's local rate. See [Relations](https://github.com/spxis/rest-in-pieces#relations).
 
 ## 2. A tutorial API that takes writes too
 

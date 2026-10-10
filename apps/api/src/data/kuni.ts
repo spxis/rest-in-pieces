@@ -5,18 +5,15 @@
  * needs once, builds frozen records, and every later call returns at once. The `…Records` functions are synchronous,
  * because the dataset layer is, and throw if the matching `load…` has not been awaited; `Resource.ready` is what awaits it
  * before a route reads.
- *
- * Wikidata's IOC codes and the withdrawn countries of ISO 3166-3 are Kuni's from 1.3.0; until it is installed, they are
- * read from `kuniLocal.ts`, made from Kuni's own build.
  */
 import type { Country as KuniCountry, Subdivision as KuniSubdivision } from '@johnmorrisdotca/kuni';
 import type { CountryFacts, LatLon } from '@johnmorrisdotca/kuni/facts';
 import type { Grouping } from '@johnmorrisdotca/kuni/groupings';
 import type { SubdivisionFacts } from '@johnmorrisdotca/kuni/subdivision-facts';
+import type { WithdrawnCountry } from '@johnmorrisdotca/kuni/withdrawn';
 import { type Locale, localeTag } from '../lib/locale.ts';
 import { flagUrlOf } from './flags.ts';
 import { ISO_639_3 } from './iso639.ts';
-import { IOC_CODES, WITHDRAWN } from './kuniLocal.ts';
 
 type Point = { lat: number; lon: number };
 
@@ -125,6 +122,7 @@ const freezeAll = <T extends object>(records: T[]): readonly T[] =>
 // ----- Countries ---------------------------------------------------------------------------------------------------
 
 let countryBase: readonly CountryRecord[] | undefined;
+let withdrawnBase: readonly WithdrawnCountry[] | undefined;
 const countryByLocale = new Map<string, readonly CountryRecord[]>();
 let loadingCountries: Promise<void> | undefined;
 
@@ -134,7 +132,7 @@ const countryRecord = (country: KuniCountry, facts: CountryFacts | null): Countr
   alpha3: country.kind === 'user' ? '' : country.alpha3,
   name: country.name.en,
   status: country.kind === 'user' ? 'user assigned' : 'assigned',
-  ioc: IOC_CODES[country.alpha2] ?? '',
+  ioc: country.ioc ?? '',
   emoji: country.kind === 'user' ? '' : country.flag,
   currencies: [...(country.currency ?? [])],
   languages: (country.languages ?? []).map((code) => ISO_639_3[code] ?? code),
@@ -169,8 +167,13 @@ const countryRecord = (country: KuniCountry, facts: CountryFacts | null): Countr
 /** Imports Kuni's countries and their facts, once. */
 export function loadCountries(): Promise<void> {
   loadingCountries ??= (async () => {
-    const [kuni, facts] = await Promise.all([import('@johnmorrisdotca/kuni'), import('@johnmorrisdotca/kuni/facts')]);
+    const [kuni, facts, old] = await Promise.all([
+      import('@johnmorrisdotca/kuni'),
+      import('@johnmorrisdotca/kuni/facts'),
+      import('@johnmorrisdotca/kuni/withdrawn'),
+    ]);
     countryBase = freezeAll(kuni.countries().map((country) => countryRecord(country, facts.facts(country.alpha2))));
+    withdrawnBase = old.withdrawnCountries();
   })();
   return loadingCountries;
 }
@@ -216,12 +219,13 @@ const withdrawnByLocale = new Map<string, readonly WithdrawnRecord[]>();
 
 /** The 31 withdrawn countries of ISO 3166-3, named in the locale's language (Japanese for `ja`, English otherwise). */
 export function withdrawnRecords(locale: Locale): readonly WithdrawnRecord[] {
+  if (!withdrawnBase) throw NOT_LOADED('Withdrawn country');
   const tag = localeTag(locale) ?? '';
   const japanese = tag === 'ja' || tag.startsWith('ja-');
   let list = withdrawnByLocale.get(japanese ? 'ja' : 'en');
   if (!list) {
     list = freezeAll(
-      WITHDRAWN.map((one) => ({
+      withdrawnBase.map((one) => ({
         code: one.code,
         alpha2: one.alpha2,
         alpha3: one.alpha3 ?? null,
