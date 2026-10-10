@@ -33,6 +33,14 @@ npx @johnmorrisdotca/rest-in-pieces --session        # keep writes in memory unt
 npx @johnmorrisdotca/rest-in-pieces --safe           # safe values by default: example-domain emails, fiction-range phones
 ```
 
+**Offline, with no server:** `generate` writes seeded records from a [JSON Schema or OpenAPI schema](https://github.com/spxis/rest-in-pieces/blob/main/docs/schema-generation.md) or a field list to a file or a pipe, one at a time, as `ndjson`, `json`, `csv` or `sql`. A hundred thousand rows take about a second and a half, and the records are the API's, for the same seed.
+
+```sh
+npx @johnmorrisdotca/rest-in-pieces generate --schema people.json --count 100000 --format sql --table people > people.sql
+```
+
+See [docs/offline-generator.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/offline-generator.md) for every option.
+
 **With Docker:**
 
 ```sh

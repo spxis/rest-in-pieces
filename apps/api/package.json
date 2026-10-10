@@ -73,6 +73,8 @@
     "json-schema",
     "json-schema-faker-alternative",
     "openapi-mock",
+    "sql-data-generator",
+    "csv-generator",
     "sql-insert",
     "placeholder-images",
     "avatar"

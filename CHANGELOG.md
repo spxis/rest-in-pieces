@@ -4,6 +4,12 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Added
+
+- `rest-in-pieces generate --schema people.json --count 100000 --format sql` writes seeded records from a JSON Schema, an OpenAPI document (JSON or YAML, with `--component`) or a field list (`--fields`, `--constraints`) to a file (`--output`) or standard output as `ndjson`, `json`, `csv` or `sql`, with no server. Records are made and written one at a time in 64 KB pieces, waiting when a pipe or disk is slow, so memory stays flat: 100,000 small records take about 1.5 seconds. `--count` goes to 10,000,000. The records are the API's for the same schema, `--seed`, `--locale` and `--safe`, and the first N of a larger run are the N of a smaller one. SQL uses the API's quoting (`--table`, `--batch` rows per `INSERT`, `--transaction`); CSV can start with a byte-order mark (`--bom`) and fixes its columns from the schema before the first row. A schema, field list or locale it cannot use prints `error: …` and exits 1, and a file that failed half way is removed. `--help` lists everything.
+- `streamRecords` and `streamFromSchema` make the same records one at a time, and `iterate` is `build` made lazily; `GET /generators`, `/generate` and the playground are unchanged. [docs/offline-generator.md](docs/offline-generator.md) is the reference.
+- `pnpm pack:test` runs the installed `generate`.
+
 ## 2.17.0 - 2026-10-09
 
 ### Added
