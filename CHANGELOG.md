@@ -4,6 +4,14 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Added
+
+- `GET /streams/{messages|notifications|metrics|logs}` plays a dataset as Server-Sent Events, one record per event: `id` is the record's `id`, `data` the record as JSON, and the first N events are the first N records of the dataset for the same seed and locale, so a stream replays exactly. Events are unnamed, so `EventSource.onmessage` receives them, and the stream ends with an `end` event. `GET /streams` lists the streams.
+- `count` (1 to 500 events, default 20), `every` (100 to 10,000 ms, default 1,000), `duration` (1 to 60 seconds one connection stays open), `seed`, `locale`, `safe`, `delay`, `status` and `fail`. `Last-Event-ID` (or `lastEventId`) resumes after the last id seen; once every event has gone a reconnect is answered `204`, which stops `EventSource`. `drop=3` closes the connection after three events with no `end`, to rehearse a client that reconnects.
+- Bounded, because an open stream is a held connection: 500 events, 60 seconds a connection, an event at most every 100 ms, one timer per open stream and nothing running between events; a client that goes away stops it. `createApp({ streams: false })`, or `REST_IN_PIECES_STREAMS=off` for the Node app, turns it off for hosts that bill by connection time (it answers `404`).
+- Works through `npx`, Docker, the Vite plugin, in-process (`app.request()`), Mock Service Worker handlers (with `fetch`) and the API inside a page (with `fetch`; `EventSource` cannot reach it). WebSocket is not offered. [docs/streams.md](docs/streams.md) says what works where.
+- The OpenAPI document describes the routes under "Streams". Playground: a Streams tab that listens with `fetch`, shows the events as they arrive, stops, and resumes a stream that was cut, with the `EventSource` and `curl` to copy, in English and Japanese.
+
 ## 2.22.0 - 2026-10-09
 
 ### Added
