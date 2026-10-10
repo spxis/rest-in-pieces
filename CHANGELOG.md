@@ -4,6 +4,8 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+## 2.15.0 - 2026-10-09
+
 ### Added
 
 - `/generate` derived fields: `age:=age(born)`, `end:=addDays(start, days)`, `email:=concat(lower(first), '.', lower(last), '@example.com')`. A field written `=` and an expression over the record's other fields is worked out last, in dependency order, in a hand-written expression language with numbers, text, dates, comparisons, `&& || !`, `a ? b : c` and 35 functions (`GET /generators` lists them under `functions`). No `eval`, no property access, no loops, no assignment: at most 400 characters, 150 tokens, 12 deep and 100 parts per expression and 10 derived fields per schema, with a `400` that names the field for anything unreadable, unknown, circular or over a limit. A step that cannot be worked out (a division by zero, a missing source value) gives `null`. Adding a derived field leaves every other field's values as they were.
