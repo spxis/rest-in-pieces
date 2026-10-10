@@ -3,7 +3,9 @@ import type { Context } from 'hono';
 import {
   type FieldSpec,
   generateRecords,
+  MAX_CONSTRAINTS,
   MAX_FIELDS,
+  parseConstraintList,
   parseFieldList,
   SAFE_TYPES,
   SchemaError,
@@ -33,7 +35,18 @@ export const FIELD_SYNTAX_DOCS =
   'arguments in parentheses, in the order `GET /generators` lists them under `parameters`.\n' +
   '- `status:pick(active,paused,closed)`: one of the choices, evenly; `pick(active,paused,closed|70,20,10)` ' +
   'weights them, one weight per choice. Choices are text, at most 50 of up to 64 characters.\n' +
-  '- `nickname:person.firstName?blank=15`: `null` in about 15% of records (`15%` works too, written `15%25` in a URL).\n\n' +
+  '- `nickname:person.firstName?blank=15`: `null` in about 15% of records (`15%` works too, written `15%25` in a URL).\n' +
+  '- `score:number.normal(70,10,0,100,1)`, `income:number.lognormal(50000,0.5)`, `wait:number.exponential(5)`, ' +
+  '`rank:number.zipf(1000,1)`: values that bunch the way real ones do. `normal` and `lognormal` redraw a value outside ' +
+  '`min`/`max` up to 20 times and then clamp it.\n' +
+  "- `age:=age(born)`, `end:=addDays(start, days)`, `full:=concat(first, ' ', last)`: a derived field, written `=` and an " +
+  "expression over the record's other fields (and `index`), worked out after they are made. Numbers, text, true/false, " +
+  'null and dates; `+ - * / %`, comparisons, `&& || !`, `a ? b : c`, and the functions `GET /generators` lists under ' +
+  '`functions`. It cannot loop, assign or reach anything outside the record: at most 400 characters, 150 tokens, 12 deep, ' +
+  '100 parts and 10 derived fields. A step that cannot be worked out gives `null`. Write `+` as `%2B` in a URL.\n\n' +
+  '`constraints=end>start,total>=subtotal` (also `end after start`, `start<end`) puts pairs of fields in order by ' +
+  'swapping them, and moves the later one on (a day for dates, one for numbers) when a strict constraint finds them equal. ' +
+  `At most ${MAX_CONSTRAINTS}; they cannot name a derived field or form a loop.\n\n` +
   'Commas inside parentheses belong to the arguments. A type that takes no arguments, a wrong count, a value out ' +
   'of range or a bad weight answers `422` with `error` and the `field` it is about; an unknown type answers `400`. ' +
   `With \`safe=true\`, these types come from the safe ranges: ${SAFE_TYPES.map((t) => `\`${t}\``).join(', ')}; ` +
@@ -47,7 +60,8 @@ const listResponses = {
     content: { 'application/json': { schema: listOf(GeneratedRecord, 'Generated') }, ...TEXT_FORMATS },
   },
   400: {
-    description: 'Invalid field list or generator type, or a cursor that is invalid or belongs to another query.',
+    description:
+      'Invalid field list or generator type, an expression or constraint that cannot be read or goes past a limit, or a cursor that is invalid or belongs to another query.',
     content: { 'application/json': { schema: ErrorBody } },
   },
   422: {
@@ -85,6 +99,11 @@ const getRoute = createRoute({
           'name:person.fullName,age:number.int(18,65),status:pick(active,paused,closed|70,20,10),nickname:person.firstName?blank=15',
       }),
       count: z.string().optional().openapi({ description: 'Dataset size, 1 to 1000. Defaults to `max`, or 1000.' }),
+      constraints: z.string().optional().openapi({
+        description:
+          'Comma-separated rules between two fields: `end>start`, `total>=subtotal`, `start<end` or `end after start`. See the field syntax above.',
+        example: 'end>start',
+      }),
     }),
   },
   responses: listResponses,
@@ -104,6 +123,14 @@ const FieldsBody = z
 const GenerateRequest = z
   .object({
     fields: FieldsBody,
+    constraints: z
+      .array(z.string().max(100))
+      .max(MAX_CONSTRAINTS)
+      .optional()
+      .openapi({
+        description: 'Rules between two fields, such as `end > start`. See the field syntax above.',
+        example: ['end > start'],
+      }),
     count: z.number().int().min(1).max(MAX_RECORDS).optional().openapi({ example: 100 }),
     seed: z.number().int().min(0).max(MAX_SEED).optional().openapi({ example: 42 }),
   })
@@ -129,7 +156,7 @@ function toFieldSpecs(fields: z.infer<typeof FieldsBody>): FieldSpec[] {
 
 /** `GET` and `POST /generate`. `safe` serves safe values unless a request says `safe=false`. */
 export function generateRoutes({ safe = false }: { safe?: boolean } = {}) {
-  const send = (c: Context, fields: FieldSpec[], count: number, seed: number) => {
+  const send = (c: Context, fields: FieldSpec[], count: number, seed: number, constraints: string[]) => {
     requestedFormat(c);
     const query = c.req.query();
     const locale = parseLocale(pick(query, 'locale'));
@@ -137,10 +164,16 @@ export function generateRoutes({ safe = false }: { safe?: boolean } = {}) {
     const context = wantsSafe(query, safe)
       ? { safe: true, base: publicBase(c.req.url, c.req.header('x-forwarded-prefix')) }
       : { safe: false, base: '' };
-    const page = queryCollection(generateRecords(fields, count, seed, locale, context), query, DEFAULTS, locale, {
-      seed,
-      keep: ['index'],
-    });
+    const page = queryCollection(
+      generateRecords(fields, count, seed, locale, context, constraints),
+      query,
+      DEFAULTS,
+      locale,
+      {
+        seed,
+        keep: ['index'],
+      },
+    );
     const links = pageLinks(c, page);
     setPaginationHeaders(c, links, page.total);
     return respond(c, buildBody(page, links, { generatedAt: new Date(), seed, locale }), page.records, 'generated');
@@ -161,11 +194,13 @@ export function generateRoutes({ safe = false }: { safe?: boolean } = {}) {
       if (!list) throw new SchemaError('Add a fields parameter, e.g. fields=name:person.fullName,email:internet.email');
       const count = intParam(pick(query, 'count', 'max', 'maxRecords'), MAX_RECORDS, MAX_RECORDS);
       const seed = intParam(pick(query, 'seed'), DEFAULT_SEED, MAX_SEED);
-      return send(c, parseFieldList(list), Math.max(count, 1), seed) as never;
+      const constraints = parseConstraintList(pick(query, 'constraints'));
+      return send(c, parseFieldList(list, constraints), Math.max(count, 1), seed, constraints) as never;
     })
     .openapi(postRoute, (c) => {
       const body = c.req.valid('json');
-      const fields = validateFields(toFieldSpecs(body.fields));
-      return send(c, fields, body.count ?? MAX_RECORDS, body.seed ?? DEFAULT_SEED) as never;
+      const constraints = body.constraints ?? [];
+      const fields = validateFields(toFieldSpecs(body.fields), constraints);
+      return send(c, fields, body.count ?? MAX_RECORDS, body.seed ?? DEFAULT_SEED, constraints) as never;
     });
 }

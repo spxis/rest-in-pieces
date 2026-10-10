@@ -45,6 +45,10 @@ const SAMPLES: Record<string, string> = {
   'location.longitude': '-80,-70',
   'finance.creditCardNumber': 'visa',
   'image.url': '320,200',
+  'number.normal': '50,10',
+  'number.lognormal': '100,0.5',
+  'number.exponential': '5',
+  'number.zipf': '20',
 };
 
 const generate = (fields: string, rest = '') =>

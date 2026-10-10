@@ -11,6 +11,7 @@ import { FieldError, SchemaError } from './data/generators.ts';
 import { requireAuth, TOKEN_KEY } from './lib/auth.ts';
 import { simulate } from './lib/controls.ts';
 import { CursorError } from './lib/cursor.ts';
+import { ExpressionError } from './lib/expression.ts';
 import { UnsupportedFormatError } from './lib/format.ts';
 import { UnsupportedLocaleError } from './lib/locale.ts';
 import { ExpandError } from './lib/relations.ts';
@@ -157,6 +158,7 @@ export function createApp({
   app.onError((err, c) => {
     if (
       err instanceof SchemaError ||
+      err instanceof ExpressionError ||
       err instanceof UnsupportedFormatError ||
       err instanceof UnsupportedLocaleError ||
       err instanceof CursorError ||

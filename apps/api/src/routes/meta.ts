@@ -1,6 +1,7 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import pkg from '../../package.json' with { type: 'json' };
 import { generatorModules, generatorParameters, generatorTypes } from '../data/generators.ts';
+import { EXPRESSION_FUNCTIONS, EXPRESSION_LIMITS } from '../lib/expression.ts';
 import { DEFAULT_LOCALE, GLOBAL, GLOBAL_NAME, LOCALE_CODES, LOCALES } from '../lib/locale.ts';
 import { expandable } from '../lib/relations.ts';
 import { resourceNamed, resources } from '../resources.ts';
@@ -28,6 +29,16 @@ const generatorsRoute = createRoute({
                 description:
                   'The types that take arguments, with their arguments in order (`?` marks one that may be left out), plus `pick`. Write them as `age:number.int(18,65)`.',
                 example: { 'number.int': 'min, max', pick: 'choice, choice, … | weight, weight, …' },
+              }),
+              functions: z.record(z.string(), z.string()).openapi({
+                description:
+                  "The functions a derived field's expression (`age:=age(born)`) may call, with their arguments. Nothing else is reachable from an expression.",
+                example: { age: 'age(birthDate, asOf?)', concat: 'concat(a, b, …)' },
+              }),
+              limits: z.record(z.string(), z.number()).openapi({
+                description:
+                  'What one expression may hold: characters, tokens, depth, parts, and derived fields a schema may have.',
+                example: { source: 400, tokens: 150, depth: 12, nodes: 100, text: 1000, derived: 10 },
               }),
             })
             .openapi('Generators'),
@@ -177,7 +188,13 @@ const locales: z.infer<typeof LocaleInfo>[] = [
 
 export const meta = new OpenAPIHono()
   .openapi(generatorsRoute, (c) =>
-    c.json({ generators: generatorTypes, modules: generatorModules, parameters: generatorParameters }),
+    c.json({
+      generators: generatorTypes,
+      modules: generatorModules,
+      parameters: generatorParameters,
+      functions: EXPRESSION_FUNCTIONS,
+      limits: { ...EXPRESSION_LIMITS },
+    }),
   )
   .openapi(resourcesRoute, (c) => c.json(catalog))
   .openapi(localesRoute, (c) => c.json(locales))
