@@ -368,7 +368,7 @@ export default function App() {
           <span>
             {say('app.footerLabel')} <Workflow size={14} />
           </span>
-          <nav className="package-family" aria-label={uiLocale === 'ja' ? '姉妹パッケージ' : 'The family'}>
+          <nav className="package-family" aria-label={uiLocale === 'ja' ? 'ファミリー' : 'The family'}>
             {FAMILY_GROUPS.map((group) => (
               <div className="package-family-group" key={group.id}>
                 <strong>{uiLocale === 'ja' ? group.ja : group.en}</strong>

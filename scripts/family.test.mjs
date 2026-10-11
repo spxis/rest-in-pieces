@@ -8,10 +8,10 @@ import { FAMILY, FAMILY_GROUPS, FAMILY_TEMPLATE_VERSION, familyFooter } from './
 const sha = (path) => createHash('sha256').update(readFileSync(path)).digest('hex');
 describe('the shared family list', () => {
   it('pins the shared template and README writer', () => {
-    assert.equal(FAMILY_TEMPLATE_VERSION, '2026-10-09-embed-builder');
+    assert.equal(FAMILY_TEMPLATE_VERSION, '2026-10-09-embed-builder-words');
     assert.equal(
       sha('scripts/family-template.mjs'),
-      'd7cd8c1cf8c1e4a919b074fdc43574fc8e9f1f39c285d10a11d7d75a98852f67',
+      '3d90724c7ed364c994d03549b7562dd98b7841d7827b492dc7ddcdc4604192ff',
     );
     assert.equal(sha('scripts/family-readme.mjs'), 'f0bb3adff1a917f672c1b6a323e7ee068bd8b43294cdfb55f31c90112971bcf1');
   });
