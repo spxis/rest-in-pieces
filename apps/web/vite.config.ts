@@ -2,6 +2,13 @@ import { execFileSync } from 'node:child_process';
 import react from '@vitejs/plugin-react';
 import { defaultClientConditions, defaultServerConditions } from 'vite';
 import { defineConfig } from 'vitest/config';
+import {
+  FAMILY_SCRIPT,
+  familyFooter,
+  familyHead,
+  familyHeader,
+  familyUnreviewed,
+} from '../../scripts/family-template.mjs';
 import apiPackage from '../api/package.json' with { type: 'json' };
 
 /** The short SHA of the commit being built: GitHub's `GITHUB_SHA` in Actions, otherwise the checkout's HEAD. */
@@ -19,7 +26,27 @@ function commitSha(): string {
 const SOURCE = 'rest-in-pieces:source';
 
 export default defineConfig(({ mode }) => ({
-  plugins: [react()],
+  plugins: [
+    react(),
+    {
+      name: 'family-builder-frame',
+      transformIndexHtml(html: string) {
+        if (!html.includes('<!-- family:builderHead -->')) return html;
+        const parts: Record<string, string> = {
+          builderHead: familyHead({
+            id: 'rest-in-pieces',
+            title: 'REST in Pieces · sample table builder',
+            description: 'Build a seeded sample-data table.',
+          }),
+          builderHeader: familyHeader({ id: 'rest-in-pieces', links: [{ href: './', say: 'toGallery' }] }),
+          unreviewed: familyUnreviewed({ id: 'rest-in-pieces' }),
+          footer: familyFooter({ id: 'rest-in-pieces' }),
+          script: `<script>${FAMILY_SCRIPT}</script>`,
+        };
+        return html.replace(/<!-- family:([A-Za-z]+) -->/g, (_match, key) => parts[key] ?? '');
+      },
+    },
+  ],
   resolve: { conditions: [SOURCE, ...defaultClientConditions] },
   // Tests that run in Node rather than jsdom, such as the fixtures test, resolve as a server would.
   ssr: { resolve: { conditions: [SOURCE, ...defaultServerConditions] } },
@@ -34,6 +61,7 @@ export default defineConfig(({ mode }) => ({
   server: { port: 6801, strictPort: true },
   build: {
     target: 'es2022',
+    rollupOptions: { input: { main: 'index.html', builder: 'builder.html', embed: 'embed/index.html' } },
     sourcemap: true,
     // The Pages build carries the whole API, fifteen Faker locales included, in a chunk loaded on first request,
     // so it is large by design: about 2 MB, 610 KB gzipped. The limit still warns if it grows much further.

@@ -4,6 +4,15 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Added
+
+- Readonly `RestTable` / `defineTable` sample tables and browser registration entry, using the native in-browser app with reflected settings, full native app/query options and local record/error access.
+- Shared embed builder and validated no-storage iframe with code for every host format. Public events contain load/error metadata, never records; no global fetch hook is installed.
+
+### Changed
+
+- Preserve current API examples in `docs/api-examples.md` and link them from the README to keep it under the size limit.
+
 
 
 ### Added

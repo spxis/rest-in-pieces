@@ -11,7 +11,8 @@
       "!**/pnpm-lock.yaml",
       "!collections",
       "!scripts/family-template.mjs",
-      "!scripts/family-readme.mjs"
+      "!scripts/family-readme.mjs",
+      "!apps/web/public/family.css"
     ]
   },
   "formatter": {

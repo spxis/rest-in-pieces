@@ -30,3 +30,11 @@ describe('the shared family list', () => {
     assert.equal(familyBlockOf(readFileSync('README.md', 'utf8')), familyReadmeBlock('rest-in-pieces'));
   });
 });
+
+// The shared stylesheet is copied byte-identically, like the family template.
+const familyCss = readFileSync('apps/web/public/family.css', 'utf8');
+const body = familyCss.slice(familyCss.indexOf('\n') + 1);
+assert.equal(
+  createHash('sha256').update(body).digest('hex'),
+  'c1e392564a7fd94d0bb5cfaefb6d4fedfd147fc3e27f3a7afd8d8dac8c94a227',
+);

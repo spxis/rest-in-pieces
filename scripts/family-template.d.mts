@@ -16,3 +16,9 @@ export const FAMILY_GROUPS: FamilyGroup[];
 export const FAMILY_PITCH: Record<string, string>;
 export const FAMILY_PITCH_JA: Record<string, string>;
 export function familySite(id: string): string;
+
+export const FAMILY_SCRIPT: string;
+export function familyHead(options: { id: string; title: string; description: string }): string;
+export function familyHeader(options: { id: string; links: { href: string; say: string }[] }): string;
+export function familyFooter(options: { id: string }): string;
+export function familyUnreviewed(options: { id: string }): string;

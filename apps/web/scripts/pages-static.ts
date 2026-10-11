@@ -2,7 +2,7 @@
  * Writes the parts of the API a browser opens directly rather than through the playground's fetch: the OpenAPI
  * document and the reference page under `dist-pages/api/`, and the static fixtures under `dist-pages/fixtures/`.
  */
-import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createApp } from '@johnmorrisdotca/rest-in-pieces/core';
 import apiPackage from '../../api/package.json' with { type: 'json' };
@@ -59,3 +59,22 @@ copyFileSync(
   `${collections}${postman}`,
 );
 console.log(`Wrote ${collections}${postman}`);
+
+// Shared-family frame surrounds the builder; its module uses the same element as the published entry.
+const family = await import('../../../scripts/family-template.mjs');
+const builderPath = new URL('../dist-pages/builder.html', import.meta.url);
+const parts: Record<string, string> = {
+  builderHead: family.familyHead({
+    id: 'rest-in-pieces',
+    title: 'REST in Pieces · sample table builder',
+    description: 'Build a seeded sample-data table.',
+  }),
+  builderHeader: family.familyHeader({ id: 'rest-in-pieces', links: [{ href: './', say: 'toGallery' }] }),
+  unreviewed: family.familyUnreviewed({ id: 'rest-in-pieces' }),
+  footer: family.familyFooter({ id: 'rest-in-pieces' }),
+  script: `<script>${family.FAMILY_SCRIPT}</script>`,
+};
+writeFileSync(
+  builderPath,
+  readFileSync(builderPath, 'utf8').replace(/<!-- family:([A-Za-z]+) -->/g, (_match, key) => parts[key] ?? ''),
+);

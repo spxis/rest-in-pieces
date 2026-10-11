@@ -12,6 +12,7 @@ export const PHRASES = {
   'topbar.invalid': 'INVALID URL',
   'topbar.offline': 'Not reachable',
   'topbar.docs': 'API docs',
+  'topbar.embed': 'Build an embed',
   'topbar.links': 'Project links',
   'topbar.fixtures': 'Fixtures',
   'topbar.fixturesTitle': 'Ready-made JSON and CSV responses to fetch from anywhere',

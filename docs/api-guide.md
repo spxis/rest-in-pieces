@@ -1,5 +1,7 @@
 # Using the API
 
+The [current endpoint examples](api-examples.md), [reference datasets](reference-data.md) and [3.x upgrade guide](upgrading-to-3.md) cover the added geographic routes and changed country/safe-value defaults.
+
 ```sh
 # First page of people, in the original envelope
 curl 'http://localhost:6800/names?limit=10'
@@ -101,7 +103,7 @@ These work on every collection, including `/generate`.
 | `offset`        | `0`       | Records to skip. |
 | `page`          | none      | One-based page number in pages of `limit`: `page=3&pageSize=20` is `offset=40&limit=20`. |
 | `cursor`        | none      | An opaque cursor from `metadata.nextCursor` or `prevCursor`. Takes precedence over `page` and `offset`; an empty `cursor=` starts on the first page. A cursor used with different filters, sort, `q`, `seed`, `locale`, `messy` or `max` returns `400`. |
-| `max`           | every record | Caps the dataset, to test the last page and end-of-data handling. Every record is 1000, or more after creates with the session on. Alias: `maxRecords`. |
+| `max`           | every record | Caps the dataset, to test the last page and end-of-data handling. Seeded datasets hold 1000 records, or more after creates with the session on; reference datasets keep their full native lists. Alias: `maxRecords`. |
 | `sortBy`        | none      | Field to sort by. Append `:numeric` to compare as numbers, e.g. `age:numeric`. |
 | `sortDirection` | `asc`     | `desc` (also `descending`, `reverse`, `rev`, `backwards`, `-1`). Alias: `sortOrder`. |
 | `q`             | none      | Case-insensitive search across every field. |
@@ -114,7 +116,7 @@ These work on every collection, including `/generate`.
 | `format`        | `json`    | `csv`, `yaml`, `xml`, `ndjson` or `sql`. The `Accept` header works too (`text/csv`, `application/x-ndjson`, `application/sql`). CSV, NDJSON and SQL hold the page's records without the metadata. See [Formats](../README.md#formats-ndjson-and-sql). |
 | `table`         | the dataset | With `format=sql`, the table the `INSERT` statements name: a letter or `_`, then letters, digits or `_`, up to 63 characters; anything else is a `400`. |
 | `expand`        | none      | Embeds related records in each record of the page: `expand=user,items.product`. See [Relations](../README.md#relations). |
-| `safe`          | off       | `true` writes values that cannot reach anybody. Off by default in 2.x; the default from 3.0. See [Safe values](../README.md#safe-values). |
+| `safe`          | on        | `true` writes values that cannot reach anybody. It is the default from 3.0; `false` selects the earlier 2.x values. See [Safe values](../README.md#safe-values). |
 | `delay`         | `0`       | Milliseconds to wait before responding, up to 10000. A range such as `200-800` picks a wait inside it from the request, seed included, so the same URL waits the same time on every machine. |
 | `trickle`       | `0`       | Sends the headers at once and the body in pieces this many milliseconds apart, in any format, so time to first byte and total time can be told apart. With `delay`, the response still takes no more than 10 s. |
 | `status`        | none      | Respond with this status. 4xx and 5xx return a simulated error; 2xx and 3xx override the success status. |

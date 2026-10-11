@@ -126,6 +126,11 @@ export function Topbar({
             label={say('topbar.staticApi')}
             title={say('topbar.staticApiTitle')}
           />
+          <TopbarLink
+            href={`${import.meta.env.BASE_URL}builder.html`}
+            icon={<Workflow size={14} />}
+            label={say('topbar.embed')}
+          />
           <TopbarLink href={NPM_URL} icon={<Package size={14} />} label="npm" title={say('topbar.npmTitle')} />
           <TopbarLink href={REPO_URL} icon={<GitHubMark />} label="GitHub" title={say('topbar.repoTitle')} />
         </nav>

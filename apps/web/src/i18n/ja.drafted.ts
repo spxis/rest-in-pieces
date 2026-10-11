@@ -7,6 +7,7 @@ import { USE_CASE_JA } from './useCases.ja.ts';
  * Technical terms developers use as-is (offset, limit, curl, fetch, Retry-After) stay in Roman letters.
  */
 export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
+  'topbar.embed': { text: '埋め込みを作る', back: 'Build an embed' },
   'topbar.home': { text: 'REST in Pieces ホーム', back: 'REST in Pieces home' },
   'topbar.local': { text: 'ローカル API', back: 'Local API' },
   'topbar.remote': { text: 'リモート API', back: 'Remote API' },

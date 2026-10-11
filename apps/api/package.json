@@ -178,7 +178,17 @@
       "types": "./dist/types.d.ts"
     },
     "./openapi.json": "./dist/openapi.json",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./element": {
+      "rest-in-pieces:source": "./src/element.ts",
+      "types": "./dist/element.d.ts",
+      "default": "./dist/element.js"
+    },
+    "./element/define": {
+      "rest-in-pieces:source": "./src/element-define.ts",
+      "types": "./dist/element-define.d.ts",
+      "default": "./dist/element-define.js"
+    }
   },
   "files": [
     "bin",
@@ -242,5 +252,9 @@
   },
   "engines": {
     "node": ">=22.13"
-  }
+  },
+  "sideEffects": [
+    "./dist/element-define.js",
+    "./src/element-define.ts"
+  ]
 }

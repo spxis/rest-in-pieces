@@ -47,3 +47,10 @@ if (existsSync(new URL('index.html', playground))) {
   console.warn('No playground build in apps/web/dist; the package will serve the API without it.');
 }
 for (const file of ['README.md', 'LICENSE']) cpSync(at(`../../${file}`), at(file));
+
+// Browser-loadable UI entries bundle the native app; type declarations remain those written by tsc.
+execFileSync(
+  'pnpm',
+  ['--filter', '@rest-in-pieces/web', 'exec', 'vite', 'build', '--config', 'vite.elements.config.ts'],
+  { cwd: at('../../'), stdio: 'inherit', shell: process.platform === 'win32' },
+);

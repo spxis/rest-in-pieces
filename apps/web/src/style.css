@@ -1124,7 +1124,7 @@ h1 {
 }
 
 @media (max-width: 560px) {
-  /* The name on the first row; where the API runs, the links and the language on the second. */
+  /* The name stays on the first row; controls below it wrap as the links grow. */
   .topbar {
     flex-wrap: wrap;
     height: auto;
@@ -1145,8 +1145,10 @@ h1 {
   }
   .topbar-right {
     width: 100%;
+    min-width: 0;
+    flex-wrap: wrap;
     justify-content: space-between;
-    gap: 13px;
+    gap: 8px 13px;
   }
   .topbar-links {
     gap: 9px;

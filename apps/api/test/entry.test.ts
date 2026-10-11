@@ -13,7 +13,7 @@ describe('package entry', () => {
   it('points every export at built JavaScript with types, and the source condition at TypeScript', () => {
     for (const [path, target] of Object.entries(pkg.exports)) {
       if (typeof target === 'string' || path === './types') continue;
-      const name = path === '.' ? 'index' : path.slice(2);
+      const name = path === '.' ? 'index' : path === './element/define' ? 'element-define' : path.slice(2);
       expect(target).toEqual({
         'rest-in-pieces:source': `./src/${name}.ts`,
         types: `./dist/${name}.d.ts`,

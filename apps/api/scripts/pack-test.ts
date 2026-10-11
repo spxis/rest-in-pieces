@@ -274,6 +274,10 @@ try {
     `import pkg from '@johnmorrisdotca/rest-in-pieces/package.json' with { type: 'json' };
 import defaultApp, { app, createApp } from '@johnmorrisdotca/rest-in-pieces';
 import { type InBrowserApiOptions, installInBrowserApi } from '@johnmorrisdotca/rest-in-pieces/browser';
+import { RestTable, defineTable, type RestTableOptions } from '@johnmorrisdotca/rest-in-pieces/element';
+import '@johnmorrisdotca/rest-in-pieces/element/define';
+const tableOptions: RestTableOptions = { query: { country: 'CA' } };
+if (typeof RestTable !== 'function' || typeof defineTable !== 'function' || tableOptions.query?.country !== 'CA') throw new Error('Element exports failed.');
 import { createApp as createCoreApp } from '@johnmorrisdotca/rest-in-pieces/core';
 import { avatarSvg, placeholderSvg } from '@johnmorrisdotca/rest-in-pieces/images';
 import { restInPiecesHandlers } from '@johnmorrisdotca/rest-in-pieces/msw';
