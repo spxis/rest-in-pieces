@@ -9,7 +9,16 @@
  */
 import type { Locale } from './locale.ts';
 
-/** The ceilings a session keeps to. Each has a default; a smaller or larger one can be passed to `createApp`. */
+/** The ceilings a session keeps to. Each has a default; a smaller or larger one can be passed to `createApp`.
+ *
+ * @example
+ * ```ts
+ * import { type SessionLimits } from "@johnmorrisdotca/rest-in-pieces/core";
+ *
+ * const limits: SessionLimits = { records: 2000, datasets: 64, bytes: 8 * 1024 * 1024 };
+ * console.log(limits.records, limits.datasets);
+ * ```
+ */
 export interface SessionLimits {
   /** Records one dataset may hold after creates, at one seed and locale. */
   records: number;
@@ -26,7 +35,16 @@ export interface SessionLimits {
  */
 export const DEFAULT_SESSION_LIMITS: SessionLimits = { records: 2000, datasets: 64, bytes: 8 * 1024 * 1024 };
 
-/** `true` turns the session on with the default limits; an object turns it on with some limits changed. */
+/** `true` turns the session on with the default limits; an object turns it on with some limits changed.
+ *
+ * @example
+ * ```ts
+ * import { createApp, type SessionOption } from "@johnmorrisdotca/rest-in-pieces/core";
+ *
+ * const session: SessionOption = { records: 50 };
+ * console.log((await createApp({ session, log: false }).request("/health")).status);
+ * ```
+ */
 export type SessionOption = boolean | Partial<SessionLimits>;
 
 /** A write the session has no room for. The app answers it with `507 Insufficient Storage`. */

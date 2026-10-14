@@ -9,6 +9,19 @@ import type { Plugin } from 'vite';
 import type { AppOptions } from './core.ts';
 import { type App, forward } from './lib/forward.ts';
 
+/**
+ *
+ * The development-server base path and API factory options used by the Vite plugin. Other routes remain with Vite and its plugins.
+ *
+ * @example
+ * ```ts
+ * import { restInPieces, type RestInPiecesPluginOptions } from "@johnmorrisdotca/rest-in-pieces/vite";
+ * import { app } from "@johnmorrisdotca/rest-in-pieces";
+ *
+ * const options: RestInPiecesPluginOptions = { base: "/test-api", app: { log: false, safe: true } };
+ * console.log(restInPieces(options).name);
+ * ```
+ */
 export interface RestInPiecesPluginOptions {
   /** The path the API is served under on the dev server. Defaults to `/api`. */
   base?: string;
@@ -20,6 +33,18 @@ export interface RestInPiecesPluginOptions {
  * Returns the plugin. `restInPieces()` answers `/api/users?limit=5` on the dev server's own origin
  * from REST in Pieces and leaves every other path to Vite. Responses stream, so `?trickle=` arrives
  * in pieces as it does from the standalone server.
+ *
+ * @param options - The development-server base path and API options; omit them to serve the API under /api.
+ *
+ * @returns A Vite plugin applied only to the development server, with a middleware for the configured API base.
+ *
+ * @example
+ * ```ts
+ * import { restInPieces } from "@johnmorrisdotca/rest-in-pieces/vite";
+ * import { app } from "@johnmorrisdotca/rest-in-pieces";
+ *
+ * console.log(restInPieces({ base: "/api", app: { log: false } }).name);
+ * ```
  */
 export function restInPieces({ base = '/api', app: options }: RestInPiecesPluginOptions = {}): Plugin {
   const prefix = `/${base.replace(/^\/+|\/+$/g, '')}`.replace(/^\/$/, '');

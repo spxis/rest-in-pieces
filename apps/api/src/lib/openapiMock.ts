@@ -38,6 +38,17 @@ import { declaredTypes, type Violation, validateValue } from './schemaValidate.t
 
 export { OpenApiError } from './openapiSpec.ts';
 
+/**
+ *
+ * The enforced response and request ceilings for an OpenAPI mock: list items, default list size, value count, JSON characters and body bytes.
+ *
+ * @example
+ * ```ts
+ * import { MOCK_LIMITS } from "@johnmorrisdotca/rest-in-pieces/mock";
+ *
+ * console.log(MOCK_LIMITS.items, MOCK_LIMITS.body);
+ * ```
+ */
 export const MOCK_LIMITS = {
   /** The most items a list holds, whatever `limit` asks. */
   items: 100,
@@ -51,7 +62,15 @@ export const MOCK_LIMITS = {
   body: 64 * 1024,
 } as const;
 
-/** The query names that mean "how many", checked in this order against what an operation declares. */
+/** The query names that mean "how many", checked in this order against what an operation declares.
+ *
+ * @example
+ * ```ts
+ * import { LIMIT_NAMES } from "@johnmorrisdotca/rest-in-pieces/mock";
+ *
+ * console.log(LIMIT_NAMES[0], LIMIT_NAMES.length);
+ * ```
+ */
 export const LIMIT_NAMES = [
   'limit',
   'pageSize',
@@ -65,12 +84,32 @@ export const LIMIT_NAMES = [
   'max_results',
 ] as const;
 
-/** Query parameters that change how a request is answered, not what it asks. `_name` always works for each. */
+/** Query parameters that change how a request is answered, not what it asks. `_name` always works for each.
+ *
+ * @example
+ * ```ts
+ * import { CONTROLS } from "@johnmorrisdotca/rest-in-pieces/mock";
+ *
+ * console.log(CONTROLS.includes("delay"), CONTROLS.includes("safe"));
+ * ```
+ */
 export const CONTROLS = ['delay', 'trickle', 'status', 'fail', 'seed', 'locale', 'safe'] as const;
 
 /** Properties that usually hold a response's list, when a response has more than one array. */
 const LIST_NAMES = ['data', 'items', 'results', 'content', 'records', 'rows', 'list'];
 
+/**
+ *
+ * Default seed, safe-value policy, logging and interactive-document URL for a prepared OpenAPI mock. Per-request controls may override their supported defaults.
+ *
+ * @example
+ * ```ts
+ * import { type MockOptions } from "@johnmorrisdotca/rest-in-pieces/mock";
+ *
+ * const options: MockOptions = { seed: 7, safe: true, log: false };
+ * console.log(options.seed, options.safe);
+ * ```
+ */
 export interface MockOptions {
   /** The seed when a request names none. Default 1. */
   seed?: number;
@@ -82,6 +121,29 @@ export interface MockOptions {
   specUrl?: string;
 }
 
+/**
+ *
+ * One operation discovered in an OpenAPI document, including method, path, declared response statuses, parameters and request-body support. body is null when no body is declared; status is undefined when no response can be generated.
+ *
+ * @example
+ * ```ts
+ * import { createMock, type MockOperationInfo } from "@johnmorrisdotca/rest-in-pieces/mock";
+ *
+ * const specification = {
+ *   openapi: "3.0.3", info: { title: "Widgets", version: "1.0.0" },
+ *   paths: { "/widgets": { get: { responses: { "200": {
+ *     description: "Widgets", content: { "application/json": { schema: {
+ *       type: "array", items: { type: "object",
+ *         properties: { id: { type: "integer" }, label: { type: "string" } },
+ *         required: ["id", "label"],
+ *       },
+ *     } } },
+ *   } } } } },
+ * };
+ * const operation: MockOperationInfo = createMock(specification).operations[0];
+ * console.log(operation.method, operation.path);
+ * ```
+ */
 export interface MockOperationInfo {
   method: string;
   path: string;
@@ -95,6 +157,29 @@ export interface MockOperationInfo {
   body: { required: boolean; json: boolean } | null;
 }
 
+/**
+ *
+ * A prepared OpenAPI mock: the Hono app that answers requests, its operation catalogue, and the document title and version. Responses are generated from the submitted schemas.
+ *
+ * @example
+ * ```ts
+ * import { createMock, type Mock } from "@johnmorrisdotca/rest-in-pieces/mock";
+ *
+ * const specification = {
+ *   openapi: "3.0.3", info: { title: "Widgets", version: "1.0.0" },
+ *   paths: { "/widgets": { get: { responses: { "200": {
+ *     description: "Widgets", content: { "application/json": { schema: {
+ *       type: "array", items: { type: "object",
+ *         properties: { id: { type: "integer" }, label: { type: "string" } },
+ *         required: ["id", "label"],
+ *       },
+ *     } } },
+ *   } } } } },
+ * };
+ * const mock: Mock = createMock(specification, { seed: 7, log: false });
+ * console.log(mock.title, mock.operations.length);
+ * ```
+ */
 export interface Mock {
   app: Hono;
   operations: MockOperationInfo[];
@@ -345,7 +430,34 @@ function echo(made: unknown, body: unknown, pathValues: Record<string, unknown>,
   return out;
 }
 
-/** Builds the mock: its Hono app, and the operations it answers. Throws `OpenApiError` for a document it cannot mock. */
+/** Builds the mock: its Hono app, and the operations it answers. Throws `OpenApiError` for a document it cannot mock.
+ *
+ * @param input - An OpenAPI 3.0 or 3.1 document object to validate and prepare; unsupported or oversized content throws OpenApiError.
+ *
+ * @param options - Default seed, safe values, logging and interactive-document URL.
+ *
+ * @returns The prepared app, operation catalogue, title and version for the submitted document.
+ *
+ * @example
+ * ```ts
+ * import { createMock } from "@johnmorrisdotca/rest-in-pieces/mock";
+ * import { app } from "@johnmorrisdotca/rest-in-pieces";
+ *
+ * const specification = {
+ *   openapi: "3.0.3", info: { title: "Widgets", version: "1.0.0" },
+ *   paths: { "/widgets": { get: { responses: { "200": {
+ *     description: "Widgets", content: { "application/json": { schema: {
+ *       type: "array", items: { type: "object",
+ *         properties: { id: { type: "integer" }, label: { type: "string" } },
+ *         required: ["id", "label"],
+ *       },
+ *     } } },
+ *   } } } } },
+ * };
+ * const mock = createMock(specification, { seed: 7, log: false });
+ * console.log((await mock.app.request("/widgets?limit=2")).status);
+ * ```
+ */
 export function createMock(input: unknown, options: MockOptions = {}): Mock {
   const spec = readSpec(input);
   const routes = prepareRoutes(spec.operations, spec.document);
@@ -678,7 +790,33 @@ function coerce(document: unknown, schema: unknown, text: string): unknown {
   return text;
 }
 
-/** The Hono app alone, for `app.request()` and `app.fetch`. */
+/** The Hono app alone, for `app.request()` and `app.fetch`.
+ *
+ * @param document - An OpenAPI document object with supported operations and response schemas.
+ *
+ * @param options - Optional default seed, safe-value policy, logging and document URL; undefined keeps the native defaults.
+ *
+ * @returns The prepared Hono app that answers operations from the submitted document.
+ *
+ * @example
+ * ```ts
+ * import { createMockApp } from "@johnmorrisdotca/rest-in-pieces/mock";
+ *
+ * const specification = {
+ *   openapi: "3.0.3", info: { title: "Widgets", version: "1.0.0" },
+ *   paths: { "/widgets": { get: { responses: { "200": {
+ *     description: "Widgets", content: { "application/json": { schema: {
+ *       type: "array", items: { type: "object",
+ *         properties: { id: { type: "integer" }, label: { type: "string" } },
+ *         required: ["id", "label"],
+ *       },
+ *     } } },
+ *   } } } } },
+ * };
+ * const api = createMockApp(specification, { seed: 7, log: false });
+ * console.log((await api.request("/widgets?limit=2")).status);
+ * ```
+ */
 export function createMockApp(document: unknown, options?: MockOptions): Hono {
   return createMock(document, options).app;
 }

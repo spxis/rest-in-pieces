@@ -52,7 +52,20 @@ function hash(text: string): string {
   return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
 }
 
-/** Identifies the result set a query describes: everything but the page and the response format. */
+/** Identifies the result set a query describes: everything but the page and the response format.
+ *
+ * @param query - Query parameter names and string values; presentation and paging controls are deliberately excluded.
+ *
+ * @returns A stable result-set fingerprint; changing only the page or output format leaves it unchanged.
+ *
+ * @example
+ * ```ts
+ * import { queryFingerprint } from "@johnmorrisdotca/rest-in-pieces/cursor";
+ *
+ * const query = { seed: "7", sortBy: "name" };
+ * console.log(queryFingerprint(query) === queryFingerprint({ ...query, limit: "20", offset: "10" }));
+ * ```
+ */
 export function queryFingerprint(query: Query): string {
   const entries: Array<[string, string]> = [];
   for (const [name, aliases] of Object.entries(ALIASES)) {
@@ -70,6 +83,24 @@ export function queryFingerprint(query: Query): string {
 const toBase64Url = (text: string) => btoa(text).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
 const fromBase64Url = (text: string) => atob(text.replaceAll('-', '+').replaceAll('_', '/'));
 
+/**
+ *
+ * Encodes a result-set offset and query fingerprint into the opaque version-1 pagination cursor returned by the API. A cursor is a paging token, not an authorization token.
+ *
+ * @param offset - The next result-set offset to carry in the cursor.
+ *
+ * @param fingerprint - The queryFingerprint of the filters, ordering, seed, locale and dataset shape.
+ *
+ * @returns An opaque base64url version-1 cursor containing the offset and query fingerprint.
+ *
+ * @example
+ * ```ts
+ * import { encodeCursor, queryFingerprint } from "@johnmorrisdotca/rest-in-pieces/cursor";
+ *
+ * const fingerprint = queryFingerprint({ seed: "7", sortBy: "name" });
+ * console.log(encodeCursor(20, fingerprint));
+ * ```
+ */
 export function encodeCursor(offset: number, fingerprint: string): string {
   return toBase64Url(`1.${offset}.${fingerprint}`);
 }

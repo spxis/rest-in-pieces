@@ -35,6 +35,18 @@ import { SqlTableError } from './serialize.ts';
 
 export type { SessionLimits, SessionOption } from './lib/session.ts';
 
+/**
+ *
+ * Options for a new independent API instance: logging, mounting, sessions, safe values, streams and optional flag routes. Omitted fields retain the native defaults.
+ *
+ * @example
+ * ```ts
+ * import { createApp, type AppOptions } from "@johnmorrisdotca/rest-in-pieces/core";
+ *
+ * const options: AppOptions = { log: false, safe: true, session: { records: 50, datasets: 2, bytes: 32768 } };
+ * console.log((await createApp(options).request("/health")).status);
+ * ```
+ */
 export interface AppOptions {
   /** Log each request. */
   log?: boolean;
@@ -69,6 +81,18 @@ export interface AppOptions {
 /**
  * Builds the whole API. It uses nothing but web standards, so the same app runs on Node,
  * behind any fetch-style host, and inside a browser tab.
+ *
+ * @param options - Independent API options; omit them for a stateless, safe-value app with streams enabled and request logging off.
+ *
+ * @returns A new independent OpenAPIHono app; call request or fetch without opening a port.
+ *
+ * @example
+ * ```ts
+ * import { createApp } from "@johnmorrisdotca/rest-in-pieces/core";
+ *
+ * const api = createApp({ log: false, safe: true });
+ * console.log((await api.request("/users?seed=7&limit=2")).status);
+ * ```
  */
 export function createApp({
   log = false,

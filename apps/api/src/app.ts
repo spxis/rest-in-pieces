@@ -41,6 +41,14 @@ export function createNodeApp({
 /**
  * The Node app, keeping writes when `REST_IN_PIECES_SESSION` asks it to and stateless otherwise, and serving safe
  * values when `REST_IN_PIECES_SAFE` does.
+ *
+ * @example
+ * ```ts
+ * import { app } from "@johnmorrisdotca/rest-in-pieces";
+ * import api from "@johnmorrisdotca/rest-in-pieces";
+ *
+ * console.log(app === api, app.routes.some((route) => route.path === "/health"));
+ * ```
  */
 export const app = createNodeApp({
   session: sessionFromEnv(process.env),

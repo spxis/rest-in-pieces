@@ -4,7 +4,15 @@
  * pictures in the page without a request. Nothing is fetched from anywhere: no proxy, no external host.
  */
 
-/** Tile colours, dark enough for white initials and distinct on a light or a dark page. */
+/** Tile colours, dark enough for white initials and distinct on a light or a dark page.
+ *
+ * @example
+ * ```ts
+ * import { AVATAR_COLOURS } from "@johnmorrisdotca/rest-in-pieces/images";
+ *
+ * console.log(AVATAR_COLOURS.length, AVATAR_COLOURS[0]);
+ * ```
+ */
 export const AVATAR_COLOURS = [
   '#1e6091',
   '#2a7f62',
@@ -20,9 +28,39 @@ export const AVATAR_COLOURS = [
   '#5e35b1',
 ] as const;
 
-/** The longest text a placeholder draws, and the size range it clamps to, in pixels. */
+/** The longest text a placeholder draws, and the size range it clamps to, in pixels.
+ *
+ * @example
+ * ```ts
+ * import { PLACEHOLDER_TEXT_MAX } from "@johnmorrisdotca/rest-in-pieces/images";
+ *
+ * console.log(PLACEHOLDER_TEXT_MAX);
+ * ```
+ */
 export const PLACEHOLDER_TEXT_MAX = 120;
+/**
+ *
+ * The minimum side length of a generated placeholder image, in pixels.
+ *
+ * @example
+ * ```ts
+ * import { PLACEHOLDER_MIN } from "@johnmorrisdotca/rest-in-pieces/images";
+ *
+ * console.log(PLACEHOLDER_MIN);
+ * ```
+ */
 export const PLACEHOLDER_MIN = 8;
+/**
+ *
+ * The maximum side length of a generated placeholder image, in pixels.
+ *
+ * @example
+ * ```ts
+ * import { PLACEHOLDER_MAX } from "@johnmorrisdotca/rest-in-pieces/images";
+ *
+ * console.log(PLACEHOLDER_MAX);
+ * ```
+ */
 export const PLACEHOLDER_MAX = 4000;
 
 const FONTS = `system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', 'Noto Sans CJK JP', sans-serif`;
@@ -36,7 +74,19 @@ function hash(text: string): number {
   return (h ^ (h >>> 16)) >>> 0;
 }
 
-/** Text made safe to place inside SVG markup. */
+/** Text made safe to place inside SVG markup.
+ *
+ * @param text - Text to escape for SVG content or XML attribute values.
+ *
+ * @returns XML-safe text with the five markup-significant characters escaped.
+ *
+ * @example
+ * ```ts
+ * import { escapeXml } from "@johnmorrisdotca/rest-in-pieces/images";
+ *
+ * console.log(escapeXml("<name>Ada & Grace</name>"));
+ * ```
+ */
 export function escapeXml(text: string): string {
   return text.replace(
     /[&<>"']/g,
@@ -53,6 +103,17 @@ const CJK = /[぀-ヿ㐀-䶿一-鿿가-힯豈-﫿]/u;
  * (`佐藤 美穂`), and shows a family name of one or two characters whole (`佐藤`, `森`) and a longer one by its first
  * character (`長谷川` → `長`), since two characters cut from it can read as another surname; a Chinese or Korean
  * name written without a space shows its first character, the family name (`王`).
+ *
+ * @param name - A display name; spaced names and unspaced East Asian names follow the native initial rules.
+ *
+ * @returns Native display initials, including the documented family-name rules for East Asian names.
+ *
+ * @example
+ * ```ts
+ * import { initialsOf } from "@johnmorrisdotca/rest-in-pieces/images";
+ *
+ * console.log(initialsOf("Ada Lovelace"), initialsOf("佐藤 美穂"));
+ * ```
  */
 export function initialsOf(name: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean);
@@ -71,6 +132,19 @@ export function initialsOf(name: string): string {
 /**
  * A square SVG avatar. With a name it shows the name's initials; without one, a symmetric five-by-five pattern
  * drawn from the seed. The seed alone picks the colour, so the same seed always gives the same tile.
+ *
+ * @param seed - A deterministic string seed for the colour and background pattern.
+ *
+ * @param name - Optional display name for initials; omit it for the native seed-based initials.
+ *
+ * @returns A complete deterministic SVG avatar document; nothing is fetched from an external image service.
+ *
+ * @example
+ * ```ts
+ * import { avatarSvg } from "@johnmorrisdotca/rest-in-pieces/images";
+ *
+ * console.log(avatarSvg("7", "Ada Lovelace").startsWith("<svg"));
+ * ```
  */
 export function avatarSvg(seed: string, name?: string): string {
   const h = hash(seed);
@@ -100,25 +174,78 @@ export function avatarSvg(seed: string, name?: string): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="${label}"><rect width="64" height="64" fill="${colour}"/>${inner}</svg>`;
 }
 
-/** A colour as `#rgb`, `#rgba`, `#rrggbb` or `#rrggbbaa`, given with or without the `#`; `fallback` otherwise. */
+/** A colour as `#rgb`, `#rgba`, `#rrggbb` or `#rrggbbaa`, given with or without the `#`; `fallback` otherwise.
+ *
+ * @param value - A candidate three- or six-digit hexadecimal colour; undefined uses the fallback.
+ *
+ * @param fallback - The trusted colour returned when the candidate is absent or invalid.
+ *
+ * @returns A validated hexadecimal colour, or fallback when value is undefined or invalid.
+ *
+ * @example
+ * ```ts
+ * import { hexColour } from "@johnmorrisdotca/rest-in-pieces/images";
+ *
+ * console.log(hexColour("#2f5d4a", "#000000"), hexColour(undefined, "#000000"));
+ * ```
+ */
 export function hexColour(value: string | undefined, fallback: string): string {
   const match = /^#?([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.exec(value?.trim() ?? '');
   return match ? `#${match[1]?.toLowerCase()}` : fallback;
 }
 
+/**
+ *
+ * Text, background and foreground colour options for a generated SVG placeholder. Missing fields use the native image defaults.
+ *
+ * @example
+ * ```ts
+ * import { placeholderSvg, type PlaceholderOptions } from "@johnmorrisdotca/rest-in-pieces/images";
+ *
+ * const options: PlaceholderOptions = { text: "Test image", bg: "2f5d4a", fg: "ffffff" };
+ * console.log(placeholderSvg(640, 360, options).includes("Test image"));
+ * ```
+ */
 export interface PlaceholderOptions {
   text?: string | undefined;
   bg?: string | undefined;
   fg?: string | undefined;
 }
 
-/** Clamps a requested side to the sizes a placeholder is drawn at. */
+/** Clamps a requested side to the sizes a placeholder is drawn at.
+ *
+ * @param value - A requested image side length to round and clamp to the supported bounds.
+ *
+ * @returns The rounded side length clamped between PLACEHOLDER_MIN and PLACEHOLDER_MAX.
+ *
+ * @example
+ * ```ts
+ * import { clampSide } from "@johnmorrisdotca/rest-in-pieces/images";
+ *
+ * console.log(clampSide(1), clampSide(5000));
+ * ```
+ */
 export const clampSide = (value: number) =>
   Math.min(PLACEHOLDER_MAX, Math.max(PLACEHOLDER_MIN, Math.round(Number.isFinite(value) ? value : PLACEHOLDER_MIN)));
 
 /**
  * A placeholder image: a flat rectangle with its size, or `text`, in the middle. Sizes clamp to 8–4000 pixels,
  * text to 120 characters, and colours that are not hex fall back to the defaults.
+ *
+ * @param width - Requested width in pixels, clamped to the supported native range.
+ *
+ * @param height - Requested height in pixels, clamped to the supported native range.
+ *
+ * @param options - Optional image text and foreground/background colours, validated by the native renderer.
+ *
+ * @returns A complete SVG placeholder with clamped dimensions and escaped text.
+ *
+ * @example
+ * ```ts
+ * import { placeholderSvg } from "@johnmorrisdotca/rest-in-pieces/images";
+ *
+ * console.log(placeholderSvg(640, 360, { text: "Test image", bg: "2f5d4a", fg: "ffffff" }).includes("Test image"));
+ * ```
  */
 export function placeholderSvg(width: number, height: number, { text, bg, fg }: PlaceholderOptions = {}): string {
   const w = clampSide(width);
@@ -130,5 +257,17 @@ export function placeholderSvg(width: number, height: number, { text, bg, fg }: 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="${safe}"><rect width="${w}" height="${h}" fill="${hexColour(bg, '#e2e8f0')}"/><text x="${w / 2}" y="${h / 2}" fill="${hexColour(fg, '#475569')}" font-family="${escapeXml(FONTS)}" font-size="${size}" text-anchor="middle" dominant-baseline="central">${safe}</text></svg>`;
 }
 
-/** An SVG as a `data:` URL, for an `<img>` that should not make a request. */
+/** An SVG as a `data:` URL, for an `<img>` that should not make a request.
+ *
+ * @param svg - The complete SVG markup to percent-encode as a data URL.
+ *
+ * @returns A percent-encoded image/svg+xml data URL suitable for an image src attribute.
+ *
+ * @example
+ * ```ts
+ * import { avatarSvg, svgDataUrl } from "@johnmorrisdotca/rest-in-pieces/images";
+ *
+ * console.log(svgDataUrl(avatarSvg("7", "Ada Lovelace")).startsWith("data:image/svg+xml"));
+ * ```
+ */
 export const svgDataUrl = (svg: string) => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;

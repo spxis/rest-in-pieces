@@ -7,6 +7,7 @@ import { execFileSync } from 'node:child_process';
 import { cpSync, existsSync, rmSync, writeFileSync } from 'node:fs';
 import openapiTS, { astToString } from 'openapi-typescript';
 import { createApp } from '../src/core.ts';
+import { documentOpenApiTypes } from './docs-openapi.ts';
 
 const at = (path: string) => new URL(path, new URL('../', import.meta.url));
 
@@ -37,7 +38,7 @@ for (const expected of [
 }
 writeFileSync(
   at('dist/types.d.ts'),
-  `/** Types for every path and schema of the REST in Pieces API, generated from its OpenAPI document by openapi-typescript. */\n\n${types}`,
+  `/** Types for every path and schema of the REST in Pieces API, generated from its OpenAPI document by openapi-typescript. */\n\n${documentOpenApiTypes(types)}`,
 );
 
 const playground = at('../web/dist/');

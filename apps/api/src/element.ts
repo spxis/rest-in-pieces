@@ -6,7 +6,7 @@ const TABLE_ATTRIBUTES = ['resource', 'rows', 'seed', 'locale', 'columns', 'lang
 /** Host settings for the native app, query and local record callback.
  * @example
  * ```ts
- * import type { RestTableOptions } from '@johnmorrisdotca/rest-in-pieces/element';
+ * import type { RestTableOptions } from "@johnmorrisdotca/rest-in-pieces/element";
  * const options: RestTableOptions = { query: { country: 'CA' } };
  * console.log(options.query?.country);
  * ```
@@ -19,7 +19,7 @@ export interface RestTableOptions {
 /** Native app options checked by builder coverage.
  * @example
  * ```ts
- * import { REST_TABLE_APP_KEYS } from '@johnmorrisdotca/rest-in-pieces/element';
+ * import { REST_TABLE_APP_KEYS } from "@johnmorrisdotca/rest-in-pieces/element";
  * console.log(REST_TABLE_APP_KEYS.includes('safe'));
  * ```
  */
@@ -35,7 +35,7 @@ export const REST_TABLE_APP_KEYS = Object.keys({
 /** Local table options checked by builder coverage.
  * @example
  * ```ts
- * import { REST_TABLE_OPTION_KEYS } from '@johnmorrisdotca/rest-in-pieces/element';
+ * import { REST_TABLE_OPTION_KEYS } from "@johnmorrisdotca/rest-in-pieces/element";
  * console.log(REST_TABLE_OPTION_KEYS.includes('query'));
  * ```
  */
@@ -47,7 +47,7 @@ export const REST_TABLE_OPTION_KEYS = Object.keys({ app: true, query: true, onLo
  * Record data stays in the local getter and callback; public events carry metadata only.
  * @example
  * ```ts
- * import { RestTable } from '@johnmorrisdotca/rest-in-pieces/element';
+ * import { RestTable } from "@johnmorrisdotca/rest-in-pieces/element";
  * console.log(RestTable.observedAttributes.includes('resource'));
  * ```
  */
@@ -180,7 +180,7 @@ export class RestTable extends ElementBase {
    * @returns A promise that settles after rendering or reporting a plain error.
    * @example
    * ```ts
-   * import { RestTable } from '@johnmorrisdotca/rest-in-pieces/element';
+   * import { RestTable } from "@johnmorrisdotca/rest-in-pieces/element";
    * console.log(typeof RestTable.prototype.refresh);
    * ```
    */
@@ -333,7 +333,7 @@ export class RestTable extends ElementBase {
  * @returns Nothing; existing definitions are preserved.
  * @example
  * ```ts
- * import { defineTable } from '@johnmorrisdotca/rest-in-pieces/element';
+ * import { defineTable } from "@johnmorrisdotca/rest-in-pieces/element";
  * defineTable();
  * console.log(typeof defineTable);
  * ```

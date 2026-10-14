@@ -10,9 +10,30 @@
  */
 import { JsonSchemaError, pointer } from './jsonschema.ts';
 
-/** A document that cannot be mocked. Its message says where and why, so it can be shown as it is. */
+/** A document that cannot be mocked. Its message says where and why, so it can be shown as it is.
+ *
+ * @param message - Optional explanation of the invalid or unsupported OpenAPI document; undefined uses the standard empty Error message.
+ *
+ * @example
+ * ```ts
+ * import { OpenApiError } from "@johnmorrisdotca/rest-in-pieces/mock";
+ *
+ * console.log(new OpenApiError("Unsupported OpenAPI document").message);
+ * ```
+ */
 export class OpenApiError extends Error {}
 
+/**
+ *
+ * The parser ceilings applied to an OpenAPI document before it becomes a mock. Unsupported or oversized documents raise OpenApiError rather than creating an unbounded app.
+ *
+ * @example
+ * ```ts
+ * import { SPEC_LIMITS } from "@johnmorrisdotca/rest-in-pieces/mock";
+ *
+ * console.log(Object.keys(SPEC_LIMITS).sort());
+ * ```
+ */
 export const SPEC_LIMITS = {
   /** Operations, counting each method of each path. */
   operations: 1000,
