@@ -15,6 +15,8 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
   'topbar.invalid': { text: '無効な URL', back: 'Invalid URL' },
   'topbar.offline': { text: '接続不可', back: 'Unreachable' },
   'topbar.docs': { text: 'API ドキュメント', back: 'API documentation' },
+  'topbar.reference': { text: 'ドキュメント', back: 'Documentation' },
+  'topbar.referenceTitle': { text: 'SDKの参照とガイド', back: 'SDK reference and guides' },
   'topbar.links': { text: 'プロジェクトのリンク', back: 'Project links' },
   'topbar.fixtures': { text: 'フィクスチャ', back: 'Fixtures' },
   'topbar.fixturesTitle': {

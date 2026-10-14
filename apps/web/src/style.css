@@ -1090,7 +1090,8 @@ h1 {
   }
 }
 
-@media (max-width: 1100px) {
+/* Keep navigation inside the viewport as documentation and translated labels grow. */
+@media (max-width: 1450px) {
   .topbar-link-label {
     position: absolute;
     width: 1px;

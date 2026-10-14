@@ -1,5 +1,5 @@
 /**
- * Draws the animation at the top of the README: `pnpm readme:animation` writes `docs/images/use-cases.svg`, and
+ * Draws the animation in the native use-case guide: `pnpm readme:animation` writes `docs/art/use-cases.svg`, and
  * `pnpm readme:animation --check` fails when the committed file is not what the API would draw today.
  *
  * Nothing in the picture is typed by hand. The people are what `GET /users?limit=5&seed=7&safe=true` answers, the ten
@@ -15,7 +15,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createApp } from '../apps/api/src/core.ts';
 
-export const HERO_FILE = 'docs/images/use-cases.svg';
+export const HERO_FILE = 'docs/art/use-cases.svg';
 
 const REQUESTS = {
   people: '/users?limit=5&seed=7&safe=true',

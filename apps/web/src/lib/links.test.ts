@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { docsUrl, fixturesUrl, PAGES_URL, staticApiUrl } from './links.ts';
+import { docsUrl, documentationUrl, fixturesUrl, PAGES_URL, staticApiUrl } from './links.ts';
 
 describe('links in the top bar', () => {
   it('sends the API reference to the server, or to the static copy on Pages', () => {
@@ -18,5 +18,13 @@ describe('links in the top bar', () => {
   it('finds the static API beside the Pages build, and on the live site from anywhere else', () => {
     expect(staticApiUrl(true, '/rest-in-pieces/')).toBe('/rest-in-pieces/api/index.json');
     expect(staticApiUrl(false, '/')).toBe(`${PAGES_URL}api/index.json`);
+  });
+});
+
+describe('the SDK documentation links', () => {
+  it('follows interface language, with a local Pages path or the canonical published site', () => {
+    expect(documentationUrl('en', true, '/rest-in-pieces/')).toBe('/rest-in-pieces/docs/index.html');
+    expect(documentationUrl('ja', true, '/rest-in-pieces/')).toBe('/rest-in-pieces/docs/ja/index.html');
+    expect(documentationUrl('ja', false, '/')).toBe(`${PAGES_URL}docs/ja/index.html`);
   });
 });

@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { buildHeroSvg, collectFacts, HERO_FILE } from '../../../scripts/readme-animation.ts';
 
-// The animation at the top of the README is drawn from the API's own answers, so it cannot say what the API does not.
+// The animation in the native use-case guide is drawn from the API's own answers, so it cannot say what the API does not.
 const committed = readFileSync(fileURLToPath(new URL(`../../../${HERO_FILE}`, import.meta.url)), 'utf8');
 
 describe('the README animation', () => {

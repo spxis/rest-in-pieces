@@ -2,7 +2,7 @@ import { BookOpen, FileJson, Globe, Lightbulb, Package, SquareTerminal, Workflow
 import type { ReactNode } from 'react';
 import { useSpeaker } from '../i18n/LocaleProvider.tsx';
 import { IN_BROWSER, isInBrowserApi } from '../lib/inBrowserApi.ts';
-import { docsUrl, fixturesUrl, NPM_URL, REPO_URL, staticApiUrl } from '../lib/links.ts';
+import { docsUrl, documentationUrl, fixturesUrl, NPM_URL, REPO_URL, staticApiUrl } from '../lib/links.ts';
 import { isLocalApi } from '../lib/request.ts';
 import { casesPageHref, playgroundHref, type View } from '../lib/route.ts';
 import { APP_COMMIT, APP_VERSION } from '../lib/version.ts';
@@ -36,7 +36,7 @@ function GitHubMark() {
 /** A link out of the playground. Narrow screens keep the icon and hand the label to screen readers. */
 function TopbarLink({ href, icon, label, title }: { href: string; icon: ReactNode; label: string; title?: string }) {
   return (
-    <a className="topbar-link" href={href} target="_blank" rel="noreferrer" title={title ?? label}>
+    <a className="topbar-link" href={href} target="_blank" rel="noreferrer" title={title ?? label} aria-label={label}>
       {icon}
       <span className="topbar-link-label">{label}</span>
     </a>
@@ -46,7 +46,7 @@ function TopbarLink({ href, icon, label, title }: { href: string; icon: ReactNod
 /** A link to the other page of this app, so it opens in the same tab. */
 function PageLink({ href, icon, label, title }: { href: string; icon: ReactNode; label: string; title: string }) {
   return (
-    <a className="topbar-link" href={href} title={title}>
+    <a className="topbar-link" href={href} title={title} aria-label={label}>
       {icon}
       <span className="topbar-link-label">{label}</span>
     </a>
@@ -62,7 +62,7 @@ export function Topbar({
   online: boolean | null;
   view?: View;
 }) {
-  const { say } = useSpeaker();
+  const { say, locale } = useSpeaker();
   const local = isLocalApi(apiBase);
   const label = say(
     isInBrowserApi(apiBase)
@@ -109,6 +109,12 @@ export function Topbar({
               title={say('uc.navTitle')}
             />
           )}
+          <PageLink
+            href={documentationUrl(locale, IN_BROWSER, import.meta.env.BASE_URL)}
+            icon={<BookOpen size={14} />}
+            label={say('topbar.reference')}
+            title={say('topbar.referenceTitle')}
+          />
           <TopbarLink
             href={docsUrl(apiBase, isInBrowserApi(apiBase), import.meta.env.BASE_URL)}
             icon={<BookOpen size={14} />}

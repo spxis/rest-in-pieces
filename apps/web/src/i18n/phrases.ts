@@ -12,6 +12,8 @@ export const PHRASES = {
   'topbar.invalid': 'INVALID URL',
   'topbar.offline': 'Not reachable',
   'topbar.docs': 'API docs',
+  'topbar.reference': 'Docs',
+  'topbar.referenceTitle': 'SDK reference and guides',
   'topbar.embed': 'Build an embed',
   'topbar.links': 'Project links',
   'topbar.fixtures': 'Fixtures',

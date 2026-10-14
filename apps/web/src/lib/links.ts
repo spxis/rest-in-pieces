@@ -26,3 +26,8 @@ export function fixturesUrl(onPages: boolean, pageBase: string): string {
 export function staticApiUrl(onPages: boolean, pageBase: string): string {
   return `${onPages ? pageBase : PAGES_URL}api/index.json`;
 }
+
+/** The SDK reference and guides, local on Pages and at the published site in a server/dev build. */
+export function documentationUrl(locale: 'en' | 'ja', onPages: boolean, pageBase: string): string {
+  return `${onPages ? pageBase : PAGES_URL}docs/${locale === 'ja' ? 'ja/' : ''}index.html`;
+}

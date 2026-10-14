@@ -12,7 +12,7 @@
   },
   "scripts": {
     "build": "pnpm --filter @rest-in-pieces/web build",
-    "check": "node --test scripts/family.test.mjs && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm pack:test",
+    "check": "pnpm --filter @johnmorrisdotca/rest-in-pieces build && node --test scripts/family.test.mjs && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm pack:test",
     "collections": "node scripts/collections.ts",
     "dev": "pnpm -r --parallel dev",
     "dev:api": "pnpm --filter @johnmorrisdotca/rest-in-pieces dev",
@@ -27,7 +27,14 @@
     "test:coverage": "pnpm --filter @johnmorrisdotca/rest-in-pieces test:coverage",
     "test:e2e": "playwright test",
     "typecheck": "pnpm -r typecheck",
-    "family:readme": "node scripts/family-readme.mjs"
+    "family:readme": "node scripts/family-readme.mjs",
+    "site": "pnpm --dir apps/api site",
+    "docs:site": "pnpm --dir apps/api docs:site && node scripts/copy-docs.mjs",
+    "docs:check": "pnpm --dir apps/api docs:check",
+    "test:demo": "pnpm --dir apps/api test:demo && pnpm test:e2e",
+    "test:readme": "pnpm --dir apps/api test:readme",
+    "test:package": "pnpm pack:test",
+    "screenshots:readme": "node scripts/screenshots-readme.cjs"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",

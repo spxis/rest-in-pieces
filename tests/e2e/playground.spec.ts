@@ -210,7 +210,7 @@ test('offers a scenario as a share link first', async ({ page, context }) => {
 });
 
 test('links to the API reference, the fixtures, the static API, npm and the repository', async ({ page }) => {
-  await expect(page).toHaveTitle(/fake REST API/);
+  await expect(page).toHaveTitle('REST in Pieces — Fake REST API data for testing');
   const links = page.getByRole('navigation', { name: 'Project links' });
   await expect(links.getByRole('link', { name: 'API docs' })).toHaveAttribute('href', /\/docs$/);
   await expect(links.getByRole('link', { name: 'Fixtures' })).toHaveAttribute('href', /\/fixtures\/index\.json$/);

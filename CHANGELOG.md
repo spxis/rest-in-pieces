@@ -3,6 +3,8 @@
 Notable user-facing changes are recorded here. The project follows [Semantic Versioning](https://semver.org/).
 
 ## Unreleased
+
+- Add English/Japanese SDK documentation, checked public-export examples, generated OpenAPI type references, local search and Markdown/llms copies; link them from the playground and embed builder while keeping the interactive HTTP API reference.
 ### Added
 
 - Readonly `RestTable` / `defineTable` sample tables and browser registration entry, using the native in-browser app with reflected settings, full native app/query options and local record/error access.

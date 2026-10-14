@@ -1,7 +1,7 @@
 {
   "name": "@johnmorrisdotca/rest-in-pieces",
   "version": "3.1.0",
-  "description": "A mock REST API and test data generator with realistic, seeded fake data for building and testing frontends: related datasets with referential integrity, paging, sorting, filters, errors and delays on demand, safe values, SVG avatars, real country and region data (names in English and Japanese, ISO codes, states, provinces and prefectures, flags and maps, withdrawn codes), addresses in seven countries' own formats and NDJSON and SQL exports. Run it with npx, in Vite, through MSW or inside a browser tab.",
+  "description": "REST in Pieces — Fake REST API data for testing: seeded related datasets, paging, filters, latency and error drills, safe values, CSV/NDJSON/SQL, OpenAPI mocks, browser fetch, MSW and Vite.",
   "keywords": [
     "mock-api",
     "fake-api",
@@ -113,7 +113,8 @@
     "fake-addresses",
     "zip-codes",
     "csv-api",
-    "google-sheets"
+    "google-sheets",
+    "api-mock"
   ],
   "homepage": "https://spxis.github.io/rest-in-pieces/",
   "bugs": "https://github.com/spxis/rest-in-pieces/issues",
@@ -205,7 +206,13 @@
     "pack:test": "node scripts/pack-test.ts",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "docs:site": "pnpm build && node scripts/docs-site.mjs build",
+    "docs:check": "pnpm build && node scripts/docs-site.mjs check",
+    "size": "node scripts/docs-site.mjs size",
+    "site": "node scripts/site.mjs",
+    "test:demo": "pnpm site && node scripts/docs-site.mjs build && playwright test",
+    "test:readme": "node scripts/check-readme.mjs"
   },
   "dependencies": {
     "@faker-js/faker": "^10.6.0",
@@ -245,8 +252,13 @@
     "@types/node": "^26.6.3",
     "@vitest/coverage-v8": "^5.0.2",
     "country-data": "^0.0.31",
+    "esbuild": "^0.28.2",
+    "marked": "^18.1.1",
     "msw": "^3.0.2",
     "openapi-typescript": "^7.13.0",
+    "pagefind": "^1.5.2",
+    "typescript": "^7.0.2",
+    "typescript-api": "npm:typescript@^6.0.3",
     "vite": "^8.3.1",
     "vitest": "^5.0.2"
   },

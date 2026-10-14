@@ -54,6 +54,9 @@ describe('the links in the top bar', () => {
     );
     const links = screen.getByRole('navigation', { name: 'Project links' });
     const href = (name: string) => links.querySelector(`a[title="${name}"]`)?.getAttribute('href');
+    expect(screen.getByRole('link', { name: 'Docs' }).getAttribute('href')).toBe(
+      'https://spxis.github.io/rest-in-pieces/docs/index.html',
+    );
     expect(screen.getByRole('link', { name: /API docs/ }).getAttribute('href')).toBe('http://localhost:6800/docs');
     expect(screen.getByRole('link', { name: /Fixtures/ }).getAttribute('href')).toBe(
       'https://spxis.github.io/rest-in-pieces/fixtures/index.json',
@@ -66,6 +69,17 @@ describe('the links in the top bar', () => {
     // The links out of the app open elsewhere without handing over the referrer; the one to the use cases stays in it.
     for (const link of links.querySelectorAll('a[target=_blank]')) expect(link.getAttribute('rel')).toBe('noreferrer');
     expect(screen.getByRole('link', { name: /Use cases/ }).getAttribute('href')).toBe('/?view=use-cases');
+  });
+
+  it('starts in Japanese with the matching SDK documentation', () => {
+    render(
+      <LocaleProvider initial="ja">
+        <Topbar apiBase="http://localhost:6800/" online={true} />
+      </LocaleProvider>,
+    );
+    expect(screen.getByRole('link', { name: 'ドキュメント' }).getAttribute('href')).toBe(
+      'https://spxis.github.io/rest-in-pieces/docs/ja/index.html',
+    );
   });
 
   it('offers the playground from the use cases page instead', () => {

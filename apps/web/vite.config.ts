@@ -35,10 +35,17 @@ export default defineConfig(({ mode }) => ({
         const parts: Record<string, string> = {
           builderHead: familyHead({
             id: 'rest-in-pieces',
-            title: 'REST in Pieces · sample table builder',
+            title: 'REST in Pieces — Fake REST API data for testing · sample table builder',
             description: 'Build a seeded sample-data table.',
           }),
-          builderHeader: familyHeader({ id: 'rest-in-pieces', links: [{ href: './', say: 'toGallery' }] }),
+          builderHeader: familyHeader({
+            id: 'rest-in-pieces',
+            links: [
+              { href: 'docs/index.html', say: 'pageDocs' },
+              { href: 'api.html', say: 'pageApi' },
+              { href: './', say: 'toGallery' },
+            ],
+          }),
           unreviewed: familyUnreviewed({ id: 'rest-in-pieces' }),
           footer: familyFooter({ id: 'rest-in-pieces' }),
           script: `<script>${FAMILY_SCRIPT}</script>`,

@@ -1,5 +1,7 @@
 # Use cases
 
+[![Ask for seeded people, then break the backend on purpose: a request, the same five people every time, and a 503 drill](https://raw.githubusercontent.com/spxis/rest-in-pieces/main/docs/art/use-cases.svg)](https://spxis.github.io/rest-in-pieces/use-cases/)
+
 Eleven jobs REST in Pieces does, each with the problem in plain words and the request that solves it. [Back to the README](https://github.com/spxis/rest-in-pieces#readme).
 
 Every one of these has a live, animated version on the **[use cases page of the demo](https://spxis.github.io/rest-in-pieces/use-cases/)**, in English and 日本語. The animations are not recordings: each sends the requests written here to the API running inside the page and draws what comes back. The requests below are written for `http://localhost:6800`, where `npx @johnmorrisdotca/rest-in-pieces` serves.

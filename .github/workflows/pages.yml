@@ -36,6 +36,8 @@ jobs:
         env:
           PAGES_BASE: ${{ steps.pages.outputs.base_path }}/
           PAGES_URL: ${{ steps.pages.outputs.base_url }}
+      - run: pnpm site
+      - run: pnpm docs:site
       - uses: actions/upload-pages-artifact@v4
         with:
           path: apps/web/dist-pages

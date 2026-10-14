@@ -23,3 +23,9 @@ apps/api/README.md
 apps/api/LICENSE
 *.tgz
 .next/
+
+# Shared documentation examples and built SDK docs
+.docs-examples/
+.readme-examples/
+apps/api/site/
+apps/api/demo/family.css

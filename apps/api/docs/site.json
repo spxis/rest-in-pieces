@@ -1,0 +1,66 @@
+{
+  "repositoryRoot": "../..",
+  "job": "Fake REST API data for testing",
+  "pitch": {
+    "en": "Seeded, related fake records and realistic REST responses for frontend development and tests.",
+    "ja": "フロントエンドの開発やテスト向けに、シード値で再現できる関連データとREST APIの応答を作ります。"
+  },
+  "name": {
+    "en": "REST in Pieces",
+    "ja": "レスト・イン・ピーシーズ"
+  },
+  "entries": {
+    ".": {
+      "en": "Node API and playground",
+      "ja": "Node APIとプレイグラウンド",
+      "platform": "node"
+    },
+    "./core": {
+      "en": "API factory and sessions",
+      "ja": "APIの作成とセッション"
+    },
+    "./browser": {
+      "en": "In-browser fetch adapter",
+      "ja": "ブラウザ内のfetchアダプター"
+    },
+    "./cursor": {
+      "en": "Stable pagination cursors",
+      "ja": "ページ送りのカーソル"
+    },
+    "./images": {
+      "en": "SVG avatars and placeholders",
+      "ja": "SVGアバターとプレースホルダー"
+    },
+    "./serialize": {
+      "en": "CSV, NDJSON and SQL",
+      "ja": "CSV、NDJSON、SQL"
+    },
+    "./mock": {
+      "en": "Mock your OpenAPI",
+      "ja": "OpenAPIからモックを作る"
+    },
+    "./msw": {
+      "en": "MSW request handlers",
+      "ja": "MSWのリクエストハンドラー"
+    },
+    "./vite": {
+      "en": "Vite development plugin",
+      "ja": "Vite開発用プラグイン",
+      "platform": "node"
+    },
+    "./types": {
+      "en": "Generated OpenAPI types",
+      "ja": "生成したOpenAPIの型",
+      "source": "dist/types.d.ts",
+      "generatedBy": "scripts/docs-openapi.ts"
+    },
+    "./element": {
+      "en": "Native sample-data table",
+      "ja": "サンプルデータのテーブル"
+    },
+    "./element/define": {
+      "en": "Register the table element",
+      "ja": "テーブル要素の登録"
+    }
+  }
+}

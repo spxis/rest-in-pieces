@@ -53,7 +53,7 @@ export default defineConfig({
     },
     {
       // The demo as it is published: built, then served under /rest-in-pieces/ with the whole API in the page.
-      command: `pnpm build:pages && pnpm exec vite preview --mode pages --host 127.0.0.1 --port ${PAGES_PORT} --strictPort`,
+      command: `pnpm --dir ../.. site && pnpm --dir ../.. docs:site && pnpm exec vite preview --mode pages --host 127.0.0.1 --port ${PAGES_PORT} --strictPort`,
       cwd: './apps/web',
       url: PAGES,
       timeout: 120_000,

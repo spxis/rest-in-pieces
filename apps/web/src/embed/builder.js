@@ -7,6 +7,8 @@ import { TABLE_LOCALES, TABLE_RESOURCES } from './config.js';
 const words = {
   en: {
     ...FAMILY_EMBED_BUILDER_WORDS.en,
+    pageDocs: 'Docs',
+    pageApi: 'API',
     pitch: 'Choose a dataset and seed, preview a local sample table and copy the embed code.',
     name: 'REST in Pieces serves repeatable test data.',
     nameLink: 'About the package',
@@ -17,6 +19,8 @@ const words = {
   },
   ja: {
     ...FAMILY_EMBED_BUILDER_WORDS.ja,
+    pageDocs: 'ドキュメント',
+    pageApi: 'API',
     pitch: 'データセットとシードを選び、サンプルの表をプレビューで確認して、埋め込むコードをコピーできます。',
     name: 'REST in Piecesは、再現できるテストデータを返します。',
     nameLink: 'パッケージについて',
@@ -99,8 +103,20 @@ for (const key of REST_TABLE_APP_KEYS)
 for (const key of REST_TABLE_OPTION_KEYS)
   leftOut[`options.${key}`] = 'Native app, arbitrary queries and callbacks belong to trusted host options.';
 let mounted;
-const page = globalThis.familyLanguage({ id: 'rest-in-pieces', words, onChange: () => mounted?.draw() }),
+const updateDocs = (lang) => {
+  const link = document.querySelector('[data-say="pageDocs"]');
+  if (link) link.setAttribute('href', lang === 'ja' ? 'docs/ja/index.html' : 'docs/index.html');
+};
+const page = globalThis.familyLanguage({
+    id: 'rest-in-pieces',
+    words,
+    onChange: (lang) => {
+      mounted?.draw();
+      updateDocs(lang);
+    },
+  }),
   heights = {};
+updateDocs(page.lang);
 const key = (settings) => JSON.stringify(settings);
 const builder = familyEmbedBuilder({
   id: 'rest-in-pieces',

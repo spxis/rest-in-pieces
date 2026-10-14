@@ -12,7 +12,13 @@
       "!collections",
       "!scripts/family-template.mjs",
       "!scripts/family-readme.mjs",
-      "!apps/web/public/family.css"
+      "!apps/web/public/family.css",
+      "!apps/api/scripts/docs-site.mjs",
+      "!apps/api/scripts/readme-lint.mjs",
+      "!apps/api/scripts/family-template.mjs",
+      "!apps/api/src/docs-site.test.js",
+      "!apps/api/src/readme.test.js",
+      "!apps/api/e2e/docs-site.demo.mjs"
     ]
   },
   "formatter": {

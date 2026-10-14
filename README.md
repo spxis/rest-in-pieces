@@ -1,13 +1,14 @@
-# REST in Pieces
+# REST in Pieces — Fake REST API data for testing
 
 [![CI](https://github.com/spxis/rest-in-pieces/actions/workflows/ci.yml/badge.svg)](https://github.com/spxis/rest-in-pieces/actions/workflows/ci.yml)
 [![Pages](https://github.com/spxis/rest-in-pieces/actions/workflows/pages.yml/badge.svg)](https://spxis.github.io/rest-in-pieces/)
 [![npm](https://img.shields.io/npm/v/@johnmorrisdotca/rest-in-pieces)](https://www.npmjs.com/package/@johnmorrisdotca/rest-in-pieces)
 ![Node 24](https://img.shields.io/badge/node-24_LTS-3c873a)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7-3178c6)
+<a href="https://spxis.github.io/rest-in-pieces/docs/api/main/index.html"><img alt="1203.1 kB minified and gzipped" src="https://img.shields.io/badge/min%2Bgzip-1203.1%20kB-2f5d4a"></a>
+<a href="https://www.npmjs.com/package/@johnmorrisdotca/rest-in-pieces#provenance"><img alt="Published with npm provenance" src="https://img.shields.io/badge/npm-provenance-2f5d4a"></a>
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/spxis/rest-in-pieces/blob/main/LICENSE)
 
-[![Ask for seeded people, then break the backend on purpose: a request, the same five people every time, and a 503 drill](https://raw.githubusercontent.com/spxis/rest-in-pieces/main/docs/images/use-cases.svg)](https://spxis.github.io/rest-in-pieces/use-cases/)
 
 Seeded, realistic, localized data plus latency, error and messy-data drills, as a REST API, a function call or a patch on `fetch`. The people are invented; the places are real: countries, states, provinces and prefectures, groupings like the EU, and withdrawn country codes, from the same family of packages.
 
@@ -19,11 +20,174 @@ A free, open-source **mock data generator and test data generator**: rule-based 
 
 It plugs into [Vite, MSW, Storybook, Next.js, Playwright, Cypress and openapi-fetch](#use-with), and answers any origin.
 
-[![The REST in Pieces playground](https://raw.githubusercontent.com/spxis/rest-in-pieces/main/docs/images/playground.png)](https://spxis.github.io/rest-in-pieces/)
 
 Every dataset is generated from a seed. The same URL returns the same records on every machine and after every restart, so a bug can be reproduced from its URL instead of disappearing with a new random dataset.
 
-## Run it
+
+[Documentation](https://spxis.github.io/rest-in-pieces/docs/index.html) · [Getting started](https://spxis.github.io/rest-in-pieces/docs/guides/getting-started.html) · [SDK reference](https://spxis.github.io/rest-in-pieces/api.html)
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/spxis/rest-in-pieces/main/docs/images/hero-desk-dark.webp">
+  <img src="https://raw.githubusercontent.com/spxis/rest-in-pieces/main/docs/images/hero-desk-light.webp" alt="The native playground shows seeded records, request controls and the SDK Docs link beside the HTTP API reference." width="1200">
+</picture>
+<p><em>The native playground shows seeded records, request controls and the SDK Docs link beside the HTTP API reference.</em></p>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/spxis/rest-in-pieces/main/docs/images/hero-phone-dark.webp">
+  <img src="https://raw.githubusercontent.com/spxis/rest-in-pieces/main/docs/images/hero-phone-light.webp" alt="The same native playground fits a phone, with request controls and documentation available from its header." width="390">
+</picture>
+<p><em>The same native playground fits a phone, with request controls and documentation available from its header.</em></p>
+
+<a id="quick-start"></a>
+
+## In 30 seconds
+
+Requires Node.js 22.18 or later (24 LTS recommended) and pnpm.
+
+```sh
+pnpm install
+pnpm dev
+```
+
+| Service    | URL                                                  |
+| ---------- | ---------------------------------------------------- |
+| API        | [http://localhost:6800](http://localhost:6800)       |
+| API docs   | [http://localhost:6800/docs](http://localhost:6800/docs) |
+| Playground | [http://localhost:6801](http://localhost:6801)       |
+
+Or run everything from one container, with nothing to install but Docker:
+
+```sh
+docker run --rm -p 6800:6800 ghcr.io/spxis/rest-in-pieces   # playground, API and docs on :6800
+```
+
+To build the image from your checkout instead:
+
+```sh
+docker build -t rest-in-pieces .
+docker run --rm -p 6800:6800 rest-in-pieces   # playground, API and docs on :6800
+```
+
+<a id="why-use-it"></a>
+
+## Who it is for
+
+- **Repeatable data.** `?seed=42` always returns the same records. Screenshots, snapshot tests and bug reports stay stable.
+- **Realistic collections.** People, users, products, companies and the real countries, plus any shape you describe with 239 generator types, with arguments (`number.int(18,65)`), weighted choices (`pick(active,paused|80,20)`) and blank rates (`?blank=15`).
+- **Related data with referential integrity.** Orders with line items, posts, comments, todos and reviews, joined to users and products by ids that always resolve. `/users/7/orders`, `/posts/1/comments` and `/products/3/reviews` list one record's children, `expand=user,items.product` embeds related records, order totals add up with the local tax in the local currency, and dates follow one another. See [Relations](#relations).
+- **Safe values, on by default.** Every request writes emails at `example.com`, phone numbers kept for fiction, test card numbers, documentation IP addresses and avatars served by the API itself, so seeded data never mails, rings or loads anything real. See [Safe values](#safe-values).
+- **Placeholder images and avatars, self-hosted.** `/avatars/{seed}.svg` and `/images/{w}x{h}.svg`, drawn from the URL alone. See [Images](#images-avatars-and-placeholders).
+- **Fifteen countries, and a global mix.** `?locale=de`, `?locale=pt-BR` or `?locale=ko` writes every dataset for that country: native names, addresses, postal codes and phone numbers, and prices in the local currency. `?locale=global` mixes them record by record, the way a real international user table looks, and still repeats per seed. See [Data locales](#data-locales).
+- **Real places, invented people.** `/countries`, `/subdivisions`, `/groupings` and `/countries/withdrawn` are real reference data (countries with names in English and Japanese, capitals, population and borders; states, provinces and prefectures; the EU and the G7; the Soviet Union's old code and its successors), served with the paging, filters and formats of the invented datasets. See [Real places, invented people](#real-places-invented-people).
+- **Hand-built Japanese data.** `?locale=ja` gives kanji names with katakana readings, real prefectures and cities, 〒 postal codes, mobile numbers, yen prices and Japanese country names.
+- **Everything a list screen needs.** Paging, sorting, field filters with ranges, free-text search, `X-Total-Count` and `Link` headers, and ETags.
+- **The unhappy path on demand.** `?delay=1500`, `?status=503` or `?fail=0.2` rehearse slow, failing and flaky backends without touching your client.
+- **CRUD that remembers, when you ask.** With `--session`, `POST`, `PUT`, `PATCH` and `DELETE` change an in-memory copy of the seeded data and every later read sees it, until `POST /reset`. Off by default, so a shared host stays stateless.
+- **Sign-in to rehearse against.** `POST /auth/login`, `/auth/refresh`, `/auth/me`, roles, expiring JWTs, and `?auth=` to make any request a protected route with real `401` and `403` answers. Fake tokens, for frontends, not security.
+- **Any format.** JSON, CSV, YAML, XML, NDJSON or SQL `INSERT` statements, chosen by `?format=` or the `Accept` header. See [Formats](#formats-ndjson-and-sql).
+- **Self-documenting.** An OpenAPI 3.1 spec generated from the same schemas that validate requests, with interactive docs at `/docs`.
+- **A playground in English and 日本語, light and dark.** Build a request, list one record's children and embed related records, ask for safe values, inspect the table, body and headers, see it drawn as an app would draw it (loading skeleton, cards with avatars, empty and error states), sign in and protect the request, keep writes and reset them, download the response as JSON, CSV, TXT, NDJSON or SQL, copy it as curl, fetch, axios, openapi-fetch, MSW or Vite code, and share the exact setup as a link. The language follows the browser, `?lang=ja` or the toggle in the top bar; the colours follow the system or the switch beside it.
+
+### How it compares
+
+Most tools in this space either intercept requests and leave you to write the data, or serve data you wrote by hand and leave you to write the realism. REST in Pieces ships the data and the unhappy paths, and runs behind most of the interception tools. It is rule-based fake data: generators, seeds and arithmetic, not a model trained on real records, so it makes no claim of statistical fidelity, privacy or de-identification, and needs none, since nothing real goes in.
+
+| Tool | What it is | Verdict |
+| ---- | ---------- | ------- |
+| [json-server](https://github.com/typicode/json-server) | A REST API over a `db.json` you write | Closest in spirit. It writes changes back to `db.json`, which REST in Pieces does not: its [session](#sessions-keeping-writes) keeps writes in memory only, until a reset or a restart. Both have relations: json-server's `_embed` over the data you wrote, REST in Pieces' [nested routes and `expand`](#relations) over generated data that already joins up. REST in Pieces has generated, seeded, localized data, paging, formats, sign-in and failure drills with nothing to write. |
+| [MSW](https://mswjs.io/) | Request interception in the browser and Node | Not a rival but a host: MSW intercepts, REST in Pieces answers. Use the [MSW handlers](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#mock-service-worker). |
+| [Mirage JS](https://miragejs.com/) | A fake server in the tab, with models and factories you define | Mirage wants a schema and routes; REST in Pieces needs no setup. Both keep writes in memory (REST in Pieces with `session: true`) and both have relations: Mirage between the models you define, any shape you like; REST in Pieces between its own datasets only. |
+| [Prism](https://github.com/stoplightio/prism) | A mock server generated from your OpenAPI file | Both mock from an OpenAPI file. Prism answers with the examples you wrote and validates strictly; REST in Pieces makes seeded, realistic data from the schemas (`serve --openapi`, [below](#mock-your-own-api-from-its-openapi-document)), with delay, error and trickle drills, and without the examples, a security check or a proxy mode. With no contract to mock, it has [datasets](#endpoints) as well. |
+| [Mockoon](https://mockoon.com/) | A desktop app and CLI for hand-templated mock routes | Better for people who prefer a GUI and per-route templates; REST in Pieces is code-first, with seeds and locales built in. |
+| [DummyJSON](https://dummyjson.com/), [JSONPlaceholder](https://jsonplaceholder.typicode.com/) | Hosted fake APIs at public URLs | Nothing to install, but fixed English data and no failure drills. Both answer writes without keeping them, as REST in Pieces does by default. JSONPlaceholder's posts, comments, todos and users have the same shapes here, and [`/jsonplaceholder`](#a-jsonplaceholder-tutorial-with-a-new-base-url) answers with its defaults, so its tutorials work by changing the base URL; its albums and photos have no counterpart. DummyJSON has more kinds of data (carts, recipes, quotes) and image URLs of its own; REST in Pieces has seeds, fifteen locales, safe values and self-hosted SVG avatars. DummyJSON's login, refresh and bearer-token routes match [REST in Pieces' sign-in](#sign-in-fake-auth) closely; REST in Pieces adds roles with `403`s, `?auth=` on any endpoint, tokens that expire on demand (`expiresIn=0`) and `WWW-Authenticate` headers. The [static API](#nothing-to-install-a-public-static-api), the [fixtures](#fixtures) and the live demo are the hosted side here. |
+| [Mockaroo](https://www.mockaroo.com/) | A hosted generator: design a schema in the browser, download CSV, JSON, SQL and more | Mockaroo has far more field types, formulas, its own datasets and saved schemas, and limits rows and API calls on its free plan. REST in Pieces runs locally and free with no account; `/generate` takes Faker's types with [arguments, weighted choices and blank rates](#custom-fields-arguments-choices-and-blanks), and answers in NDJSON and SQL as well, seeded so the same URL gives the same file. It has no formulas between fields. |
+| [Synthea](https://synthetichealth.github.io/synthea/) | Synthetic patient records, simulated from published health statistics | A different job: Synthea models populations so its records are statistically plausible for health research. REST in Pieces makes rule-based fake data for building and testing user interfaces, and claims no statistical fidelity. |
+| [Faker](https://fakerjs.dev/) | A library of generators you call in code | REST in Pieces is built on it, and serves it over HTTP with paging, filters, formats, seeds and relations already done. Faker's own image and avatar URLs point at other hosts; REST in Pieces draws its own with `safe=true`. |
+| [REST Countries](https://restcountries.com/) | A hosted public API of country data: names, codes, capitals, currencies, languages, population, area, borders, flags | Nothing to install, and its country records hold more than REST in Pieces' (translations into many languages, demonyms, Gini, coats of arms, PNG flags); see its own documentation for the list. REST in Pieces serves country data as one part of a test backend rather than as the product: `/countries` with names in English and Japanese, capitals, population, area, borders, time zones and driving side, then what REST Countries does not hold, the states, provinces and prefectures of 200 countries, the EU and the G7 as groupings, the codes ISO has withdrawn, SVG flags and maps, with the paging, filters, formats, `expand` and failure drills of the invented datasets, offline and without a rate limit. Use REST Countries for its breadth of fields from a hosted address; use this where the places must sit beside fake people in one local API. |
+| [country-data](https://www.npmjs.com/package/country-data) | An npm package of ISO country codes, currencies, languages and calling codes | What `/countries` was made from until it moved to [Kuni](https://github.com/johnmorrisdotca/kuni), which has all of it and Japanese names, capitals, facts, regions and groupings. The nine fields it had keep their names and types (see [docs/reference-data.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/reference-data.md#what-changed-from-the-country-data-list)). |
+
+## Features
+
+### What's in it
+
+Seeded datasets, related records, request and error drills, bounded sessions, OpenAPI mocks, native adapters, self-hosted SVG images, geographic reference data and read-only table embeds.
+
+### Real places, invented people
+
+People, companies and orders are invented; places are not. `/countries` serves the 250 ISO 3166-1 countries and territories with names in English and Japanese, ISO codes, capital, time zones, population, area, coordinates, land borders, driving side and calendar conventions; `/subdivisions` the 5,050 states, provinces, prefectures and counties inside them; `/groupings` the EU, the G7, ASEAN, the continents and Japan's regions; `/flags/{code}.svg` and `/maps/{code}.svg` their flags and maps; `/geo/features` the world's seas, lakes, rivers and peaks; `/addresses` addresses in seven countries' own formats; and `/countries/withdrawn` the 31 countries ISO 3166-3 withdrew, each with the codes it held, the years and the countries that came after it. Real reference data is public fact, not personal data; the rule stays that no real person is ever served.
+
+```sh
+curl 'http://localhost:6800/countries/JP?locale=ja'             # 日本, 東京, Asia/Tokyo, left-hand traffic
+curl 'http://localhost:6800/countries?borders=FR&limit=20'      # France's neighbours
+curl 'http://localhost:6800/subdivisions?country=JP&limit=3'      # 北海道, 青森県, 岩手県, with capital and population
+curl 'http://localhost:6800/names?limit=3&expand=subdivision'  # a person's province, as its ISO 3166-2 record
+curl 'http://localhost:6800/groupings/g7/countries'            # the seven
+curl -L 'http://localhost:6800/flags/jp-13.svg' > tokyo.svg      # a flag; /maps/JP-13.svg?color=2f6b4f is a map
+curl 'http://localhost:6800/geo/features?kind=lake&countries=JP'  # 琵琶湖, with a point, a box and a map that lights it
+curl 'http://localhost:6800/countries/withdrawn/SU/successors'  # the fifteen countries that followed the USSR
+```
+
+The data is [Kuni](https://github.com/johnmorrisdotca/kuni)'s, loaded the first time a request asks for it (a country's subdivisions when that country is asked for); a reference dataset has no `seed` and is read-only. **[Fields, what changed from the old `country-data` list, and the licence of every source are in docs/reference-data.md.](https://github.com/spxis/rest-in-pieces/blob/main/docs/reference-data.md)**
+
+**Data sources.** Unicode CLDR (Unicode-3.0), Wikidata (CC0), countries-list (MIT), IANA time zones and top-level domains (public domain) and Natural Earth (public domain), through Kuni; flags from Wikimedia Commons and flag-icons through Hata (each file's own licence, kept by Hata); maps and named seas, lakes, rivers and peaks from Natural Earth (public domain; names by Natural Earth and Wikidata, CC0) through Chizu; postcodes and formats through address-plus (Geolonia and Japan Post, MIT; Australian Bureau of Statistics, CC BY 4.0; Ordnance Survey Code-Point Open, OGL v3, with Royal Mail data © Royal Mail copyright and database right 2026; La Poste and INSEE, Licence Ouverte 2.0; GeoNames, CC BY 4.0). The full table is in the document above.
+
+### Safe values
+
+`safe=true` writes contact details and addresses that cannot reach anybody, because each comes from a range set aside for examples or fiction. It is **on by default since 3.0**; `safe=false` writes the values 2.x did (a test pins a sample of them). See [Upgrading to 3.0](https://github.com/spxis/rest-in-pieces/blob/main/docs/upgrading-to-3.md).
+
+| Where | Turn it off |
+| ----- | ---------- |
+| One request | `?safe=false` (`?safe=true` is the default) |
+| The command line | `npx @johnmorrisdotca/rest-in-pieces --no-safe`, or `REST_IN_PIECES_SAFE=false` |
+| In-process, Vite, MSW, a browser tab | `createApp({ safe: false })`, or `app: { safe: false }` |
+
+What changes, and where each value comes from:
+
+- **Email, URL and domain** move to `example.com`, `example.org` and `example.net` ([RFC 2606](https://www.rfc-editor.org/rfc/rfc2606)), the same address mapping the same way. **IP addresses** come only from the documentation ranges. **Payment cards** are only the test numbers payment processors publish. **Avatars and images** are this API's own [`/avatars/{seed}.svg`](#images-avatars-and-placeholders) and `/images/{w}x{h}.svg`.
+- **Phone numbers** come from the range the country's regulator keeps for fiction (the North American 555-0100 to 555-0199, Ofcom's drama numbers, the Bundesnetzagentur's, ARCEP's); a country with no published range gets `+1 555-01xx`.
+- **What it is not.** Safe values make data safe to send, call or load in a test. They are not anonymisation or de-identification: the data is fake to begin with, and nothing real goes in.
+
+**[Every value, every phone range and the `/generate` types it changes are in docs/safe-values.md.](https://github.com/spxis/rest-in-pieces/blob/main/docs/safe-values.md)**
+
+**Upgrading from 2.x?** Safe values and `/countries` are the two changes a 2.x project can see; [docs/upgrading-to-3.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/upgrading-to-3.md) has each, before and after, and how to keep the old behaviour.
+
+### Images: avatars and placeholders
+
+Two SVG endpoints, drawn from the URL alone: no proxy, no fetch, no other host, and cached for a year. `/avatars/{seed}.svg?name=Ada%20Lovelace` is a square tile with initials on a colour the seed picks, and `/images/{w}x{h}.svg?text=Hero&bg=0f172a&fg=fff` a flat rectangle of any size; `@johnmorrisdotca/rest-in-pieces/images` exports `avatarSvg` and `placeholderSvg`, so a page can draw the same pictures with no request. **[How initials are chosen (Japanese names too), the limits and the code are in docs/avatars-and-placeholders.md.](https://github.com/spxis/rest-in-pieces/blob/main/docs/avatars-and-placeholders.md)** Flags and maps are the same kind of picture: see [Real places, invented people](#real-places-invented-people).
+
+### Custom fields: arguments, choices and blanks
+
+`/generate` takes a type for each field, and a type may take arguments, a list of choices and a blank rate: `/generate?fields=age:number.int(18,65),status:pick(active,paused,closed|70,20,10),nickname:person.firstName?blank=15`. Derived fields (`age:=age(born)`), constraints, JSON Schema input and the limits are in [docs/custom-fields.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/custom-fields.md), [docs/coherent-records.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/coherent-records.md) and [docs/schema-generation.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/schema-generation.md).
+
+### Synthetic patients (FHIR R4-shaped)
+
+`/patients`, `/observations`, `/conditions` and `/encounters` (and a FHIR-style `/fhir/Patient`, `/fhir/Observation`, … that answers Bundles) give healthcare software something realistic to render, search and page. **Everything is invented**: no record comes from, is learned from or is anonymised from a real person or record. It is **not de-identified data**, it makes **no claim of statistical resemblance to any population**, its codes are this project's own short lists and **not SNOMED CT, LOINC, ICD or CPT**, and it is shaped like FHIR R4, not validated against it. Every resource carries a `synthetic` tag. It is for building and testing software, never for research or clinical use.
+
+What it does give you is coherence: an observation is dated after its patient was born and before they died, a reading is plausible for the patient's age, a condition begins when the patient was old enough for it, and an encounter ends after it starts. Contact details are always fiction-range phone numbers and `example.com` emails. [docs/synthetic-patients.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/synthetic-patients.md) has the rules, the search parameters and the whole disclaimer.
+
+## Use it in your project
+
+### Install
+
+```sh
+npm install @johnmorrisdotca/rest-in-pieces
+```
+
+### Install under another name
+
+```sh
+npm install mock-api@npm:@johnmorrisdotca/rest-in-pieces
+```
+
+```ts no-check
+import { createApp } from "mock-api/core";
+
+console.log((await createApp({ log: false }).request("/health")).status);
+```
+
+The alias recipe is checked by the consumer's installed alias, not this checkout's package name.
+
+### Run it
 
 **With npx**, with nothing to clone (Node.js 22.13 or later):
 
@@ -54,7 +218,7 @@ docker run --rm -p 6800:6800 -e REST_IN_PIECES_SAFE=false ghcr.io/spxis/rest-in-
 
 **Inside your tests**, with no port and no server to start. `createApp()` builds the API and `app.request()` answers in-process, in Vitest, Jest, Playwright or any Node script:
 
-```ts
+```ts no-run
 import { createApp } from '@johnmorrisdotca/rest-in-pieces';
 import { expect, test } from 'vitest';
 
@@ -68,11 +232,11 @@ test('lists five users', async () => {
 
 `createApp({ session: true })` keeps writes, so a test can create, edit and delete and then read the result back; each app has a store of its own, so a fresh `createApp` is a fresh dataset. See [Sessions](#sessions-keeping-writes).
 
-### A backend inside the tab
+#### A backend inside the tab
 
 `@johnmorrisdotca/rest-in-pieces/browser` runs the API inside the page, so a frontend on StackBlitz, CodeSandbox or any static host gets a REST backend with no server:
 
-```js
+```ts no-run
 import { installInBrowserApi } from '@johnmorrisdotca/rest-in-pieces/browser';
 
 installInBrowserApi(); // answers fetch('/api/...') in this tab; every other request goes to the network
@@ -82,7 +246,7 @@ const { results } = await (await fetch('/api/users?limit=10&seed=7')).json();
 
 `installInBrowserApi({ base: '/mock' })` moves it, `installInBrowserApi({ app: { session: true } })` keeps writes for as long as the tab is open, and the function it returns puts the original `fetch` back. The API loads on the first request, so the page pays nothing for it until then. Only `fetch` is answered; libraries built on `XMLHttpRequest` still go to the network. To answer those too, use the [Mock Service Worker handlers](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#mock-service-worker).
 
-### Mock your own API from its OpenAPI document
+#### Mock your own API from its OpenAPI document
 
 ```sh
 npx @johnmorrisdotca/rest-in-pieces serve --openapi ./openapi.yaml
@@ -90,15 +254,15 @@ npx @johnmorrisdotca/rest-in-pieces serve --openapi ./openapi.yaml
 
 Every operation of your OpenAPI 3.x or Swagger 2.0 document (JSON or YAML) answers with seeded data in the shape of its response schema, and each request is checked against the document: a path parameter that is not an integer, a missing required header or a body that breaks its schema is a `400` (or `422`) naming the fault. `?delay=`, `?status=404` (the body your document gives that status), `?fail=0.3` and `?trickle=` work on every route. References must be local, writes are answered but not kept, and only JSON bodies are made. [docs/mock-your-openapi.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/mock-your-openapi.md) has the rules, the limits and `createMockApp` for tests.
 
-### Starters and collections
+#### Starters and collections
 
 Open a working React, Vue or Next.js app in your browser, with no account: [React](https://stackblitz.com/github/spxis/rest-in-pieces/tree/main/examples/react-vite), [Vue](https://stackblitz.com/github/spxis/rest-in-pieces/tree/main/examples/vue-vite) or [Next.js](https://stackblitz.com/github/spxis/rest-in-pieces/tree/main/examples/nextjs) on StackBlitz (the two Vite ones on [CodeSandbox](https://codesandbox.io/s/github/spxis/rest-in-pieces/tree/main/examples/react-vite) too). For every route as a request, import the [Postman collection](https://spxis.github.io/rest-in-pieces/collections/rest-in-pieces.postman_collection.json) by link or open the [`collections/bruno`](https://github.com/spxis/rest-in-pieces/tree/main/collections/bruno) folder in Bruno. [docs/starters-and-collections.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/starters-and-collections.md) has the steps.
 
-### Live streams
+#### Live streams
 
 `GET /streams/{messages|notifications|metrics|logs}` plays a dataset as Server-Sent Events, one record per event, seeded: `new EventSource('http://localhost:6800/streams/logs?count=20&every=500')`. A stream is capped at 500 events and 60 seconds a connection, resumes with `Last-Event-ID`, and can `drop` on purpose to rehearse a reconnecting client. The playground's Streams tab shows one live. [docs/streams.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/streams.md) says what works where (npx, Docker, the Vite plugin, MSW, the page itself, Vercel).
 
-### Nothing to install: a public static API
+#### Nothing to install: a public static API
 
 For a tutorial, a CodePen or a classroom, the demo site also serves a read-only copy of the API as plain files, with CORS open and no key. A page number is in the path, and every address ends in `.json`, `.csv`, `.ndjson` or `.sql`:
 
@@ -113,7 +277,7 @@ Every `.json` has the same records as a `.csv`, `.ndjson` and `.sql` beside it, 
 
 Every dataset is there, the seeded ones with their first 100 records at seed 1 in English (Canada) and Japanese, the real reference data whole, and a JSONPlaceholder-shaped tree. It cannot take a query string, filters, writes or a failure drill; those need the API itself (`npx`, Docker, Vite or MSW). [docs/static-api.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/static-api.md) has every path, format and limit.
 
-## Embed a sample-data table
+### Embed a sample-data table
 
 The [embed builder](https://spxis.github.io/rest-in-pieces/builder.html) previews
 seeded tables and prints code for a custom element, iframe, ES module, React 19,
@@ -124,81 +288,117 @@ Load `@johnmorrisdotca/rest-in-pieces/element/define` and add
 See the [table guide](./docs/embeds.md) for reflected properties, native host
 options, local records and metadata-only frame messages.
 
-## Use with
+
+#### React
+
+```jsx no-run
+import "@johnmorrisdotca/rest-in-pieces/element/define";
+
+export default function SampleTable() {
+  return <rest-in-pieces-table resource="names" rows="5" seed="7" />;
+}
+```
+
+#### Vue
+
+```vue no-run
+<script setup>
+import "@johnmorrisdotca/rest-in-pieces/element/define";
+</script>
+<template><rest-in-pieces-table resource="names" rows="5" seed="7" /></template>
+```
+
+Configure Vue's `isCustomElement` for `rest-in-pieces-table`, as the complete embed recipe describes.
+
+#### Svelte
+
+```svelte no-run
+<script>
+import "@johnmorrisdotca/rest-in-pieces/element/define";
+</script>
+<rest-in-pieces-table resource="names" rows="5" seed="7" />
+```
+
+### Use with
 
 Vite, Mock Service Worker, Storybook, Next.js, Playwright, Cypress, typed clients (openapi-fetch) and any origin: the setup for each, with code. The short version: `@johnmorrisdotca/rest-in-pieces/vite` serves the API from the Vite dev server under `/api`, `@johnmorrisdotca/rest-in-pieces/msw` answers it from a Mock Service Worker handler, and `createApp()` answers in-process in any test runner.
 
 **[Read Use with in docs/use-with.md.](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md)** Sections: [Vite](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#vite), [Mock Service Worker](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#mock-service-worker), [Storybook](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#storybook), [Next.js](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#nextjs), [Playwright](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#playwright), [Cypress](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#cypress), [Typed clients](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#typed-clients), [Any origin](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#any-origin).
 
-## Why use it
+## Examples
 
-- **Repeatable data.** `?seed=42` always returns the same records. Screenshots, snapshot tests and bug reports stay stable.
-- **Realistic collections.** People, users, products, companies and the real countries, plus any shape you describe with 239 generator types, with arguments (`number.int(18,65)`), weighted choices (`pick(active,paused|80,20)`) and blank rates (`?blank=15`).
-- **Related data with referential integrity.** Orders with line items, posts, comments, todos and reviews, joined to users and products by ids that always resolve. `/users/7/orders`, `/posts/1/comments` and `/products/3/reviews` list one record's children, `expand=user,items.product` embeds related records, order totals add up with the local tax in the local currency, and dates follow one another. See [Relations](#relations).
-- **Safe values, on by default.** Every request writes emails at `example.com`, phone numbers kept for fiction, test card numbers, documentation IP addresses and avatars served by the API itself, so seeded data never mails, rings or loads anything real. See [Safe values](#safe-values).
-- **Placeholder images and avatars, self-hosted.** `/avatars/{seed}.svg` and `/images/{w}x{h}.svg`, drawn from the URL alone. See [Images](#images-avatars-and-placeholders).
-- **Fifteen countries, and a global mix.** `?locale=de`, `?locale=pt-BR` or `?locale=ko` writes every dataset for that country: native names, addresses, postal codes and phone numbers, and prices in the local currency. `?locale=global` mixes them record by record, the way a real international user table looks, and still repeats per seed. See [Data locales](#data-locales).
-- **Real places, invented people.** `/countries`, `/subdivisions`, `/groupings` and `/countries/withdrawn` are real reference data (countries with names in English and Japanese, capitals, population and borders; states, provinces and prefectures; the EU and the G7; the Soviet Union's old code and its successors), served with the paging, filters and formats of the invented datasets. See [Real places, invented people](#real-places-invented-people).
-- **Hand-built Japanese data.** `?locale=ja` gives kanji names with katakana readings, real prefectures and cities, 〒 postal codes, mobile numbers, yen prices and Japanese country names.
-- **Everything a list screen needs.** Paging, sorting, field filters with ranges, free-text search, `X-Total-Count` and `Link` headers, and ETags.
-- **The unhappy path on demand.** `?delay=1500`, `?status=503` or `?fail=0.2` rehearse slow, failing and flaky backends without touching your client.
-- **CRUD that remembers, when you ask.** With `--session`, `POST`, `PUT`, `PATCH` and `DELETE` change an in-memory copy of the seeded data and every later read sees it, until `POST /reset`. Off by default, so a shared host stays stateless.
-- **Sign-in to rehearse against.** `POST /auth/login`, `/auth/refresh`, `/auth/me`, roles, expiring JWTs, and `?auth=` to make any request a protected route with real `401` and `403` answers. Fake tokens, for frontends, not security.
-- **Any format.** JSON, CSV, YAML, XML, NDJSON or SQL `INSERT` statements, chosen by `?format=` or the `Accept` header. See [Formats](#formats-ndjson-and-sql).
-- **Self-documenting.** An OpenAPI 3.1 spec generated from the same schemas that validate requests, with interactive docs at `/docs`.
-- **A playground in English and 日本語, light and dark.** Build a request, list one record's children and embed related records, ask for safe values, inspect the table, body and headers, see it drawn as an app would draw it (loading skeleton, cards with avatars, empty and error states), sign in and protect the request, keep writes and reset them, download the response as JSON, CSV, TXT, NDJSON or SQL, copy it as curl, fetch, axios, openapi-fetch, MSW or Vite code, and share the exact setup as a link. The language follows the browser, `?lang=ja` or the toggle in the top bar; the colours follow the system or the switch beside it.
+### Request records without a server
 
-## How it compares
+```ts
+import { createApp } from "@johnmorrisdotca/rest-in-pieces/core";
 
-Most tools in this space either intercept requests and leave you to write the data, or serve data you wrote by hand and leave you to write the realism. REST in Pieces ships the data and the unhappy paths, and runs behind most of the interception tools. It is rule-based fake data: generators, seeds and arithmetic, not a model trained on real records, so it makes no claim of statistical fidelity, privacy or de-identification, and needs none, since nothing real goes in.
-
-| Tool | What it is | Verdict |
-| ---- | ---------- | ------- |
-| [json-server](https://github.com/typicode/json-server) | A REST API over a `db.json` you write | Closest in spirit. It writes changes back to `db.json`, which REST in Pieces does not: its [session](#sessions-keeping-writes) keeps writes in memory only, until a reset or a restart. Both have relations: json-server's `_embed` over the data you wrote, REST in Pieces' [nested routes and `expand`](#relations) over generated data that already joins up. REST in Pieces has generated, seeded, localized data, paging, formats, sign-in and failure drills with nothing to write. |
-| [MSW](https://mswjs.io/) | Request interception in the browser and Node | Not a rival but a host: MSW intercepts, REST in Pieces answers. Use the [MSW handlers](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#mock-service-worker). |
-| [Mirage JS](https://miragejs.com/) | A fake server in the tab, with models and factories you define | Mirage wants a schema and routes; REST in Pieces needs no setup. Both keep writes in memory (REST in Pieces with `session: true`) and both have relations: Mirage between the models you define, any shape you like; REST in Pieces between its own datasets only. |
-| [Prism](https://github.com/stoplightio/prism) | A mock server generated from your OpenAPI file | Both mock from an OpenAPI file. Prism answers with the examples you wrote and validates strictly; REST in Pieces makes seeded, realistic data from the schemas (`serve --openapi`, [below](#mock-your-own-api-from-its-openapi-document)), with delay, error and trickle drills, and without the examples, a security check or a proxy mode. With no contract to mock, it has [datasets](#endpoints) as well. |
-| [Mockoon](https://mockoon.com/) | A desktop app and CLI for hand-templated mock routes | Better for people who prefer a GUI and per-route templates; REST in Pieces is code-first, with seeds and locales built in. |
-| [DummyJSON](https://dummyjson.com/), [JSONPlaceholder](https://jsonplaceholder.typicode.com/) | Hosted fake APIs at public URLs | Nothing to install, but fixed English data and no failure drills. Both answer writes without keeping them, as REST in Pieces does by default. JSONPlaceholder's posts, comments, todos and users have the same shapes here, and [`/jsonplaceholder`](#a-jsonplaceholder-tutorial-with-a-new-base-url) answers with its defaults, so its tutorials work by changing the base URL; its albums and photos have no counterpart. DummyJSON has more kinds of data (carts, recipes, quotes) and image URLs of its own; REST in Pieces has seeds, fifteen locales, safe values and self-hosted SVG avatars. DummyJSON's login, refresh and bearer-token routes match [REST in Pieces' sign-in](#sign-in-fake-auth) closely; REST in Pieces adds roles with `403`s, `?auth=` on any endpoint, tokens that expire on demand (`expiresIn=0`) and `WWW-Authenticate` headers. The [static API](#nothing-to-install-a-public-static-api), the [fixtures](#fixtures) and the live demo are the hosted side here. |
-| [Mockaroo](https://www.mockaroo.com/) | A hosted generator: design a schema in the browser, download CSV, JSON, SQL and more | Mockaroo has far more field types, formulas, its own datasets and saved schemas, and limits rows and API calls on its free plan. REST in Pieces runs locally and free with no account; `/generate` takes Faker's types with [arguments, weighted choices and blank rates](#custom-fields-arguments-choices-and-blanks), and answers in NDJSON and SQL as well, seeded so the same URL gives the same file. It has no formulas between fields. |
-| [Synthea](https://synthetichealth.github.io/synthea/) | Synthetic patient records, simulated from published health statistics | A different job: Synthea models populations so its records are statistically plausible for health research. REST in Pieces makes rule-based fake data for building and testing user interfaces, and claims no statistical fidelity. |
-| [Faker](https://fakerjs.dev/) | A library of generators you call in code | REST in Pieces is built on it, and serves it over HTTP with paging, filters, formats, seeds and relations already done. Faker's own image and avatar URLs point at other hosts; REST in Pieces draws its own with `safe=true`. |
-| [REST Countries](https://restcountries.com/) | A hosted public API of country data: names, codes, capitals, currencies, languages, population, area, borders, flags | Nothing to install, and its country records hold more than REST in Pieces' (translations into many languages, demonyms, Gini, coats of arms, PNG flags); see its own documentation for the list. REST in Pieces serves country data as one part of a test backend rather than as the product: `/countries` with names in English and Japanese, capitals, population, area, borders, time zones and driving side, then what REST Countries does not hold, the states, provinces and prefectures of 200 countries, the EU and the G7 as groupings, the codes ISO has withdrawn, SVG flags and maps, with the paging, filters, formats, `expand` and failure drills of the invented datasets, offline and without a rate limit. Use REST Countries for its breadth of fields from a hosted address; use this where the places must sit beside fake people in one local API. |
-| [country-data](https://www.npmjs.com/package/country-data) | An npm package of ISO country codes, currencies, languages and calling codes | What `/countries` was made from until it moved to [Kuni](https://github.com/johnmorrisdotca/kuni), which has all of it and Japanese names, capitals, facts, regions and groupings. The nine fields it had keep their names and types (see [docs/reference-data.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/reference-data.md#what-changed-from-the-country-data-list)). |
-
-## Quick start
-
-Requires Node.js 22.18 or later (24 LTS recommended) and pnpm.
-
-```sh
-pnpm install
-pnpm dev
+const api = createApp({ log: false, safe: true });
+console.log((await api.request("/users?seed=7&limit=2")).status);
 ```
 
-| Service    | URL                                                  |
-| ---------- | ---------------------------------------------------- |
-| API        | [http://localhost:6800](http://localhost:6800)       |
-| API docs   | [http://localhost:6800/docs](http://localhost:6800/docs) |
-| Playground | [http://localhost:6801](http://localhost:6801)       |
+### Draw an avatar
 
-Or run everything from one container, with nothing to install but Docker:
+```ts
+import { avatarSvg } from "@johnmorrisdotca/rest-in-pieces/images";
 
-```sh
-docker run --rm -p 6800:6800 ghcr.io/spxis/rest-in-pieces   # playground, API and docs on :6800
+console.log(avatarSvg("7", "Ada Lovelace").startsWith("<svg"));
 ```
 
-To build the image from your checkout instead:
+### Write records as CSV
 
-```sh
-docker build -t rest-in-pieces .
-docker run --rm -p 6800:6800 rest-in-pieces   # playground, API and docs on :6800
+```ts
+import { toCsv } from "@johnmorrisdotca/rest-in-pieces/serialize";
+
+console.log(toCsv([{ id: 1, name: "Ada" }, { id: 2, name: "Grace" }]).trim());
 ```
 
-## Using the API
+### Mock a document you own
 
-See the [current API examples and reference](./docs/api-examples.md) for endpoints, query parameters, paging, formats, writes and sign-in. The [detailed API guide](./docs/api-guide.md) preserves the longer explanations.
+```ts
+import { createMock } from "@johnmorrisdotca/rest-in-pieces/mock";
 
-## Relations
+const specification = {
+  openapi: "3.0.3", info: { title: "Widgets", version: "1.0.0" },
+  paths: { "/widgets": { get: { responses: { "200": {
+    description: "Widget", content: { "application/json": {
+      schema: { type: "object", properties: { id: { type: "integer" } }, required: ["id"] },
+    } },
+  } } } } },
+};
+console.log((await createMock(specification, { log: false }).app.request("/widgets")).status);
+```
+
+### Adapt a virtual fetch URL
+
+```ts
+import { inBrowserFetch } from "@johnmorrisdotca/rest-in-pieces/browser";
+import { createApp } from "@johnmorrisdotca/rest-in-pieces/core";
+
+const localFetch = inBrowserFetch("https://example.test/api", async () => createApp({ log: false }), fetch);
+console.log((await localFetch("https://example.test/api/health")).status);
+```
+
+### Configure a Vite development plugin
+
+```ts
+import { restInPieces } from "@johnmorrisdotca/rest-in-pieces/vite";
+
+console.log(restInPieces({ base: "/api", app: { log: false } }).name);
+```
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/spxis/rest-in-pieces/main/docs/images/requests-desk-dark.webp">
+  <img src="https://raw.githubusercontent.com/spxis/rest-in-pieces/main/docs/images/requests-desk-light.webp" alt="A seeded request in the real playground keeps its query controls beside the returned records." width="1200">
+</picture>
+<p><em>A seeded request in the real playground keeps its query controls beside the returned records.</em></p>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/spxis/rest-in-pieces/main/docs/images/errors-desk-dark.webp">
+  <img src="https://raw.githubusercontent.com/spxis/rest-in-pieces/main/docs/images/errors-desk-light.webp" alt="The real playground shows an intentional 503 response, its request controls and the error body." width="1200">
+</picture>
+<p><em>The real playground shows an intentional 503 response, its request controls and the error body.</em></p>
+
+### Relations
 
 Five datasets are joined to `/users` and `/products`, and to each other, by ids that always resolve: `/orders` (with line items), `/posts`, `/comments`, `/todos` and `/reviews`. Real reference data joins up the same way: a country has `/subdivisions` and `/groupings`, a person's `province` links to its subdivision.
 
@@ -211,11 +411,11 @@ curl 'http://localhost:6800/comments?limit=5&expand=post.user,user'  # two level
 
 Nested routes (`/users/{id}/orders`) return exactly what the filter (`/orders?userId=2`) does, with every list parameter; `expand` embeds related records two levels deep at most; totals add up with the buyer's local tax, dates follow one another, and writes keep relations whole. **[Who owns what, the order that adds up, every `expand` rule and the dates are in docs/relations.md.](https://github.com/spxis/rest-in-pieces/blob/main/docs/relations.md)**
 
-### A JSONPlaceholder tutorial with a new base URL
+#### A JSONPlaceholder tutorial with a new base URL
 
 `/jsonplaceholder` answers with [JSONPlaceholder](https://jsonplaceholder.typicode.com/)'s defaults, so a tutorial written for it works by changing its base URL and nothing else:
 
-```js
+```ts no-run
 const BASE = 'http://localhost:6800/jsonplaceholder'; // was https://jsonplaceholder.typicode.com
 
 const posts = await (await fetch(`${BASE}/posts`)).json();            // 100 posts, a bare array
@@ -235,50 +435,7 @@ await fetch(`${BASE}/posts`, {
 - **Writes** behave as they do on the ordinary routes: stateless by default, kept with the session on. A `DELETE` answers `204` where JSONPlaceholder answers `200 {}`.
 - **Not here:** `/albums` and `/photos`, which answer `404`. Post ids run past 100 and the text differs, since it is generated.
 
-## Real places, invented people
-
-People, companies and orders are invented; places are not. `/countries` serves the 250 ISO 3166-1 countries and territories with names in English and Japanese, ISO codes, capital, time zones, population, area, coordinates, land borders, driving side and calendar conventions; `/subdivisions` the 5,050 states, provinces, prefectures and counties inside them; `/groupings` the EU, the G7, ASEAN, the continents and Japan's regions; `/flags/{code}.svg` and `/maps/{code}.svg` their flags and maps; `/geo/features` the world's seas, lakes, rivers and peaks; `/addresses` addresses in seven countries' own formats; and `/countries/withdrawn` the 31 countries ISO 3166-3 withdrew, each with the codes it held, the years and the countries that came after it. Real reference data is public fact, not personal data; the rule stays that no real person is ever served.
-
-```sh
-curl 'http://localhost:6800/countries/JP?locale=ja'             # 日本, 東京, Asia/Tokyo, left-hand traffic
-curl 'http://localhost:6800/countries?borders=FR&limit=20'      # France's neighbours
-curl 'http://localhost:6800/subdivisions?country=JP&limit=3'      # 北海道, 青森県, 岩手県, with capital and population
-curl 'http://localhost:6800/names?limit=3&expand=subdivision'  # a person's province, as its ISO 3166-2 record
-curl 'http://localhost:6800/groupings/g7/countries'            # the seven
-curl -L 'http://localhost:6800/flags/jp-13.svg' > tokyo.svg      # a flag; /maps/JP-13.svg?color=2f6b4f is a map
-curl 'http://localhost:6800/geo/features?kind=lake&countries=JP'  # 琵琶湖, with a point, a box and a map that lights it
-curl 'http://localhost:6800/countries/withdrawn/SU/successors'  # the fifteen countries that followed the USSR
-```
-
-The data is [Kuni](https://github.com/johnmorrisdotca/kuni)'s, loaded the first time a request asks for it (a country's subdivisions when that country is asked for); a reference dataset has no `seed` and is read-only. **[Fields, what changed from the old `country-data` list, and the licence of every source are in docs/reference-data.md.](https://github.com/spxis/rest-in-pieces/blob/main/docs/reference-data.md)**
-
-**Data sources.** Unicode CLDR (Unicode-3.0), Wikidata (CC0), countries-list (MIT), IANA time zones and top-level domains (public domain) and Natural Earth (public domain), through Kuni; flags from Wikimedia Commons and flag-icons through Hata (each file's own licence, kept by Hata); maps and named seas, lakes, rivers and peaks from Natural Earth (public domain; names by Natural Earth and Wikidata, CC0) through Chizu; postcodes and formats through address-plus (Geolonia and Japan Post, MIT; Australian Bureau of Statistics, CC BY 4.0; Ordnance Survey Code-Point Open, OGL v3, with Royal Mail data © Royal Mail copyright and database right 2026; La Poste and INSEE, Licence Ouverte 2.0; GeoNames, CC BY 4.0). The full table is in the document above.
-
-## Safe values
-
-`safe=true` writes contact details and addresses that cannot reach anybody, because each comes from a range set aside for examples or fiction. It is **on by default since 3.0**; `safe=false` writes the values 2.x did (a test pins a sample of them). See [Upgrading to 3.0](https://github.com/spxis/rest-in-pieces/blob/main/docs/upgrading-to-3.md).
-
-| Where | Turn it off |
-| ----- | ---------- |
-| One request | `?safe=false` (`?safe=true` is the default) |
-| The command line | `npx @johnmorrisdotca/rest-in-pieces --no-safe`, or `REST_IN_PIECES_SAFE=false` |
-| In-process, Vite, MSW, a browser tab | `createApp({ safe: false })`, or `app: { safe: false }` |
-
-What changes, and where each value comes from:
-
-- **Email, URL and domain** move to `example.com`, `example.org` and `example.net` ([RFC 2606](https://www.rfc-editor.org/rfc/rfc2606)), the same address mapping the same way. **IP addresses** come only from the documentation ranges. **Payment cards** are only the test numbers payment processors publish. **Avatars and images** are this API's own [`/avatars/{seed}.svg`](#images-avatars-and-placeholders) and `/images/{w}x{h}.svg`.
-- **Phone numbers** come from the range the country's regulator keeps for fiction (the North American 555-0100 to 555-0199, Ofcom's drama numbers, the Bundesnetzagentur's, ARCEP's); a country with no published range gets `+1 555-01xx`.
-- **What it is not.** Safe values make data safe to send, call or load in a test. They are not anonymisation or de-identification: the data is fake to begin with, and nothing real goes in.
-
-**[Every value, every phone range and the `/generate` types it changes are in docs/safe-values.md.](https://github.com/spxis/rest-in-pieces/blob/main/docs/safe-values.md)**
-
-**Upgrading from 2.x?** Safe values and `/countries` are the two changes a 2.x project can see; [docs/upgrading-to-3.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/upgrading-to-3.md) has each, before and after, and how to keep the old behaviour.
-
-## Images: avatars and placeholders
-
-Two SVG endpoints, drawn from the URL alone: no proxy, no fetch, no other host, and cached for a year. `/avatars/{seed}.svg?name=Ada%20Lovelace` is a square tile with initials on a colour the seed picks, and `/images/{w}x{h}.svg?text=Hero&bg=0f172a&fg=fff` a flat rectangle of any size; `@johnmorrisdotca/rest-in-pieces/images` exports `avatarSvg` and `placeholderSvg`, so a page can draw the same pictures with no request. **[How initials are chosen (Japanese names too), the limits and the code are in docs/avatars-and-placeholders.md.](https://github.com/spxis/rest-in-pieces/blob/main/docs/avatars-and-placeholders.md)** Flags and maps are the same kind of picture: see [Real places, invented people](#real-places-invented-people).
-
-## Formats: NDJSON and SQL
+### Formats: NDJSON and SQL
 
 `format=ndjson` writes one JSON record per line, for `jq -c`, BigQuery, ClickHouse, DuckDB and log tools. `format=sql` writes one `INSERT` per record, for seeding a database:
 
@@ -286,7 +443,7 @@ Two SVG endpoints, drawn from the URL alone: no proxy, no fetch, no other host, 
 curl 'http://localhost:6800/users?limit=2&format=sql&table=people'
 ```
 
-```sql
+```text
 INSERT INTO "people" ("id", "firstName", "lastName", "username", "email", "avatar", "phone", "jobTitle", "company", "city", "country", "active", "createdAt") VALUES (1, 'Aaliyah', 'Bosco', 'aaliyah.bosco34', 'aaliyah.bosco68@hotmail.com', 'https://avatars.githubusercontent.com/u/2738759', '(551)389-3688 x0018', 'Direct Group Representative', 'Pfannerstill and Sons', 'Port Duanefield', 'CA', TRUE, '2024-05-05T21:23:28.277Z');
 ```
 
@@ -295,17 +452,53 @@ INSERT INTO "people" ("id", "firstName", "lastName", "username", "email", "avata
 - **Both hold the page**, without the metadata, as CSV does: ask for `limit=1000` for a whole dataset of 1,000, or page through a larger one. With `messy`, the mess goes into the file too.
 - **In code.** `@johnmorrisdotca/rest-in-pieces/serialize` exports `toNdjson(records)` and `toSql(records, table)`; the playground's downloads use them.
 
-## Custom fields: arguments, choices and blanks
+### Fixtures
 
-`/generate` takes a type for each field, and a type may take arguments, a list of choices and a blank rate: `/generate?fields=age:number.int(18,65),status:pick(active,paused,closed|70,20,10),nickname:person.firstName?blank=15`. Derived fields (`age:=age(born)`), constraints, JSON Schema input and the limits are in [docs/custom-fields.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/custom-fields.md), [docs/coherent-records.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/coherent-records.md) and [docs/schema-generation.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/schema-generation.md).
+The demo site also serves every dataset as static files, in every locale, as JSON and CSV, written when the site is built: `curl https://spxis.github.io/rest-in-pieces/fixtures/users.json` is 1,000 users at seed 1. [docs/fixtures.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/fixtures.md) lists what is there and where; [`fixtures/index.json`](https://spxis.github.io/rest-in-pieces/fixtures/index.json) lists every file. For a small, linked tree, use the [static API](#nothing-to-install-a-public-static-api).
 
-## Synthetic patients (FHIR R4-shaped)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/spxis/rest-in-pieces/main/docs/images/reference-desk-dark.webp">
+  <img src="https://raw.githubusercontent.com/spxis/rest-in-pieces/main/docs/images/reference-desk-light.webp" alt="Real country reference data is shown through the native playground, separate from invented people." width="1200">
+</picture>
+<p><em>Real country reference data is shown through the native playground, separate from invented people.</em></p>
 
-`/patients`, `/observations`, `/conditions` and `/encounters` (and a FHIR-style `/fhir/Patient`, `/fhir/Observation`, … that answers Bundles) give healthcare software something realistic to render, search and page. **Everything is invented**: no record comes from, is learned from or is anonymised from a real person or record. It is **not de-identified data**, it makes **no claim of statistical resemblance to any population**, its codes are this project's own short lists and **not SNOMED CT, LOINC, ICD or CPT**, and it is shaped like FHIR R4, not validated against it. Every resource carries a `synthetic` tag. It is for building and testing software, never for research or clinical use.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/spxis/rest-in-pieces/main/docs/images/embed-desk-dark.webp">
+  <img src="https://raw.githubusercontent.com/spxis/rest-in-pieces/main/docs/images/embed-desk-light.webp" alt="The native builder previews the sample-data table and writes the actual component and frame recipes." width="1200">
+</picture>
+<p><em>The native builder previews the sample-data table and writes the actual component and frame recipes.</em></p>
 
-What it does give you is coherence: an observation is dated after its patient was born and before they died, a reading is plausible for the patient's age, a condition begins when the patient was old enough for it, and an encounter ends after it starts. Contact details are always fiction-range phone numbers and `example.com` emails. [docs/synthetic-patients.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/synthetic-patients.md) has the rules, the search parameters and the whole disclaimer.
+## API
 
-## Data locales
+[The complete SDK reference](https://spxis.github.io/rest-in-pieces/api.html) keeps every entry and public export, including generated OpenAPI types. [The documentation](https://spxis.github.io/rest-in-pieces/docs/index.html) adds checked examples, guides in English and Japanese, search and Markdown copies. The existing interactive HTTP API reference remains the API link in the playground.
+
+### Using the API
+
+See the [current API examples and reference](./docs/api-examples.md) for endpoints, query parameters, paging, formats, writes and sign-in. The [detailed API guide](./docs/api-guide.md) preserves the longer explanations.
+
+## Theming
+
+The native playground has its light/dark theme control. Generated SVG avatars and placeholders accept their documented colours. Native table embeds use the `theme`, `size` and style options in [docs/embeds.md](docs/embeds.md); their theme does not change generated record values.
+
+## Limits
+
+The main size badge includes the bundled Node app and its dependencies/data, minified for ES2020 and gzipped at level 9, with Node built-ins external. The small `/images`, `/cursor` and `/serialize` entries have their own measured sizes in the reference. This is not the installed tarball or the browser's complete download.
+
+Requests, sessions, streams, OpenAPI documents and generated responses retain their native caps. See [the HTTP guide](docs/api-guide.md), [mock limits](https://spxis.github.io/rest-in-pieces/docs/api/mock/mocklimits.html), [sessions](docs/writes-sessions-auth.md) and [architecture and limits](docs/guides/architecture-and-limits.md). Optional flag/map routes require their actual peer packages.
+
+## Accessibility
+
+The native playground uses labelled controls, keyboard-operable links and status/results regions. The SDK Docs link follows interface language. The sample-table embed keeps its native accessibility contract in [docs/embeds.md](docs/embeds.md). The API-drawn use-case animation is preserved in [the use-case guide](docs/use-cases.md), stops after its defined cycles and respects reduced motion.
+
+## Browser and runtime support
+
+The CLI and Node entry require Node.js 22.13 or later, as declared by the package. Browser adapters use native fetch, Request, Response and URL; the table needs custom elements and Shadow DOM. Vite/MSW are adapters for their respective development/test environments. The standalone Node API remains available where a browser adapter is unsuitable.
+
+## Languages
+
+The interface and documentation have English and Japanese. Data locale is independent of that choice; the tables below retain the existing language and record-format details.
+
+### Data locales
 
 Add `locale` to any dataset, item route or `/generate` call. `GET /locales` lists the same table.
 
@@ -337,7 +530,7 @@ The tax rate is one headline rate per country, the standard VAT or GST, or a rep
 - **Country names.** `/countries` names countries in the locale's language from the runtime's CLDR data; English locales and `global` keep the English names.
 - **Where Faker falls back.** Every locale but Japanese comes from Faker, which falls back to US English without saying so where a locale lacks data. Canadian and British names and Canadian streets are its US English lists, and Vietnamese streets use English street types (`Toàn Thắng Plain`). Product names, job titles and slogans are English in several locales. `apps/api/test/locales.test.ts` records each of these, so a Faker upgrade that changes one fails a test instead of passing unnoticed. Todos and reviews are hand-written English in every locale but Japanese; posts and comments are Faker's lorem, which is Latin in the English, French, German, Indonesian, Chinese and Portuguese locales and in the locale's own language in Russian, Korean, Vietnamese and Spanish.
 
-## Japanese data
+### Japanese data
 
 Add `locale=ja` to any dataset, item route or `/generate` call. Records keep the same shape and field names, so a client can switch locales without code changes. Japanese records add readings where Japanese forms ask for them.
 
@@ -355,7 +548,7 @@ Add `locale=ja` to any dataset, item route or `/generate` call. Records keep the
 
 Filters and search work on Japanese text: `/names?locale=ja&province=東京都`. Responses carry `Content-Language`, and `metadata.parameters.locale` records the choice. `gender` stays `male` or `female` in every locale so filters are portable.
 
-### 日本語データ
+#### 日本語データ
 
 任意のエンドポイントに `locale=ja` を付けると、日本向けのデータを返します。氏名は姓・名の順で、フリガナ（`nameKana`）とローマ字（`nameRomaji`）付きです。住所は実在の都道府県・市区町村を使用し、郵便番号は `123-4567` 形式、電話番号は `090-1234-5678` 形式、商品の価格は円単位（`1980` や `2000` など）です。同じ `seed` なら、いつでも同じデータが返ります。
 
@@ -364,67 +557,23 @@ curl 'http://localhost:6800/users?locale=ja&limit=5'
 curl 'http://localhost:6800/products?locale=ja&sortBy=price:numeric&format=csv'
 ```
 
-## Fixtures
+## Roadmap
 
-The demo site also serves every dataset as static files, in every locale, as JSON and CSV, written when the site is built: `curl https://spxis.github.io/rest-in-pieces/fixtures/users.json` is 1,000 users at seed 1. [docs/fixtures.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/fixtures.md) lists what is there and where; [`fixtures/index.json`](https://spxis.github.io/rest-in-pieces/fixtures/index.json) lists every file. For a small, linked tree, use the [static API](#nothing-to-install-a-public-static-api).
+Keep the existing public entries and native request contracts stable. Future changes belong in [CHANGELOG.md](CHANGELOG.md), the SDK/HTTP reference and the relevant guides, with their source and browser checks. [The migration guide](docs/guides/upgrading.md) records the supported 2.x-to-3.x choices.
 
 ## Architecture
 
-```mermaid
-flowchart LR
-  subgraph web["apps/web · React 19 + Vite 8"]
-    UI[Playground] -->|fetch| API
-  end
-  subgraph api["apps/api · Hono on Node 24"]
-    API[Routes] --> SIM[Simulation<br/>delay · trickle · status · fail]
-    SIM --> COL[Collection pipeline<br/>filter → sort → max → page]
-    COL --> REL[Relations<br/>nested routes · expand]
-    COL --> FMT[Formats<br/>JSON · CSV · YAML · XML · NDJSON · SQL]
-    COL --> DATA[(Seeded datasets<br/>Faker, LRU cache)]
-    API --> IMG[SVG avatars and placeholders]
-    API --> DOCS[OpenAPI 3.1 + Scalar]
-  end
-```
+The Node app, browser adapters and test integrations share the same native core, resource pipeline and serializers. [The complete architecture and diagram](docs/architecture.md) preserve the original explanation and repository layout. [Architecture and limits](docs/guides/architecture-and-limits.md) covers entry sizes, caps and documentation ownership.
 
-- **One pipeline.** Every collection, built-in or generated, goes through the same filter, sort, cap and page steps, so behaviour is identical everywhere.
-- **Schemas first.** Routes are declared with Zod through `@hono/zod-openapi`; the OpenAPI document is generated from them and cannot drift from the code.
-- **Deterministic by construction.** Datasets depend only on their seed, and the most recently used ones are cached in memory.
-- **No build step for the API.** Node runs the TypeScript directly with type stripping.
-- **Runs anywhere fetch does.** `createApp()` in `apps/api/src/core.ts` uses only web standards. `app.ts` adds the Node parts (logging and static files), and the GitHub Pages build loads the same app into the browser tab.
+## The name
 
-```
-apps/api     Hono API: routes, collection pipeline, datasets, OpenAPI
-apps/web     React playground: components, hooks, request builder
-tests/e2e    Playwright tests that drive the playground against the real API
-```
+REST in Pieces is the package's established name: a REST API assembled for development and testing, with datasets and response controls that can be used together or through separate SDK entries.
 
-## Development
+## Where it comes from, and where it is used
 
-| Script               | What it does |
-| -------------------- | ------------ |
-| `pnpm dev`           | API on :6800 and playground on :6801, both reloading |
-| `pnpm check`         | Lint, typecheck, unit tests and build |
-| `pnpm test`          | Unit and component tests (Vitest) |
-| `pnpm test:coverage` | API tests with coverage thresholds |
-| `pnpm test:e2e`      | Playwright end-to-end tests |
-| `pnpm format`        | Apply formatting and safe lint fixes (Biome) |
-| `pnpm release <version>` | Set the version, date the changelog, commit and tag; see [Releasing](https://github.com/spxis/rest-in-pieces/blob/main/CONTRIBUTING.md#releasing) |
+The invented records come from the existing seeded generators and Faker locales; countries, subdivisions, flags and maps come from their documented family packages. The native CLI, browser playground, test adapters and embeds reuse those same implementations.
 
-Set `PORT` to move the API, and `VITE_API_BASE_URL` to point the playground elsewhere. See [CONTRIBUTING.md](https://github.com/spxis/rest-in-pieces/blob/main/CONTRIBUTING.md) for the full workflow.
-
-## Deploying
-
-**Vercel.** Create one project with **Root Directory** `apps/api`. `apps/api/vercel.json` builds the playground into `public/`, so the playground, API and docs share one origin with no extra configuration. Leave `REST_IN_PIECES_SESSION` unset there: serverless instances each keep their own memory, so a session would answer differently from one request to the next.
-
-**Docker.** Every release publishes `ghcr.io/spxis/rest-in-pieces` for amd64 and arm64, tagged with its version (such as `:2.2.0`) and `latest`. The image serves everything from port 6800, runs as a non-root user and includes a health check.
-
-**GitHub Pages.** `.github/workflows/pages.yml` publishes the in-browser playground on every push to `main`. `pnpm --filter @rest-in-pieces/web build:pages` builds it locally into `apps/web/dist-pages`: the playground, the API bundled as a chunk it loads on the first request, static copies of `api/openapi.json` and `api/docs/`, the [static API](#nothing-to-install-a-public-static-api) beside them in `api/`, and the [fixtures](#fixtures). Set `PAGES_BASE` to serve it from somewhere other than `/rest-in-pieces/`. [CONTRIBUTING.md](https://github.com/spxis/rest-in-pieces/blob/main/CONTRIBUTING.md#previewing-the-github-pages-build) shows how to preview it locally.
-
-## License
-
-MIT © 2014–2026 John Morris. Security issues: see [SECURITY.md](https://github.com/spxis/rest-in-pieces/blob/main/SECURITY.md).
-
-## The family
+### The family
 
 <!-- family:start (made by scripts/family-readme.mjs from scripts/family-template.mjs; change those, not this) -->
 REST in Pieces is one of twenty-eight packages, each made for the same site, each at
@@ -482,3 +631,41 @@ REST in Pieces is one of twenty-eight packages, each made for the same site, eac
 
 **This package is REST in Pieces.** The demos of all twenty-eight share one header and footer, so each links the rest.
 <!-- family:end -->
+
+## Development
+
+| Script               | What it does |
+| -------------------- | ------------ |
+| `pnpm dev`           | API on :6800 and playground on :6801, both reloading |
+| `pnpm check`         | Lint, typecheck, unit tests and build |
+| `pnpm test`          | Unit and component tests (Vitest) |
+| `pnpm test:coverage` | API tests with coverage thresholds |
+| `pnpm test:e2e`      | Playwright end-to-end tests |
+| `pnpm format`        | Apply formatting and safe lint fixes (Biome) |
+| `pnpm release <version>` | Set the version, date the changelog, commit and tag; see [Releasing](https://github.com/spxis/rest-in-pieces/blob/main/CONTRIBUTING.md#releasing) |
+
+Set `PORT` to move the API, and `VITE_API_BASE_URL` to point the playground elsewhere. See [CONTRIBUTING.md](https://github.com/spxis/rest-in-pieces/blob/main/CONTRIBUTING.md) for the full workflow.
+
+Run `pnpm docs:check`, `pnpm test:demo`, `pnpm test:readme` and `pnpm test:package` for documentation and published-package validation. `pnpm check` preserves the native lint, types, source tests, web build and pack checks, with the SDK built first for generated declarations.
+
+### Deploying
+
+**Vercel.** Create one project with **Root Directory** `apps/api`. `apps/api/vercel.json` builds the playground into `public/`, so the playground, API and docs share one origin with no extra configuration. Leave `REST_IN_PIECES_SESSION` unset there: serverless instances each keep their own memory, so a session would answer differently from one request to the next.
+
+**Docker.** Every release publishes `ghcr.io/spxis/rest-in-pieces` for amd64 and arm64, tagged with its version (such as `:2.2.0`) and `latest`. The image serves everything from port 6800, runs as a non-root user and includes a health check.
+
+**GitHub Pages.** `.github/workflows/pages.yml` publishes the in-browser playground on every push to `main`. `pnpm --filter @rest-in-pieces/web build:pages` builds it locally into `apps/web/dist-pages`: the playground, the API bundled as a chunk it loads on the first request, static copies of `api/openapi.json` and `api/docs/`, the [static API](#nothing-to-install-a-public-static-api) beside them in `api/`, and the [fixtures](#fixtures). Set `PAGES_BASE` to serve it from somewhere other than `/rest-in-pieces/`. [CONTRIBUTING.md](https://github.com/spxis/rest-in-pieces/blob/main/CONTRIBUTING.md#previewing-the-github-pages-build) shows how to preview it locally.
+
+## Contributing
+
+Follow [CONTRIBUTING.md](CONTRIBUTING.md). Update the source comments, relevant guide, native help and both shipped interface languages with a visible change. Keep generated OpenAPI documentation in its writer and regenerate it; new Japanese text needs review before release.
+
+## Changes
+
+[CHANGELOG.md](CHANGELOG.md) preserves the complete release history. The documentation rollout adds references, guides and navigation without changing the package version or existing export paths.
+
+<a id="license"></a>
+
+## Licence
+
+MIT © 2014–2026 John Morris. Security issues: see [SECURITY.md](https://github.com/spxis/rest-in-pieces/blob/main/SECURITY.md).
