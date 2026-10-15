@@ -10,7 +10,8 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],
-      exclude: ['src/server.ts', 'src/main.ts', 'src/types/**'],
+      // The server and the entry are not unit-tested; the sample-table element runs only in a browser, where tests/e2e covers it.
+      exclude: ['src/server.ts', 'src/main.ts', 'src/element.ts', 'src/element-define.ts', 'src/types/**'],
       thresholds: { lines: 95, functions: 95, branches: 85, statements: 95 },
     },
   },
