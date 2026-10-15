@@ -1,6 +1,6 @@
 {
   "name": "@johnmorrisdotca/rest-in-pieces",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "REST in Pieces — Fake REST API data for testing: seeded related datasets, paging, filters, latency and error drills, safe values, CSV/NDJSON/SQL, OpenAPI mocks, browser fetch, MSW and Vite.",
   "keywords": [
     "mock-api",

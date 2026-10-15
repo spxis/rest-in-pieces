@@ -4,6 +4,8 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+## 3.2.0 - 2026-10-14
+
 - Add English/Japanese SDK documentation, checked public-export examples, generated OpenAPI type references, local search and Markdown/llms copies; link them from the playground and embed builder while keeping the interactive HTTP API reference.
 ### Added
 
