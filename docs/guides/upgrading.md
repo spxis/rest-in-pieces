@@ -19,4 +19,4 @@ Keep your client's request and loading/error assertions, then map its query voca
 
 ## Revalidate generated artifacts
 
-Build before using the generated declaration entry, keep CLI and browser import paths distinct, and run the source, docs, browser, README and installed-package gates. New Japanese guide and navigation text needs review before release.
+Build before using the generated declaration entry, keep CLI and browser import paths distinct, and run the source, docs, browser, README and installed-package gates.

@@ -3,47 +3,47 @@
   "entries": {
     ".": {
       "minified": 4321274,
-      "gzip": 1203077
+      "gzip": 1206677
     },
     "./core": {
       "minified": 4245189,
-      "gzip": 1178447
+      "gzip": 1183814
     },
     "./browser": {
       "minified": 4260124,
-      "gzip": 1186015
+      "gzip": 1190620
     },
     "./cursor": {
       "minified": 1122,
-      "gzip": 653
+      "gzip": 658
     },
     "./images": {
       "minified": 2690,
-      "gzip": 1536
+      "gzip": 1545
     },
     "./serialize": {
       "minified": 1419,
-      "gzip": 808
+      "gzip": 807
     },
     "./mock": {
       "minified": 1794880,
-      "gzip": 515067
+      "gzip": 517537
     },
     "./msw": {
       "minified": 4259963,
-      "gzip": 1185987
+      "gzip": 1190567
     },
     "./vite": {
       "minified": 4344998,
-      "gzip": 1211788
+      "gzip": 1216361
     },
     "./element": {
       "minified": 4267161,
-      "gzip": 1188418
+      "gzip": 1192924
     },
     "./element/define": {
       "minified": 4267167,
-      "gzip": 1188420
+      "gzip": 1192935
     }
   }
 }
