@@ -162,8 +162,8 @@ for (const width of [390, 1280]) {
     await page.setViewportSize({ width, height: 844 });
     await page.goto('./?lang=en');
     const family = page.locator('.package-family');
-    await expect(family.locator('.package-family-group')).toHaveCount(7);
-    await expect(family.locator('a')).toHaveCount(28);
+    await expect(family.locator('.package-family-group')).toHaveCount(8);
+    await expect(family.locator('a')).toHaveCount(32);
     await expect(family.locator('strong').first()).toHaveText('Games — board');
     await expect(family.locator('a[aria-current="page"]')).toHaveText('REST in Pieces');
     await expect(family.locator('a[aria-current="page"]')).toHaveAttribute(
