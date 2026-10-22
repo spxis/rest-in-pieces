@@ -4,6 +4,10 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Security
+
+- Rebuild the Docker image on Node.js 24.22.1 (Node.js security release of 2026-10-21).
+
 ## 3.2.0 - 2026-10-14
 
 - Add English/Japanese SDK documentation, checked public-export examples, generated OpenAPI type references, local search and Markdown/llms copies; link them from the playground and embed builder while keeping the interactive HTTP API reference.
