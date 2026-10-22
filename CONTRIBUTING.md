@@ -78,7 +78,7 @@ Pushing the tag starts `.github/workflows/release.yml`, which:
 
 1. checks that the tag matches `package.json` and that `CHANGELOG.md` has a section for it;
 2. runs the same checks as CI;
-3. pushes the Docker image to `ghcr.io/spxis/rest-in-pieces` for amd64 and arm64, tagged with the version and, unless it is a prerelease such as `2.2.0-rc.1`, `latest`;
+3. builds the Docker image for amd64 and arm64 side by side, each on a runner of its own kind (no emulation), and pushes it to `ghcr.io/spxis/rest-in-pieces` as one image, tagged with the version and, unless it is a prerelease such as `2.2.0-rc.1`, `latest`;
 4. publishes the npm package with provenance;
 5. creates the GitHub release, with that version's changelog section as its notes.
 
