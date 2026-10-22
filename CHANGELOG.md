@@ -4,6 +4,8 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+## 3.2.1 - 2026-10-21
+
 ### Security
 
 - Rebuild the Docker image on Node.js 24.22.1 (Node.js security release of 2026-10-21).
