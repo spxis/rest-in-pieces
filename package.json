@@ -37,8 +37,8 @@
     "screenshots:readme": "node scripts/screenshots-readme.cjs"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.14",
-    "@playwright/test": "^1.63.0",
+    "@biomejs/biome": "^2.6.2",
+    "@playwright/test": "^1.64.1",
     "typescript": "^7.0.2"
   }
 }
