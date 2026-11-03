@@ -12,10 +12,19 @@ const WEB = `http://127.0.0.1:${WEB_PORT}`;
 const PAGES = `http://127.0.0.1:${PAGES_PORT}/rest-in-pieces/`;
 const SESSION_API = `http://127.0.0.1:${SESSION_PORT}`;
 
+// Chromium draws in software, never on the machine's graphics card (a GPU kernel panic on 2026-11-02). One worker at a time.
+const SOFTWARE_GL_ARGS = [
+  '--use-gl=angle',
+  '--use-angle=swiftshader',
+  '--enable-unsafe-swiftshader',
+  '--ignore-gpu-blocklist',
+];
+
 /** End-to-end tests drive the real playground against the real API. */
 export default defineConfig({
   testDir: './tests/e2e',
-  fullyParallel: true,
+  fullyParallel: false,
+  workers: 1,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
@@ -23,7 +32,10 @@ export default defineConfig({
     baseURL: WEB,
     trace: 'retain-on-failure',
     ...devices['Desktop Chrome'],
-    launchOptions: process.env.PLAYWRIGHT_CHROMIUM_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH } : {},
+    launchOptions: {
+      args: SOFTWARE_GL_ARGS,
+      ...(process.env.PLAYWRIGHT_CHROMIUM_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH } : {}),
+    },
   },
   projects: [
     { name: 'playground', testIgnore: /pages\.spec\.ts/ },
