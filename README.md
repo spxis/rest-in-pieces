@@ -23,7 +23,7 @@ A free, open-source **mock data generator and test data generator**: rule-based 
 It plugs into [Vite, MSW, Storybook, Next.js, Playwright, Cypress and openapi-fetch](#use-with), and answers any origin.
 
 
-Every dataset is generated from a seed. The same URL returns the same records on every machine and after every restart, so a bug can be reproduced from its URL instead of disappearing with a new random dataset.
+Every dataset is generated from a seed. The same URL returns the same records on every machine and after every restart, so a bug can be reproduced from its URL instead of disappearing with a new random dataset. (One exception, documented in [Coherent records](https://github.com/spxis/rest-in-pieces/blob/main/docs/coherent-records.md#today-and-the-dates-generators-measure-from): `/generate` fields that measure from "now", such as `date.past` and `date.birthdate`, measure from the start of today, UTC, so their dates move once a day.)
 
 
 [Documentation](https://spxis.github.io/rest-in-pieces/docs/index.html) · [Getting started](https://spxis.github.io/rest-in-pieces/docs/guides/getting-started.html) · [SDK reference](https://spxis.github.io/rest-in-pieces/api.html)
@@ -44,18 +44,18 @@ Every dataset is generated from a seed. The same URL returns the same records on
 
 ## In 30 seconds
 
-Requires Node.js 22.18 or later (24 LTS recommended) and pnpm.
+Requires Node.js 22.13 or later (24 LTS recommended). Nothing to clone or install:
 
 ```sh
-pnpm install
-pnpm dev
+npx @johnmorrisdotca/rest-in-pieces
 ```
 
 | Service    | URL                                                  |
 | ---------- | ---------------------------------------------------- |
-| API        | [http://localhost:6800](http://localhost:6800)       |
+| API, playground and docs | [http://localhost:6800](http://localhost:6800) |
 | API docs   | [http://localhost:6800/docs](http://localhost:6800/docs) |
-| Playground | [http://localhost:6801](http://localhost:6801)       |
+
+To work on the project itself, clone it (Node.js 22.18 or later and pnpm are needed for that) and run `pnpm install` then `pnpm dev`: the API is on port 6800 and the playground, in development, on [http://localhost:6801](http://localhost:6801).
 
 Or run everything from one container, with nothing to install but Docker:
 
@@ -187,7 +187,7 @@ The alias recipe is checked by the consumer's installed alias, not this checkout
 
 ### Run it
 
-**With npx**, with nothing to clone (Node.js 22.13 or later):
+**With npx**, with nothing to clone (Node.js 22.13 or later; the same as the quick start above):
 
 ```sh
 npx @johnmorrisdotca/rest-in-pieces                  # API, playground and docs on http://localhost:6800

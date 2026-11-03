@@ -125,14 +125,14 @@ A country's or a subdivision's `flag` is the address of its SVG on the jsDelivr 
 curl -L 'http://localhost:6800/flags/jp-13.svg'
 curl 'http://localhost:6800/flags/ca.svg?shape=1:1&fit=whole'     # a square that shows all of the flag
 curl 'http://localhost:6800/flags/us.svg?shape=round'
-curl 'http://localhost:6800/flags/de.svg?variant=stripes'
+curl 'http://localhost:6800/flags/gf.svg?variant=local'              # French Guiana's local flag, besides the French tricolour
 ```
 
 | Parameter | What it does |
 | --------- | ------------ |
 | `shape` | `own` (the default: its own proportions), `4:3`, `1:1` or `round`. |
 | `fit` | `auto`, `whole`, `crop` (at the side chosen for the flag), `cover`, `hoist` or `contain`. |
-| `variant` | Which of a place's flags in real use to draw, by its id from Hata (`de-facto`, `stripes`, `local`). |
+| `variant` | Which of a place's flags in real use to draw, by its id from Hata (`de-facto`, `local`, `republic`...; a place with only one flag has none, and a variant it lacks is a `404`). |
 
 **Where the SVG comes from, and what the server fetches.** The server never fetches a flag while a request waits. If `@johnmorrisdotca/hata` is installed beside this package (`npm install @johnmorrisdotca/hata`; it is an optional peer dependency, 27 MB of flags, so `npx` does not install it), the flag is read from it and drawn here, with every parameter above. If it is not, a plain request is answered `302` with the CDN address, which a browser or `curl -L` follows, and a request for a `shape`, `fit` or `variant` is `501`, which says to install it. `REST_IN_PIECES_FLAGS=cdn` (or `createApp({ flags: 'cdn' })`) always redirects, even where Hata is installed. A code with no flag is `404`; a `shape` or `fit` that is not one of the above is `400`.
 
@@ -162,7 +162,7 @@ The named physical features of the world, from Chizu: oceans, seas, gulfs, bays 
 curl 'http://localhost:6800/geo/features/Q200239'                     # Lake Biwa: 琵琶湖, びわこ, a point and a box
 curl 'http://localhost:6800/geo/features?kind=lake&countries=JP'       # a country's lakes
 curl 'http://localhost:6800/geo/features?group=marine&rank[lte]=1'     # the big seas
-curl 'http://localhost:6800/geo/features?q=琵琶'                         # a name in English, Japanese or kana
+curl 'http://localhost:6800/geo/features?q=%E7%90%B5%E7%90%B6'                         # a name in English, Japanese or kana (Biwa, percent-encoded: the server refuses raw Japanese in a URL)
 curl 'http://localhost:6800/countries/JP/features?kind=peak'           # Fuji and the rest, with elevation
 curl 'http://localhost:6800/maps/JP.svg?features=water&feature=Q200239' # Japan's water with Lake Biwa lit
 ```

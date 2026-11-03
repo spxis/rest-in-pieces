@@ -205,6 +205,7 @@
     "build": "node scripts/build.ts",
     "prepack": "pnpm --filter @rest-in-pieces/web build && node scripts/build.ts",
     "pack:test": "node scripts/pack-test.ts",
+    "pretest": "node scripts/ensure-built.mjs",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc -p .",

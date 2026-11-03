@@ -20,7 +20,7 @@ curl 'http://localhost:6800/users/42?seed=7'
 curl 'http://localhost:6800/products?department=Books&price[lt]=100&format=csv'
 
 # The same people, for a Japanese audience
-curl 'http://localhost:6800/names?locale=ja&province=東京都&limit=5'
+curl 'http://localhost:6800/names?locale=ja&province=%E6%9D%B1%E4%BA%AC%E9%83%BD&limit=5'   # Tokyo, percent-encoded: the server refuses raw Japanese in a URL
 
 # An international user table: every row from its own country
 curl 'http://localhost:6800/users?locale=global&limit=20'
