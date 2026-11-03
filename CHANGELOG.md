@@ -4,6 +4,27 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+## 3.4.0 - 2026-11-03
+
+### Added
+
+- `strict=true` on a dataset's list turns what the default ignores into a `400` that names each fault and lists the dataset's fields: a parameter that is neither one of the API's nor a field (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a sort direction that is not one, a count that is not a whole number, `messy` outside 0 to 1 and `fail` that is not `true`, `false` or a share. Off by default, so no request that works today changes; making it the default is a major version. The units are written down in the HTTP guide and left as they are: `messy` and `fail` are shares from 0 to 1, a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds.
+- `pnpm size:split` (`apps/api/scripts/measure-size.mjs`, recorded in `apps/api/docs/bundle-size-split.json`, explained in `docs/size.md`) measures each entry with code splitting: what it loads with the import and what is fetched later. `/core` is 740 kB gzipped to import and 610 kB of data on demand; `/browser`, `/msw`, `/vite` and `/element` are 1 to 9 kB and fetch the app on the first request. The badge still counts every entry as one file, as the family's generator does.
+- A CI job installs the packed tarball on Node 22.13.0, the floor `engines.node` names, and imports every entry, opens a stream, loads `/docs` and runs `generate` there.
+- Tests for strict mode, the split sizes and the Node floor.
+
+### Changed
+
+- The playground's "Simulate a response", "Sign in" and "Session" are three tabs, one panel at a time, with arrow keys, Home and End, and each tab says what is switched on in it, in place of three folds stacked under the fields.
+- The README opens with `npx @johnmorrisdotca/rest-in-pieces` (Node 22.13), and the clone-and-`pnpm dev` path follows it. The Japanese curl examples are percent-encoded (the server refuses raw Japanese in a URL), the flag example names a flag that has the variant, and the README says that `/generate` dates measured from "now" move daily.
+- `pnpm test` builds once on a fresh checkout when `dist/types.d.ts` is missing, so it no longer fails 2 tests there.
+- Playwright draws in software and runs one worker.
+- `fail=0`, `fail=0.0` and `fail=-1` never fail; they always failed before.
+
+### Fixed
+
+- Five Biome warnings (`noNonNullAssertion` in the table end-to-end test).
+
 ## 3.3.1 - 2026-11-03
 
 ### Fixed
