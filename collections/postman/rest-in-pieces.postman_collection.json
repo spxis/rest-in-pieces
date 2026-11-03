@@ -224,6 +224,12 @@
                   "disabled": true
                 },
                 {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
+                  "disabled": true
+                },
+                {
                   "key": "safe",
                   "value": "",
                   "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. On by default since 3.0; `safe=false` writes the values 2.x did.",
@@ -466,6 +472,12 @@
                   "disabled": true
                 },
                 {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
+                  "disabled": true
+                },
+                {
                   "key": "safe",
                   "value": "",
                   "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. On by default since 3.0; `safe=false` writes the values 2.x did.",
@@ -634,6 +646,12 @@
                   "key": "auth",
                   "value": "",
                   "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
                   "disabled": true
                 },
                 {
@@ -879,6 +897,12 @@
                   "disabled": true
                 },
                 {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
+                  "disabled": true
+                },
+                {
                   "key": "safe",
                   "value": "",
                   "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. On by default since 3.0; `safe=false` writes the values 2.x did.",
@@ -1046,6 +1070,12 @@
                   "key": "auth",
                   "value": "",
                   "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
                   "disabled": true
                 },
                 {
@@ -1289,6 +1319,12 @@
                   "disabled": true
                 },
                 {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
+                  "disabled": true
+                },
+                {
                   "key": "safe",
                   "value": "",
                   "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. On by default since 3.0; `safe=false` writes the values 2.x did.",
@@ -1458,6 +1494,12 @@
                   "key": "auth",
                   "value": "",
                   "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
                   "disabled": true
                 },
                 {
@@ -1633,6 +1675,12 @@
                   "disabled": true
                 },
                 {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
+                  "disabled": true
+                },
+                {
                   "key": "safe",
                   "value": "",
                   "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. On by default since 3.0; `safe=false` writes the values 2.x did.",
@@ -1800,6 +1848,12 @@
                   "key": "auth",
                   "value": "",
                   "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
                   "disabled": true
                 },
                 {
@@ -2043,6 +2097,12 @@
                   "disabled": true
                 },
                 {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
+                  "disabled": true
+                },
+                {
                   "key": "safe",
                   "value": "",
                   "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. On by default since 3.0; `safe=false` writes the values 2.x did.",
@@ -2210,6 +2270,12 @@
                   "key": "auth",
                   "value": "",
                   "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
                   "disabled": true
                 },
                 {
@@ -2453,6 +2519,12 @@
                   "disabled": true
                 },
                 {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
+                  "disabled": true
+                },
+                {
                   "key": "safe",
                   "value": "",
                   "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. On by default since 3.0; `safe=false` writes the values 2.x did.",
@@ -2622,6 +2694,12 @@
                   "key": "auth",
                   "value": "",
                   "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
                   "disabled": true
                 },
                 {
@@ -2891,6 +2969,12 @@
                   "key": "auth",
                   "value": "",
                   "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
                   "disabled": true
                 },
                 {
@@ -3511,6 +3595,12 @@
                   "key": "auth",
                   "value": "",
                   "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
                   "disabled": true
                 },
                 {
@@ -4136,6 +4226,12 @@
                   "disabled": true
                 },
                 {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
+                  "disabled": true
+                },
+                {
                   "key": "safe",
                   "value": "",
                   "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. On by default since 3.0; `safe=false` writes the values 2.x did.",
@@ -4305,6 +4401,12 @@
                   "key": "auth",
                   "value": "",
                   "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
                   "disabled": true
                 },
                 {
@@ -4480,6 +4582,12 @@
                   "disabled": true
                 },
                 {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
+                  "disabled": true
+                },
+                {
                   "key": "safe",
                   "value": "",
                   "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. On by default since 3.0; `safe=false` writes the values 2.x did.",
@@ -4647,6 +4755,12 @@
                   "key": "auth",
                   "value": "",
                   "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
                   "disabled": true
                 },
                 {
@@ -5272,6 +5386,12 @@
                   "disabled": true
                 },
                 {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
+                  "disabled": true
+                },
+                {
                   "key": "safe",
                   "value": "",
                   "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. On by default since 3.0; `safe=false` writes the values 2.x did.",
@@ -5439,6 +5559,12 @@
                   "key": "auth",
                   "value": "",
                   "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
                   "disabled": true
                 },
                 {
@@ -6062,6 +6188,12 @@
                   "disabled": true
                 },
                 {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
+                  "disabled": true
+                },
+                {
                   "key": "safe",
                   "value": "",
                   "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. On by default since 3.0; `safe=false` writes the values 2.x did.",
@@ -6297,6 +6429,12 @@
                   "key": "auth",
                   "value": "",
                   "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
                   "disabled": true
                 },
                 {
@@ -6917,6 +7055,12 @@
                   "key": "auth",
                   "value": "",
                   "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
                   "disabled": true
                 },
                 {
@@ -7542,6 +7686,12 @@
                   "disabled": true
                 },
                 {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
+                  "disabled": true
+                },
+                {
                   "key": "safe",
                   "value": "",
                   "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. On by default since 3.0; `safe=false` writes the values 2.x did.",
@@ -7709,6 +7859,12 @@
                   "key": "auth",
                   "value": "",
                   "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
                   "disabled": true
                 },
                 {
@@ -8332,6 +8488,12 @@
                   "disabled": true
                 },
                 {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
+                  "disabled": true
+                },
+                {
                   "key": "safe",
                   "value": "",
                   "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. On by default since 3.0; `safe=false` writes the values 2.x did.",
@@ -8949,6 +9111,12 @@
                   "key": "auth",
                   "value": "",
                   "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
                   "disabled": true
                 },
                 {
@@ -9572,6 +9740,12 @@
                   "disabled": true
                 },
                 {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
+                  "disabled": true
+                },
+                {
                   "key": "safe",
                   "value": "",
                   "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. On by default since 3.0; `safe=false` writes the values 2.x did.",
@@ -9795,6 +9969,12 @@
                   "key": "auth",
                   "value": "",
                   "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
                   "disabled": true
                 },
                 {
@@ -10024,6 +10204,12 @@
                   "disabled": true
                 },
                 {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
+                  "disabled": true
+                },
+                {
                   "key": "safe",
                   "value": "",
                   "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. On by default since 3.0; `safe=false` writes the values 2.x did.",
@@ -10247,6 +10433,12 @@
                   "key": "auth",
                   "value": "",
                   "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
                   "disabled": true
                 },
                 {
@@ -10476,6 +10668,12 @@
                   "disabled": true
                 },
                 {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
+                  "disabled": true
+                },
+                {
                   "key": "safe",
                   "value": "",
                   "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. On by default since 3.0; `safe=false` writes the values 2.x did.",
@@ -10699,6 +10897,12 @@
                   "key": "auth",
                   "value": "",
                   "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
                   "disabled": true
                 },
                 {
@@ -10928,6 +11132,12 @@
                   "disabled": true
                 },
                 {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
+                  "disabled": true
+                },
+                {
                   "key": "safe",
                   "value": "",
                   "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. On by default since 3.0; `safe=false` writes the values 2.x did.",
@@ -11151,6 +11361,12 @@
                   "key": "auth",
                   "value": "",
                   "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
                   "disabled": true
                 },
                 {
@@ -11380,6 +11596,12 @@
                   "disabled": true
                 },
                 {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
+                  "disabled": true
+                },
+                {
                   "key": "safe",
                   "value": "",
                   "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. On by default since 3.0; `safe=false` writes the values 2.x did.",
@@ -11603,6 +11825,12 @@
                   "key": "auth",
                   "value": "",
                   "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
                   "disabled": true
                 },
                 {
@@ -11832,6 +12060,12 @@
                   "disabled": true
                 },
                 {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
+                  "disabled": true
+                },
+                {
                   "key": "safe",
                   "value": "",
                   "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. On by default since 3.0; `safe=false` writes the values 2.x did.",
@@ -12055,6 +12289,12 @@
                   "key": "auth",
                   "value": "",
                   "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
                   "disabled": true
                 },
                 {
@@ -12284,6 +12524,12 @@
                   "disabled": true
                 },
                 {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
+                  "disabled": true
+                },
+                {
                   "key": "safe",
                   "value": "",
                   "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. On by default since 3.0; `safe=false` writes the values 2.x did.",
@@ -12507,6 +12753,12 @@
                   "key": "auth",
                   "value": "",
                   "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
                   "disabled": true
                 },
                 {
@@ -12753,6 +13005,12 @@
                   "disabled": true
                 },
                 {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
+                  "disabled": true
+                },
+                {
                   "key": "safe",
                   "value": "",
                   "description": "`true` writes contact details and addresses that cannot reach anybody: emails at `example.com`, `example.org` and `example.net` (RFC 2606), URLs on those domains, phone numbers in the ranges regulators keep for fiction (555-0100 to 555-0199 in Canada and the US, Ofcom, Bundesnetzagentur and ARCEP drama numbers in the UK, Germany and France, and `+1 555-01xx` where a country publishes none), card numbers only from the published test numbers, IP addresses only from 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 and 2001:db8::/32, and every avatar from this API's own `/avatars/{seed}.svg`. On by default since 3.0; `safe=false` writes the values 2.x did.",
@@ -12930,6 +13188,12 @@
                   "key": "auth",
                   "value": "",
                   "description": "Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. Without a valid `Authorization: Bearer <accessToken>` from `POST /auth/login` it answers `401` (`missing_token`, `invalid_token` or `token_expired`, with a `WWW-Authenticate` header), and for a role that is not enough `403` (`insufficient_role`). Fake tokens, not security.",
+                  "disabled": true
+                },
+                {
+                  "key": "strict",
+                  "value": "",
+                  "description": "`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside 0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds and `expiresIn` is seconds or a unit.",
                   "disabled": true
                 },
                 {
