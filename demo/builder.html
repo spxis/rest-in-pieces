@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Pick how you run REST in Pieces and the options you need, then copy the command or code." />
+    <title>Setup builder · REST in Pieces</title>
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main" data-say="skip">Skip to the content</a>
+    <header class="top">
+      <div class="top-in">
+        <a class="brand" href="./" data-say="siteName">REST in Pieces</a>
+        <nav data-say-label="siteNav" aria-label="Site">
+          <a href="../" data-say="navPlayground">Playground</a>
+          <a href="builder.html" aria-current="page" data-say="navBuilder">Setup builder</a>
+          <a href="../docs/index.html" data-say="navDocs">Docs</a>
+          <a href="../api.html" data-say="navApi">SDK reference</a>
+        </nav>
+        <div class="pick">
+          <select id="lang" data-say-label="langLabel" aria-label="Language"><option value="en">English</option><option value="ja">日本語</option></select>
+          <select id="theme" data-say-label="themeLabel" aria-label="Theme"><option value="auto">System</option><option value="light">Light</option><option value="dark">Dark</option></select>
+        </div>
+      </div>
+    </header>
+    <main id="main">
+      <h1 data-say="builderTitle" data-testid="title">Setup builder</h1>
+      <p class="lede" data-say="builderPitch">Pick how you run REST in Pieces and the options you need. Copy the command or the code; nothing here is sent anywhere.</p>
+      <div class="bld">
+        <section class="panel" aria-labelledby="how-title">
+          <h2 id="how-title" data-say="howLabel">How do you run it?</h2>
+          <fieldset>
+            <legend class="muted" hidden data-say="howLabel">How do you run it?</legend>
+            <div class="bld-targets" id="targets" data-testid="targets"></div>
+          </fieldset>
+          <p class="bld-says" id="says" data-testid="says" aria-live="polite"></p>
+          <h2 data-say="optionsLabel" style="margin-top:16px">Options</h2>
+          <div class="bld-options" id="options" data-testid="options"></div>
+          <div class="actions"><button type="button" id="again" data-say="startAgain" data-testid="again">Start again</button></div>
+        </section>
+        <section aria-labelledby="out-title">
+          <h2 id="out-title" data-say="outputLabel">Your setup</h2>
+          <div class="panel problems" id="problems" data-testid="problems" role="alert" hidden></div>
+          <div class="steps" id="steps" data-testid="steps"></div>
+          <div class="actions"><button type="button" id="share" data-say="shareLink" data-testid="share">Copy a link to this setup</button><span class="fine" id="status" aria-live="polite" data-testid="status"></span></div>
+          <h2 data-say="readMore" style="margin-top:24px">Read more</h2>
+          <ul class="docs" id="docs"></ul>
+        </section>
+      </div>
+    </main>
+    <script type="module" src="builder.js"></script>
+  </body>
+</html>

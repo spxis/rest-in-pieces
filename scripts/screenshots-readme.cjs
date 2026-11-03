@@ -6,7 +6,8 @@ const { chromium, expect } = require(root + '/node_modules/@playwright/test');
 const out =
   process.env.RIP_DOCS_PICTURES_OUT || fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'rest-docs-pictures-'));
 const images = root + '/docs/images',
-  base = process.env.RIP_PICTURES_BASE || 'http://127.0.0.1:6843/rest-in-pieces/';
+  base = process.env.RIP_PICTURES_BASE || 'http://127.0.0.1:6843/rest-in-pieces/',
+  only = process.env.RIP_PICTURES_ONLY ? process.env.RIP_PICTURES_ONLY.split(',') : null;
 async function fit(page) {
   const m = await page.evaluate(() => ({
     scroll: document.documentElement.scrollWidth,
@@ -26,7 +27,11 @@ async function fit(page) {
         ['errors', 'desk'],
         ['reference', 'desk'],
         ['embed', 'desk'],
+        ['builder', 'desk'],
+        ['docs', 'desk'],
       ]) {
+        // RIP_PICTURES_ONLY=builder,docs retakes only those subjects and leaves every other picture as it is.
+        if (only && !only.includes(subject)) continue;
         const context = await browser.newContext({
           viewport: { width: view === 'phone' ? 390 : 1200, height: view === 'phone' ? 844 : 900 },
           colorScheme: scheme,
@@ -37,7 +42,13 @@ async function fit(page) {
           localStorage.setItem('rest-in-pieces:ui-locale', 'en');
         }, scheme);
         const page = await context.newPage();
-        if (subject === 'embed') {
+        if (subject === 'builder') {
+          await page.goto(base + 'demo/builder.html?target=vite&base=%2Fmock&session=true');
+          await expect(page.getByTestId('code-stepConfig')).toContainText("restInPieces({ base: '/mock'");
+        } else if (subject === 'docs') {
+          await page.goto(base + 'docs/index.html');
+          await expect(page.locator('h1')).toBeVisible();
+        } else if (subject === 'embed') {
           await page.goto(base + 'builder.html');
           await page.locator('rest-in-pieces-table').waitFor({ state: 'visible' });
           await expect(page.locator('rest-in-pieces-table').getByRole('table')).toBeVisible();
@@ -69,7 +80,7 @@ async function fit(page) {
         await context.close();
       }
     }
-    for (const width of [1200, 390])
+    for (const width of only ? [] : [1200, 390])
       for (const lang of ['en', 'ja'])
         for (const scheme of ['light', 'dark']) {
           const context = await browser.newContext({

@@ -10,3 +10,5 @@ for (const file of ['docs', 'api.html', 'llms.txt', 'llms-full.txt']) {
   if (!existsSync(resolve(from, file))) throw new Error(`Build SDK documentation first: ${file} is missing`);
   cpSync(resolve(from, file), resolve(to, file), { recursive: true });
 }
+// The demo pages (demo/) are plain files, published beside the playground at /demo/.
+cpSync(resolve(repository, 'demo'), resolve(to, 'demo'), { recursive: true });

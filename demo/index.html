@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Seeded fake data for building and testing a frontend: the playground, a setup builder, and the public static API read live." />
+    <title>Demo pages · REST in Pieces</title>
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main" data-say="skip">Skip to the content</a>
+    <header class="top">
+      <div class="top-in">
+        <a class="brand" href="./" data-say="siteName">REST in Pieces</a>
+        <nav data-say-label="siteNav" aria-label="Site">
+          <a href="../" data-say="navPlayground">Playground</a>
+          <a href="builder.html" data-say="navBuilder">Setup builder</a>
+          <a href="../docs/index.html" data-say="navDocs">Docs</a>
+          <a href="../api.html" data-say="navApi">SDK reference</a>
+        </nav>
+        <div class="pick">
+          <select id="lang" data-say-label="langLabel" aria-label="Language"><option value="en">English</option><option value="ja">日本語</option></select>
+          <select id="theme" data-say-label="themeLabel" aria-label="Theme"><option value="auto">System</option><option value="light">Light</option><option value="dark">Dark</option></select>
+        </div>
+      </div>
+    </header>
+    <main id="main">
+      <h1 data-say="indexTitle" data-testid="title">Demo pages</h1>
+      <p class="lede" data-say="indexPitch">Seeded fake data for building and testing a frontend. Try it in the playground, build the command or code for your setup, or read the public files with nothing installed.</p>
+      <ul class="cards">
+        <li><a class="card" href="../"><strong data-say="cardPlayground">The playground</strong><span data-say="cardPlaygroundSays">Build a request, see the response drawn as an app would draw it, rehearse a slow or failing backend, and copy the request as code.</span><span class="go" data-say="open">Open</span></a></li>
+        <li><a class="card" href="builder.html" data-testid="card-builder"><strong data-say="cardBuilder">The setup builder</strong><span data-say="cardBuilderSays">Pick how you run it (command line, Docker, tests, the tab, Vite, MSW or offline files) and the options, and copy the command or code.</span><span class="go" data-say="open">Open</span></a></li>
+        <li><a class="card" href="../docs/index.html"><strong data-say="cardDocs">The documentation</strong><span data-say="cardDocsSays">Guides in English and Japanese, a checked example for every export, search and Markdown copies.</span><span class="go" data-say="open">Open</span></a></li>
+        <li><a class="card" href="../builder.html"><strong data-say="cardEmbed">The embed builder</strong><span data-say="cardEmbedSays">Preview a seeded table and copy the code for a custom element, an iframe, React, Vue, Svelte or Angular.</span><span class="go" data-say="open">Open</span></a></li>
+        <li><a class="card" href="../use-cases/"><strong data-say="cardUseCases">The use cases</strong><span data-say="cardUseCasesSays">Eleven jobs the API does, each drawn from real requests.</span><span class="go" data-say="open">Open</span></a></li>
+      </ul>
+
+      <section class="panel" aria-labelledby="ex-title">
+        <h2 id="ex-title" data-say="explorerTitle">Read the public static API</h2>
+        <p class="muted" data-say="explorerSays">These are plain files on GitHub Pages: no server, no key, and open to any origin. Choose a dataset and see the records, then fetch the same file from your own page or a terminal.</p>
+        <div class="ex-controls">
+          <div><label for="ex-dataset" data-say="explorerDataset">Dataset</label><select class="field" id="ex-dataset" data-testid="ex-dataset"></select></div>
+          <div><label for="ex-locale" data-say="explorerLocale">Data</label><select class="field" id="ex-locale" data-testid="ex-locale"><option value="en-CA" data-say="explorerLocaleEn">English (Canada)</option><option value="ja" data-say="explorerLocaleJa">Japanese</option></select></div>
+          <div><span class="label" style="font-weight:600" data-say="explorerPage">Page</span><div class="actions" style="margin:0"><button type="button" id="ex-prev" data-say="prev" data-testid="ex-prev">Previous</button><button type="button" id="ex-next" data-say="next" data-testid="ex-next">Next</button></div></div>
+        </div>
+        <p class="fine" id="ex-status" data-testid="ex-status" aria-live="polite"></p>
+        <div class="table-wrap" id="ex-table-wrap" hidden><table id="ex-table" data-testid="ex-table"><caption data-say="explorerCaption">The first columns of each record. The file holds all of them.</caption><thead></thead><tbody></tbody></table></div>
+        <div class="formats" id="ex-formats" hidden><span data-say="explorerFormats">The same records as</span></div>
+        <p class="fine"><span data-say="explorerAddress">Address</span>: <code id="ex-address" data-testid="ex-address"></code></p>
+        <div class="two">
+          <div><h3 style="margin:0 0 6px;font-size:1rem" data-say="explorerCurl">From a terminal</h3><pre><code id="ex-curl" data-testid="ex-curl"></code></pre></div>
+          <div><h3 style="margin:0 0 6px;font-size:1rem" data-say="explorerFetch">From a page</h3><pre><code id="ex-fetch" data-testid="ex-fetch"></code></pre></div>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="index.js"></script>
+  </body>
+</html>

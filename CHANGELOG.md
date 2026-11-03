@@ -4,6 +4,15 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Added
+
+- Demo pages in `demo/`, published beside the playground at `/demo/` in English and Japanese: a setup builder that writes the command or code for the command line, Docker, in-process tests, the browser tab, Vite, MSW (browser and Node) and offline files, and an index that reads the public static API live. The builder's output is tested against the real command-line parser and `createApp`.
+- A Documentation map and a Troubleshooting section in the README, a comparison page at `docs/how-it-compares.md`, and two more README pictures (the setup builder and the documentation site) taken by `pnpm screenshots:readme`.
+
+### Changed
+
+- `scripts/screenshots-readme.cjs` takes `RIP_PICTURES_ONLY` to retake only some subjects, and the README's comparison table is shortened to one row per group of tools with the full table in `docs/how-it-compares.md`.
+
 ## 3.2.1 - 2026-10-21
 
 ### Security

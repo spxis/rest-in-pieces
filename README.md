@@ -90,21 +90,17 @@ docker run --rm -p 6800:6800 rest-in-pieces   # playground, API and docs on :680
 
 ### How it compares
 
-Most tools in this space either intercept requests and leave you to write the data, or serve data you wrote by hand and leave you to write the realism. REST in Pieces ships the data and the unhappy paths, and runs behind most of the interception tools. It is rule-based fake data: generators, seeds and arithmetic, not a model trained on real records, so it makes no claim of statistical fidelity, privacy or de-identification, and needs none, since nothing real goes in.
+Most tools in this space either intercept requests and leave you to write the data, or serve data you wrote by hand and leave you to write the realism. REST in Pieces ships the data and the unhappy paths, and runs behind most of the interception tools. It is rule-based fake data, not a model trained on real records, so it makes no claim of statistical fidelity, privacy or de-identification, and needs none, since nothing real goes in.
 
-| Tool | What it is | Verdict |
-| ---- | ---------- | ------- |
-| [json-server](https://github.com/typicode/json-server) | A REST API over a `db.json` you write | Closest in spirit. It writes changes back to `db.json`, which REST in Pieces does not: its [session](#sessions-keeping-writes) keeps writes in memory only, until a reset or a restart. Both have relations: json-server's `_embed` over the data you wrote, REST in Pieces' [nested routes and `expand`](#relations) over generated data that already joins up. REST in Pieces has generated, seeded, localized data, paging, formats, sign-in and failure drills with nothing to write. |
-| [MSW](https://mswjs.io/) | Request interception in the browser and Node | Not a rival but a host: MSW intercepts, REST in Pieces answers. Use the [MSW handlers](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#mock-service-worker). |
-| [Mirage JS](https://miragejs.com/) | A fake server in the tab, with models and factories you define | Mirage wants a schema and routes; REST in Pieces needs no setup. Both keep writes in memory (REST in Pieces with `session: true`) and both have relations: Mirage between the models you define, any shape you like; REST in Pieces between its own datasets only. |
-| [Prism](https://github.com/stoplightio/prism) | A mock server generated from your OpenAPI file | Both mock from an OpenAPI file. Prism answers with the examples you wrote and validates strictly; REST in Pieces makes seeded, realistic data from the schemas (`serve --openapi`, [below](#mock-your-own-api-from-its-openapi-document)), with delay, error and trickle drills, and without the examples, a security check or a proxy mode. With no contract to mock, it has [datasets](#endpoints) as well. |
-| [Mockoon](https://mockoon.com/) | A desktop app and CLI for hand-templated mock routes | Better for people who prefer a GUI and per-route templates; REST in Pieces is code-first, with seeds and locales built in. |
-| [DummyJSON](https://dummyjson.com/), [JSONPlaceholder](https://jsonplaceholder.typicode.com/) | Hosted fake APIs at public URLs | Nothing to install, but fixed English data and no failure drills. Both answer writes without keeping them, as REST in Pieces does by default. JSONPlaceholder's posts, comments, todos and users have the same shapes here, and [`/jsonplaceholder`](#a-jsonplaceholder-tutorial-with-a-new-base-url) answers with its defaults, so its tutorials work by changing the base URL; its albums and photos have no counterpart. DummyJSON has more kinds of data (carts, recipes, quotes) and image URLs of its own; REST in Pieces has seeds, fifteen locales, safe values and self-hosted SVG avatars. DummyJSON's login, refresh and bearer-token routes match [REST in Pieces' sign-in](#sign-in-fake-auth) closely; REST in Pieces adds roles with `403`s, `?auth=` on any endpoint, tokens that expire on demand (`expiresIn=0`) and `WWW-Authenticate` headers. The [static API](#nothing-to-install-a-public-static-api), the [fixtures](#fixtures) and the live demo are the hosted side here. |
-| [Mockaroo](https://www.mockaroo.com/) | A hosted generator: design a schema in the browser, download CSV, JSON, SQL and more | Mockaroo has far more field types, formulas, its own datasets and saved schemas, and limits rows and API calls on its free plan. REST in Pieces runs locally and free with no account; `/generate` takes Faker's types with [arguments, weighted choices and blank rates](#custom-fields-arguments-choices-and-blanks), and answers in NDJSON and SQL as well, seeded so the same URL gives the same file. It has no formulas between fields. |
-| [Synthea](https://synthetichealth.github.io/synthea/) | Synthetic patient records, simulated from published health statistics | A different job: Synthea models populations so its records are statistically plausible for health research. REST in Pieces makes rule-based fake data for building and testing user interfaces, and claims no statistical fidelity. |
-| [Faker](https://fakerjs.dev/) | A library of generators you call in code | REST in Pieces is built on it, and serves it over HTTP with paging, filters, formats, seeds and relations already done. Faker's own image and avatar URLs point at other hosts; REST in Pieces draws its own with `safe=true`. |
-| [REST Countries](https://restcountries.com/) | A hosted public API of country data: names, codes, capitals, currencies, languages, population, area, borders, flags | Nothing to install, and its country records hold more than REST in Pieces' (translations into many languages, demonyms, Gini, coats of arms, PNG flags); see its own documentation for the list. REST in Pieces serves country data as one part of a test backend rather than as the product: `/countries` with names in English and Japanese, capitals, population, area, borders, time zones and driving side, then what REST Countries does not hold, the states, provinces and prefectures of 200 countries, the EU and the G7 as groupings, the codes ISO has withdrawn, SVG flags and maps, with the paging, filters, formats, `expand` and failure drills of the invented datasets, offline and without a rate limit. Use REST Countries for its breadth of fields from a hosted address; use this where the places must sit beside fake people in one local API. |
-| [country-data](https://www.npmjs.com/package/country-data) | An npm package of ISO country codes, currencies, languages and calling codes | What `/countries` was made from until it moved to [Kuni](https://github.com/johnmorrisdotca/kuni), which has all of it and Japanese names, capitals, facts, regions and groupings. The nine fields it had keep their names and types (see [docs/reference-data.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/reference-data.md#what-changed-from-the-country-data-list)). |
+| Tool | Relation |
+| ---- | -------- |
+| [json-server](https://github.com/typicode/json-server), [Mirage JS](https://miragejs.com/) | Serve or fake data you write. Here the data is generated, seeded and related already. |
+| [MSW](https://mswjs.io/) | A host, not a rival: MSW intercepts, REST in Pieces answers ([handlers](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#mock-service-worker)). |
+| [Prism](https://github.com/stoplightio/prism), [Mockoon](https://mockoon.com/) | Mock from an OpenAPI file or hand-written routes; here `serve --openapi` makes seeded data from the schemas. |
+| [DummyJSON](https://dummyjson.com/), [JSONPlaceholder](https://jsonplaceholder.typicode.com/), [Mockaroo](https://www.mockaroo.com/) | Hosted; here everything runs on your machine, with seeds, fifteen locales and failure drills. |
+| [Faker](https://fakerjs.dev/), [REST Countries](https://restcountries.com/) | Generators and country data; REST in Pieces serves both over HTTP with paging, filters and formats. |
+
+**[The full comparison, one row per tool, with what each does better, is in docs/how-it-compares.md.](https://github.com/spxis/rest-in-pieces/blob/main/docs/how-it-compares.md)**
 
 ## Features
 
@@ -325,6 +321,35 @@ Vite, Mock Service Worker, Storybook, Next.js, Playwright, Cypress, typed client
 
 **[Read Use with in docs/use-with.md.](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md)** Sections: [Vite](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#vite), [Mock Service Worker](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#mock-service-worker), [Storybook](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#storybook), [Next.js](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#nextjs), [Playwright](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#playwright), [Cypress](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#cypress), [Typed clients](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#typed-clients), [Any origin](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#any-origin).
 
+## Documentation
+
+Where to look, by what you are doing. The playground, the demo pages, the guides and the documentation site are in English and 日本語.
+
+| You want to | Go to |
+| ----------- | ----- |
+| Try a request now | The [playground](https://spxis.github.io/rest-in-pieces/): build a request, see the response drawn as an app would draw it, copy it as code. |
+| Get a command or config for your setup | The [setup builder](https://spxis.github.io/rest-in-pieces/demo/builder.html): pick how you run it and the options, and copy the command or code. |
+| Fetch data with nothing installed | The [demo pages](https://spxis.github.io/rest-in-pieces/demo/) read the public static API live and show the same records as a table, CSV, NDJSON and SQL. |
+| Learn one job at a time | The [guides](https://spxis.github.io/rest-in-pieces/docs/index.html): [getting started](https://spxis.github.io/rest-in-pieces/docs/guides/getting-started.html), [queries and relations](https://spxis.github.io/rest-in-pieces/docs/guides/queries-and-relations.html), [loading and errors](https://spxis.github.io/rest-in-pieces/docs/guides/loading-and-errors.html), [sessions and auth](https://spxis.github.io/rest-in-pieces/docs/guides/sessions-and-auth.html), [formats and SQL](https://spxis.github.io/rest-in-pieces/docs/guides/formats-and-sql.html), [OpenAPI mocks](https://spxis.github.io/rest-in-pieces/docs/guides/openapi-mocks.html). |
+| Look up an export | The [SDK reference](https://spxis.github.io/rest-in-pieces/api.html): every entry, every export, with a checked example. |
+| Look up a route or a query parameter | [docs/api-examples.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/api-examples.md), or `/docs` on a running server for the interactive OpenAPI reference. |
+| Choose between tools | [docs/how-it-compares.md](https://github.com/spxis/rest-in-pieces/blob/main/docs/how-it-compares.md). |
+| Fix something that went wrong | [Troubleshooting](#troubleshooting) below, and the [troubleshooting guide](https://spxis.github.io/rest-in-pieces/docs/guides/troubleshooting.html). |
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/spxis/rest-in-pieces/main/docs/images/builder-desk-dark.webp">
+  <img src="https://raw.githubusercontent.com/spxis/rest-in-pieces/main/docs/images/builder-desk-light.webp" alt="The setup builder with the Vite dev server chosen, its base path and session options, and the install command and vite.config.ts it wrote." width="1200">
+</picture>
+<p><em>The setup builder: choose how you run it and the options, then copy the install command and the code it writes.</em></p>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/spxis/rest-in-pieces/main/docs/images/docs-desk-dark.webp">
+  <img src="https://raw.githubusercontent.com/spxis/rest-in-pieces/main/docs/images/docs-desk-light.webp" alt="The documentation site's overview page, with the reference entries and guides listed in the left column and the install command in the main column." width="1200">
+</picture>
+<p><em>The documentation site: search, one reference page for each entry point, and the guides, in English and Japanese.</em></p>
+
+Search across the guides and the reference is in the documentation site's header, and every page has a Markdown copy; [`llms.txt`](https://spxis.github.io/rest-in-pieces/llms.txt) lists them for tools that read documentation.
+
 ## Examples
 
 ### Request records without a server
@@ -485,6 +510,19 @@ The native playground has its light/dark theme control. Generated SVG avatars an
 The main size badge includes the bundled Node app and its dependencies/data, minified for ES2020 and gzipped at level 9, with Node built-ins external. The small `/images`, `/cursor` and `/serialize` entries have their own measured sizes in the reference. This is not the installed tarball or the browser's complete download.
 
 Requests, sessions, streams, OpenAPI documents and generated responses retain their native caps. See [the HTTP guide](docs/api-guide.md), [mock limits](https://spxis.github.io/rest-in-pieces/docs/api/mock/mocklimits.html), [sessions](docs/writes-sessions-auth.md) and [architecture and limits](docs/guides/architecture-and-limits.md). Optional flag/map routes require their actual peer packages.
+
+## Troubleshooting
+
+The ones that come up first. The [troubleshooting guide](https://spxis.github.io/rest-in-pieces/docs/guides/troubleshooting.html) has the rest.
+
+- **Two machines show different records.** The seed (`?seed=`, default `1`), the locale (`?locale=`, default `en-CA`) or a filter differs. Copy the whole URL, query string included; the same URL gives the same records everywhere.
+- **A `POST`, `PUT` or `DELETE` is answered but the next read is unchanged.** Writes are not kept unless the session is on: `--session`, `REST_IN_PIECES_SESSION=true` or `createApp({ session: true })`. `POST /reset` puts the seeded data back.
+- **Emails are on `example.com`, not the domains you expect.** Safe values are on by default since 3.0. `?safe=false` turns them off for one request, `--no-safe` for the server.
+- **A request fails with a `503` or is slow and you did not ask for it.** Look for `status`, `fail`, `delay` or `trickle` in the query: simulated responses carry `X-Simulated: true`.
+- **MSW in Node does not match any request.** Node's MSW matches absolute URLs only, so give `restInPiecesHandlers` a base such as `http://localhost/api` and point the code under test at it.
+- **`/api` is missing from a production build of a Vite app.** The Vite plugin serves the API in `vite dev` only; nothing of it reaches a build. Use the [in-browser adapter](#a-backend-inside-the-tab) or a server.
+- **`installInBrowserApi()` does not answer axios.** It answers `fetch` only; libraries built on `XMLHttpRequest` go to the network. Use the [MSW handlers](https://github.com/spxis/rest-in-pieces/blob/main/docs/use-with.md#mock-service-worker) for those.
+- **The public static API ignores `?limit=`.** It is plain files: a page number is in the path (`products/page/2.json`) and a query string is not read. Run the API itself for filters and drills.
 
 ## Accessibility
 
