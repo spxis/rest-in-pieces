@@ -9,6 +9,7 @@ const whole = JSON.parse(readFileSync(new URL('../docs/bundle-size.json', import
   entries: Record<string, Part>;
 };
 const readme = readFileSync(new URL('../../../README.md', import.meta.url), 'utf8');
+const page = readFileSync(new URL('../../../docs/size.md', import.meta.url), 'utf8');
 
 describe('the size with code splitting', () => {
   it('measures every entry the one-file size does, and says what splitting leaves out of the first download', () => {
@@ -36,10 +37,15 @@ describe('the size with code splitting', () => {
       expect(split.entries[key]?.eager.gzip, key).toBeLessThan(10_000);
   });
 
-  it('is what the README says', () => {
+  it('is what the README and docs/size.md say', () => {
     const kb = (bytes: number | undefined) => Math.round((bytes ?? 0) / 1000);
     const core = split.entries['./core'];
-    expect(readme).toContain(`\`/core\` is ${kb(core?.eager.gzip)} kB gzipped`);
-    expect(readme).toContain(`a further ${kb(core?.later.gzip)} kB gzipped of data`);
+    const main = split.entries['.'];
+    expect(readme).toContain(
+      `\`/core\` loads ${kb(core?.eager.gzip)} kB gzipped with the import and ${kb(core?.later.gzip)} kB of data on demand`,
+    );
+    expect(page).toContain(`${kb(core?.eager.gzip)} to ${kb(main?.eager.gzip)} kB`);
+    expect(page).toContain(`${kb(core?.later.gzip)} kB of data`);
+    expect(page).toContain(`${kb(split.entries['./mock']?.eager.gzip)} kB`);
   });
 });
