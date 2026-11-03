@@ -15,9 +15,12 @@
       "!apps/web/public/family.css",
       "!apps/api/scripts/docs-site.mjs",
       "!apps/api/scripts/readme-lint.mjs",
+      "!apps/api/scripts/family-thumbnail.mjs",
+      "!apps/api/scripts/family-thumbnail.d.mts",
       "!apps/api/scripts/family-template.mjs",
       "!apps/api/src/docs-site.test.js",
       "!apps/api/src/readme.test.js",
+      "!apps/api/src/family-thumbnail.test.js",
       "!apps/api/e2e/docs-site.demo.mjs"
     ]
   },

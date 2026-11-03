@@ -15,10 +15,81 @@ async function fit(page) {
   }));
   if (m.scroll > m.width) throw Error('Horizontal overflow ' + JSON.stringify(m));
 }
+// The family's thumbnail, dark thumbnail and icon (apps/api/scripts/family-thumbnail.mjs), into docs/images: the playground's UI preview of
+// seeded users, each with the SVG avatar the package draws, taken off the page in each scheme; the icon is four avatars the package draws
+// from a seed alone (the five-by-five pattern, no initials), two by two. `--thumbnail` takes only these three.
+async function thumbnail(browser) {
+  const { pathToFileURL } = require('node:url');
+  const { captureDrawing, composeThumbnails } = await import(
+    pathToFileURL(`${root}/apps/api/scripts/family-thumbnail.mjs`).href
+  );
+  const { avatarSvg } = await import(pathToFileURL(`${root}/apps/api/dist/images.js`).href);
+  // Four seeds whose avatars come out in four different colours.
+  const avatars = ['4', '14', '12', '10'].map((seed) => avatarSvg(`thumbnail-${seed}`));
+  const taken = {};
+  for (const [kind, scheme] of [
+    ['light', 'light'],
+    ['dark', 'dark'],
+    ['icon', 'light'],
+  ]) {
+    const context = await browser.newContext({
+      viewport: { width: 1200, height: 900 },
+      deviceScaleFactor: 2,
+      colorScheme: scheme,
+      reducedMotion: 'reduce',
+    });
+    await context.addInitScript((scheme) => {
+      localStorage.setItem('rest-in-pieces:theme', scheme);
+      localStorage.setItem('rest-in-pieces:ui-locale', 'en');
+    }, scheme);
+    const page = await context.newPage();
+    await page.goto(base);
+    await expect(page.getByText('IN-BROWSER API', { exact: true })).toBeVisible();
+    if (kind === 'icon') {
+      await page.evaluate((avatars) => {
+        const tile = (svg) =>
+          svg.replace('<svg ', '<svg style="width:220px;height:220px;display:block;border-radius:36px" ');
+        document.body.replaceChildren();
+        document.body.insertAdjacentHTML(
+          'beforeend',
+          `<div id="thumbnail-icon" style="display:grid;grid-template-columns:auto auto;gap:24px;padding:8px;width:max-content">${avatars.map(tile).join('')}</div>`,
+        );
+      }, avatars);
+    } else {
+      await page.getByRole('tab', { name: 'Users', exact: true }).click();
+      await page.getByRole('button', { name: /Send request/ }).click();
+      await expect(page.getByTestId('response-status')).toHaveText(/200/);
+      await page.getByRole('tab', { name: /UI preview/ }).click();
+    }
+    const drawing = kind === 'icon' ? '#thumbnail-icon' : '.ui-preview-body ul';
+    await page.locator(drawing).waitFor();
+    // The panels round the preview draw their edges as borders, which would frame the drawing: they are taken off.
+    await page.locator(drawing).evaluate((element) => {
+      for (let node = element.parentElement; node; node = node.parentElement)
+        node.style.setProperty('border-color', 'transparent', 'important');
+    });
+    await page.evaluate(() => document.fonts.ready);
+    await page.mouse.move(0, 0);
+    taken[kind] = await captureDrawing(page, drawing);
+    if (kind === 'icon')
+      for (const picture of await composeThumbnails({
+        page,
+        root: `${root}/apps/api`,
+        light: taken.light,
+        dark: taken.dark,
+        icon: taken.icon,
+        label: 'REST in Pieces',
+      }))
+        console.log(`Captured ${picture.file} ${picture.bytes} bytes`);
+    await context.close();
+  }
+}
 (async () => {
   fs.mkdirSync(images, { recursive: true });
   const browser = await chromium.launch();
   try {
+    await thumbnail(browser);
+    if (process.argv.includes('--thumbnail')) return;
     for (const scheme of ['light', 'dark']) {
       for (const [subject, view] of [
         ['hero', 'desk'],

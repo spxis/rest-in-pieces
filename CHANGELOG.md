@@ -6,6 +6,7 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ### Added
 
+- The README opens with the package's thumbnail, and the demo carries it as its link preview (og:image) and publishes the card, a dark card and an icon on Pages at `thumbnail.png`, `thumbnail-dark.png` and `icon.png`.
 - Demo pages in `demo/`, published beside the playground at `/demo/` in English and Japanese: a setup builder that writes the command or code for the command line, Docker, in-process tests, the browser tab, Vite, MSW (browser and Node) and offline files, and an index that reads the public static API live. The builder's output is tested against the real command-line parser and `createApp`.
 - A Documentation map and a Troubleshooting section in the README, a comparison page at `docs/how-it-compares.md`, and two more README pictures (the setup builder and the documentation site) taken by `pnpm screenshots:readme`.
 

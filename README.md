@@ -1,3 +1,5 @@
+<p align="center"><a href="https://spxis.github.io/rest-in-pieces/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/spxis/rest-in-pieces/main/docs/images/thumbnail-dark.png"><img src="https://raw.githubusercontent.com/spxis/rest-in-pieces/main/docs/images/thumbnail.png" alt="REST in Pieces: six seeded users, each with the SVG avatar the package draws, as the playground previews them." width="1200"></picture></a></p>
+
 # REST in Pieces — Fake REST API data for testing
 
 [![CI](https://github.com/spxis/rest-in-pieces/actions/workflows/ci.yml/badge.svg)](https://github.com/spxis/rest-in-pieces/actions/workflows/ci.yml)
@@ -110,7 +112,7 @@ Seeded datasets, related records, request and error drills, bounded sessions, Op
 
 ### Real places, invented people
 
-People, companies and orders are invented; places are not. `/countries` serves the 250 ISO 3166-1 countries and territories with names in English and Japanese, ISO codes, capital, time zones, population, area, coordinates, land borders, driving side and calendar conventions; `/subdivisions` the 5,050 states, provinces, prefectures and counties inside them; `/groupings` the EU, the G7, ASEAN, the continents and Japan's regions; `/flags/{code}.svg` and `/maps/{code}.svg` their flags and maps; `/geo/features` the world's seas, lakes, rivers and peaks; `/addresses` addresses in seven countries' own formats; and `/countries/withdrawn` the 31 countries ISO 3166-3 withdrew, each with the codes it held, the years and the countries that came after it. Real reference data is public fact, not personal data; the rule stays that no real person is ever served.
+People, companies and orders are invented; places are not. `/countries` serves the 250 ISO 3166-1 countries and territories with names in English and Japanese, ISO codes, capital, time zones, population, area, coordinates, land borders, driving side and calendar conventions; `/subdivisions` the 5,050 states, provinces, prefectures and counties inside them; `/groupings` the EU, the G7, ASEAN, the continents and Japan's regions; `/flags/{code}.svg` and `/maps/{code}.svg` their flags and maps; `/geo/features` the world's seas, lakes, rivers and peaks; `/addresses` addresses in seven countries' own formats; and `/countries/withdrawn` the 31 countries ISO 3166-3 withdrew, with their codes, years and successors. Reference data is public fact; no real person is ever served.
 
 ```sh
 curl 'http://localhost:6800/countries/JP?locale=ja'             # 日本, 東京, Asia/Tokyo, left-hand traffic
