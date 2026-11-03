@@ -265,5 +265,5 @@ export function collectionRoutes(
   const { input } = resource;
   return deprecated || !input
     ? routes
-    : routes.route('/', writeRoutes({ ...resource, input }, { id, tag, session, all }));
+    : routes.route('/', writeRoutes({ ...resource, input }, { id, tag, session, all, safe: safeByDefault }));
 }

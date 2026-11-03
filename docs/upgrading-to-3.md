@@ -49,7 +49,7 @@ createApp({ safe: false }); // in-process
 
 `safe=false` is the 2.x output exactly: the test suite pins the hashes of the records 2.13.0 served and checks they are still what `safe=false` writes. A request's `?safe=` always wins over the server's setting.
 
-The write responses (`POST`, `PUT`, `PATCH`) return what you sent, as before; safe values change what is generated, not what you store.
+The write responses (`POST`, `PUT`, `PATCH`) carry safe values too, like a read of the same record (from 3.3.1; 3.0 to 3.3.0 answered with the record as stored). Add `?safe=false` to a write to get the values as sent. What a session keeps is unchanged: safe values change what is shown, not what you store.
 
 If a test of yours compared against a seeded email or phone number, it now sees the safe one: either update the expected value, or ask for `safe=false` in that test.
 

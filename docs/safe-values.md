@@ -2,7 +2,7 @@
 
 [Back to the README.](https://github.com/spxis/rest-in-pieces#safe-values)
 
-`safe=true` writes contact details and addresses that cannot reach anybody, because each comes from a range set aside for examples or fiction. It is **on by default since 3.0**; `safe=false` writes the values 2.x did (a test pins a sample of them). See [Upgrading to 3.0](https://github.com/spxis/rest-in-pieces/blob/main/docs/upgrading-to-3.md). One request opts out with `?safe=false`, the command line with `--no-safe` or `REST_IN_PIECES_SAFE=false`, and in-process, Vite, MSW or a browser tab with `createApp({ safe: false })`.
+`safe=true` writes contact details and addresses that cannot reach anybody, because each comes from a range set aside for examples or fiction. It is **on by default since 3.0**; `safe=false` writes the values 2.x did (a test pins a sample of them). See [Upgrading to 3.0](https://github.com/spxis/rest-in-pieces/blob/main/docs/upgrading-to-3.md). One request opts out with `?safe=false`, the command line with `--no-safe` or `REST_IN_PIECES_SAFE=false`, and in-process, Vite, MSW or a browser tab with `createApp({ safe: false })`. Write responses (`POST`, `PUT`, `PATCH`) follow the same rule, so the record a write answers with is the one a read of it gives; `?safe=false` answers with the values as sent.
 
 | Value | With `safe=true` |
 | ----- | ---------------- |

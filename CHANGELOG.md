@@ -4,6 +4,10 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+### Fixed
+
+- `POST`, `PUT` and `PATCH` answer with safe values, like a read of the same record: `PATCH /users/3` no longer returns a real-looking email, phone and avatar where `GET /users/3` is safe. A write takes `?safe=` (and the app's `safe` setting) as a read does, and `safe=false` answers with the values as sent. The test that pinned the old answer ("a write answers with the record as stored") now asks for `safe=false`, because the old behaviour broke the promise that no seeded value reaches anybody and made a write's answer differ from the next read.
+
 ## 3.3.0 - 2026-11-03
 
 ### Added

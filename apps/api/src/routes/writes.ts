@@ -4,9 +4,10 @@ import { cascade, checkReferences } from '../lib/integrity.ts';
 import { contentLanguage, parseLocale } from '../lib/locale.ts';
 import { flagParam, intParam, pick } from '../lib/query.ts';
 import { RequestData } from '../lib/relations.ts';
+import { publicBase, safeRecord, wantsSafe } from '../lib/safe.ts';
 import { type Session, SessionFullError } from '../lib/session.ts';
 import { DEFAULT_SEED, MAX_SEED, type Resource } from '../resources.ts';
-import { AuthErrors, ErrorBody, ListQuery, OPTIONAL_BEARER, ValidationErrorBody } from '../schemas.ts';
+import { AuthErrors, ErrorBody, ListQuery, OPTIONAL_BEARER, SAFE_DOCS, ValidationErrorBody } from '../schemas.ts';
 
 type Fields = Record<string, unknown>;
 
@@ -46,6 +47,10 @@ const WriteQuery = z.object({
   status: ListQuery.shape.status,
   fail: ListQuery.shape.fail,
   auth: ListQuery.shape.auth,
+  safe: z
+    .string()
+    .optional()
+    .openapi({ description: `${SAFE_DOCS} A write answers with the same values a read of the record gives.` }),
 });
 
 /** What a related dataset's writes add to the description. */
@@ -82,7 +87,13 @@ const jsonBody = (schema: z.ZodType, description: string) => ({ required: true, 
 /** Builds `POST /`, `PUT /{id}`, `PATCH /{id}` and `DELETE /{id}` for a resource that has an input schema. */
 export function writeRoutes(
   resource: Resource & { input: z.ZodObject },
-  { id, tag, session, all = [] }: { id: string; tag: string; session: Session; all?: readonly Resource[] },
+  {
+    id,
+    tag,
+    session,
+    all = [],
+    safe: safeByDefault = true,
+  }: { id: string; tag: string; session: Session; all?: readonly Resource[]; safe?: boolean },
 ) {
   const title = resource.title.toLowerCase();
   const lookup = (name: string) => all.find((r) => r.name === name);
@@ -205,6 +216,11 @@ export function writeRoutes(
       throw error;
     }
   };
+  /** The record as a read of it would show it: with safe values unless the app or the request turns them off. */
+  const shown = (c: Context, record: Fields): Fields =>
+    wantsSafe(c.req.query(), safeByDefault)
+      ? safeRecord(resource.name, record, { base: publicBase(c.req.url, c.req.header('x-forwarded-prefix')) })
+      : record;
   const find = (c: Context, recordId: string) => resource.find(dataset(c), recordId) as Fields | undefined;
   /** The validated body. The input schema is only known at run time, so its type is a plain record. */
   const sent = (c: Context) => (c.req.valid as (target: 'json') => Fields)('json');
@@ -250,7 +266,7 @@ export function writeRoutes(
       const refused = keep(c, (s, l) => session.create(resource, s, l, record));
       if (refused) return refused as never;
       c.header('Location', `${c.req.path.replace(/\/+$/, '')}/${next}`);
-      return c.json(record, 201) as never;
+      return c.json(shown(c, record), 201) as never;
     })
     .openapi(putRoute, (c) => {
       const { id: recordId } = c.req.valid('param');
@@ -262,7 +278,7 @@ export function writeRoutes(
       const kept = 'createdAt' in record ? { createdAt: record.createdAt } : {};
       const saved = { [resource.idField]: record[resource.idField], ...prepared.record, ...kept, updatedAt: now() };
       const refused = keep(c, (s, l) => session.replace(resource, s, l, saved));
-      return (refused ?? c.json(saved)) as never;
+      return (refused ?? c.json(shown(c, saved))) as never;
     })
     .openapi(patchRoute, (c) => {
       const { id: recordId } = c.req.valid('param');
@@ -273,7 +289,7 @@ export function writeRoutes(
       if (prepared instanceof Response) return prepared as never;
       const saved = { ...record, ...prepared.record, updatedAt: now() };
       const refused = keep(c, (s, l) => session.replace(resource, s, l, saved));
-      return (refused ?? c.json(saved)) as never;
+      return (refused ?? c.json(shown(c, saved))) as never;
     })
     .openapi(deleteRoute, (c) => {
       const { id: recordId } = c.req.valid('param');

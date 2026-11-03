@@ -101,7 +101,11 @@ describe('write routes', () => {
 
     describe(`/${name}`, () => {
       it('creates: 201 with the next id, timestamps and a Location header', async () => {
-        const { status, res, body } = await send('POST', `/${name}`, { ...NEW[name], [idField]: 7, createdAt: 'x' });
+        const { status, res, body } = await send('POST', `/${name}?safe=false`, {
+          ...NEW[name],
+          [idField]: 7,
+          createdAt: 'x',
+        });
         expect(status).toBe(201);
         const next = firstId + (await request(`/${name}?limit=1`)).body.metadata.total;
         expect(body).toMatchObject({ ...NEW[name], [idField]: next });
@@ -112,7 +116,7 @@ describe('write routes', () => {
 
       it('replaces: 200 with the same id and the body', async () => {
         const original = (await request<Fields>(`/${name}/${firstId + 4}`)).body;
-        const { status, body } = await send('PUT', `/${name}/${firstId + 4}`, NEW[name]);
+        const { status, body } = await send('PUT', `/${name}/${firstId + 4}?safe=false`, NEW[name]);
         expect(status).toBe(200);
         expect(body).toMatchObject({ ...NEW[name], [idField]: firstId + 4 });
         if ('createdAt' in original) expect(body.createdAt).toBe(original.createdAt);
@@ -120,11 +124,17 @@ describe('write routes', () => {
       });
 
       it('updates: 200 with the record merged with the fields sent', async () => {
-        // A write answers with the record as stored, and a read of it is safe by default: compare with the stored values.
+        // `safe=false` answers with the record as stored, so compare with the stored values.
         const original = (await request<Fields>(`/${name}/${firstId + 4}?seed=9&safe=false`)).body;
-        const { status, body } = await send('PATCH', `/${name}/${firstId + 4}?seed=9`, CHANGES[name]);
+        const { status, body } = await send('PATCH', `/${name}/${firstId + 4}?seed=9&safe=false`, CHANGES[name]);
         expect(status).toBe(200);
         expect(body).toEqual({ ...original, ...CHANGES[name], updatedAt: body.updatedAt });
+      });
+
+      it('answers with safe values by default, as a read of the record does', async () => {
+        const read = (await request<Fields>(`/${name}/${firstId + 4}?seed=9`)).body;
+        const { body } = await send('PATCH', `/${name}/${firstId + 4}?seed=9`, CHANGES[name]);
+        expect(body).toEqual({ ...read, ...CHANGES[name], updatedAt: body.updatedAt });
       });
 
       it('deletes: 204 with no body', async () => {
@@ -257,5 +267,33 @@ describe('write routes', () => {
     }
     expect(Object.keys(body.paths['/countries/{id}'] ?? {})).toEqual(['get']);
     expect(Object.keys(body.paths['/random-names'] ?? {})).toEqual(['get']);
+  });
+
+  describe('safe values', () => {
+    it('PATCH /users/3 answers with the safe email, phone and avatar a GET of it gives', async () => {
+      const read = (await request<Fields>('/users/3')).body;
+      const { body } = await send('PATCH', '/users/3', { active: true });
+      expect(body).toMatchObject({ email: read.email, phone: read.phone, avatar: read.avatar });
+      expect(String(body.email)).toMatch(/@example\.(com|org|net)$/);
+      expect(String(body.avatar)).toContain('/avatars/');
+    });
+
+    it('safes a body that sends real-looking values, on POST, PUT and PATCH alike', async () => {
+      const real = { email: 'ada@gmail.com', avatar: 'https://cdn.jsdelivr.net/a.png', phone: '+1 416 555 9999' };
+      for (const [method, path, payload] of [
+        ['POST', '/users', { ...NEW.users, ...real }],
+        ['PUT', '/users/3', { ...NEW.users, ...real }],
+        ['PATCH', '/users/3', real],
+      ] as const) {
+        const { body } = await send(method, path, payload);
+        expect(String(body.email), method).toMatch(/@example\.(com|org|net)$/);
+        expect(String(body.avatar), method).not.toContain('jsdelivr');
+      }
+    });
+
+    it('safe=false answers with the values as sent', async () => {
+      const { body } = await send('PATCH', '/users/3?safe=false', { email: 'ada@gmail.com' });
+      expect(body.email).toBe('ada@gmail.com');
+    });
   });
 });
