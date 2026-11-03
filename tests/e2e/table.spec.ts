@@ -70,10 +70,13 @@ test('presentation changes preserve native records and custom host data stays lo
     table.columns = 'firstName,lastName';
     table.label = 'People';
     await table.refresh();
+    const root = node.shadowRoot;
+    const frame = root?.querySelector('.table');
+    if (!root || !frame) throw new Error('The table drew nothing in its shadow root.');
     return {
       same: table.records === records,
-      columns: [...node.shadowRoot!.querySelectorAll('th')].map((cell) => cell.textContent),
-      background: getComputedStyle(node.shadowRoot!.querySelector('.table')!).backgroundColor,
+      columns: [...root.querySelectorAll('th')].map((cell) => cell.textContent),
+      background: getComputedStyle(frame).backgroundColor,
     };
   });
   expect(found).toEqual({ same: true, columns: ['firstName', 'lastName'], background: 'rgb(29, 32, 30)' });
@@ -84,7 +87,9 @@ test('copied frame reports metadata without record payloads or storage', async (
   await page.goto('http://table.test/builder.html?lang=en');
   await expect(page.locator('#bld-stage tbody tr')).toHaveCount(5);
   await page.locator('#bld-formats [data-format="iframe"]').click();
-  const code = (await page.locator('#bld-code').textContent())!
+  const shown = await page.locator('#bld-code').textContent();
+  expect(shown).toBeTruthy();
+  const code = (shown ?? '')
     .replaceAll('https://spxis.github.io/rest-in-pieces/', 'http://table.test/')
     .replace('loading="lazy"', '');
   await page.route('http://article.test/', (route) =>
@@ -105,5 +110,5 @@ test('copied frame reports metadata without record payloads or storage', async (
     )
     .toBe(true);
   const messages = await page.evaluate(() => (window as unknown as { messages: { detail: object }[] }).messages);
-  expect(Object.keys(messages[0]!.detail).sort()).toEqual(['count', 'dataset', 'seed']);
+  expect(Object.keys(messages[0]?.detail ?? {}).sort()).toEqual(['count', 'dataset', 'seed']);
 });
