@@ -5,7 +5,7 @@ import { playAll, sidewaysOverflow, USE_CASE_IDS, watchErrors } from './use-case
 test('keeps writes in the tab only when asked, and resets them', async ({ page }) => {
   await page.goto('./');
   await expect(page.getByText('IN-BROWSER API')).toBeVisible();
-  await page.locator('[data-testid=session-panel] > summary').click();
+  await page.getByTestId('session-tab').click();
   await expect(page.getByTestId('session-panel')).toContainText('nothing is stored, as on every hosted copy');
 
   await page.getByRole('tab', { name: /Users/ }).click();
@@ -32,7 +32,7 @@ test('keeps writes in the tab only when asked, and resets them', async ({ page }
 
 test('signs in against the API inside the tab', async ({ page }) => {
   await page.goto('./');
-  await page.locator('[data-testid=sign-in-panel] > summary').click();
+  await page.getByTestId('sign-in-tab').click();
   await page.getByRole('combobox', { name: 'Protect this request' }).selectOption('admin');
   await page.getByRole('combobox', { name: 'Account' }).selectOption('admin');
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();

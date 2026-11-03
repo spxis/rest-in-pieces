@@ -302,6 +302,7 @@ export const PHRASES = {
   'auth.expired': 'Token expired: refresh it or sign in again',
   'auth.claims': 'Token claims',
   'session.heading': 'SESSION',
+  'controls.tabs': 'Rehearsals',
   'session.on': 'Keeping writes · {count} changed',
   'session.off': 'Writes not kept',
   'session.keepInTab': 'Keep writes in this tab',

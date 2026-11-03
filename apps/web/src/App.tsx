@@ -1,9 +1,10 @@
 import { LoaderCircle, Send, Workflow } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useReducer } from 'react';
 import { FAMILY, FAMILY_GROUPS, FAMILY_PITCH, FAMILY_PITCH_JA, familySite } from '../../../scripts/family-template.mjs';
+import { ControlTabs } from './components/ControlTabs.tsx';
 import { EndpointTabs } from './components/EndpointTabs.tsx';
 import { FieldsEditor, fieldProblem, schemaProblem } from './components/FieldsEditor.tsx';
-import { FormatPicker, SimulationPanel } from './components/OutputAndSimulation.tsx';
+import { FormatPicker, isSimulating, SimulationPanel } from './components/OutputAndSimulation.tsx';
 import { PageAndSort, SearchAndFilters } from './components/QueryControls.tsx';
 import { RelationsControls } from './components/RelationsControls.tsx';
 import { RequestPreview } from './components/RequestPreview.tsx';
@@ -303,9 +304,36 @@ export default function App() {
                     <FormatPicker value={config.format} table={config.table} onChange={update} />
                   </>
                 )}
-                <SimulationPanel config={config} onChange={update} />
-                <SignInPanel auth={auth} config={config} onChange={update} />
-                <SessionPanel session={session} />
+                <ControlTabs
+                  tabs={[
+                    {
+                      id: 'simulate',
+                      label: say('simulate.heading'),
+                      status: say(isSimulating(config) ? 'simulate.active' : 'simulate.optional'),
+                      active: isSimulating(config),
+                      panel: <SimulationPanel config={config} onChange={update} />,
+                    },
+                    {
+                      id: 'sign-in',
+                      label: say('auth.heading'),
+                      status: auth.user
+                        ? say('auth.signedInShort', { role: auth.user.role })
+                        : say(config.auth !== '' ? 'simulate.active' : 'simulate.optional'),
+                      active: auth.user !== null || config.auth !== '',
+                      panel: <SignInPanel auth={auth} config={config} onChange={update} />,
+                    },
+                    {
+                      id: 'session',
+                      label: say('session.heading'),
+                      status:
+                        session.summary?.enabled === true
+                          ? say('session.on', { count: session.summary.datasets.length })
+                          : say('session.off'),
+                      active: session.summary?.enabled === true,
+                      panel: <SessionPanel session={session} />,
+                    },
+                  ]}
+                />
                 <RequestPreview
                   url={url}
                   apiBase={config.apiBase}

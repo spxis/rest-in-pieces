@@ -1962,3 +1962,62 @@ kbd {
 .package-family-group a[aria-current="page"] {
   font-weight: 700;
 }
+
+/* The rehearsal controls as tabs: one panel open at a time, in place of three stacked folds. */
+.control-tabs {
+  padding: 14px 0;
+  border-bottom: 1px solid light-dark(#e6eae4, #21271f);
+}
+.control-tab-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.control-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: light-dark(#67746b, #a1aba4);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font: 500 9px var(--mono);
+}
+.control-tab-name {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+.control-tab-status {
+  max-width: 100%;
+  color: light-dark(#a0aaa2, #68756b);
+  font:
+    9px "Space Grotesk",
+    sans-serif;
+  overflow-wrap: anywhere;
+}
+.control-tab.on .control-tab-status {
+  color: light-dark(#2f6b4f, #8fd1aa);
+}
+.control-tab.selected {
+  color: light-dark(#183626, #b8e6c6);
+  background: light-dark(white, #1b231e);
+  border-color: light-dark(#8fb39d, #3b5a47);
+  box-shadow: 0 1px 3px light-dark(#17291d1a, #00000039);
+}
+.control-tab:focus-visible {
+  outline: 2px solid light-dark(#2f6b4f, #8fd1aa);
+  outline-offset: 2px;
+}
+.control-tab-panel > .simulation-details {
+  padding: 4px 0 0;
+  border-bottom: 0;
+}
+.control-tab-panel > .panel-details > * {
+  margin-top: 11px;
+}

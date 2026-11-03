@@ -81,15 +81,18 @@ const failLabel = (rate: number): [PhraseKey, { percent: number }] =>
       ? ['simulate.always', { percent: 100 }]
       : ['simulate.share', { percent: rate * 100 }];
 
+/** Whether the request is being simulated: a delay, a status, a failure rate or mess is switched on. */
+export function isSimulating(config: PlaygroundConfig): boolean {
+  return (
+    !!normalizeDelay(config.delay) || config.trickle > 0 || config.status > 0 || config.failRate > 0 || config.messy > 0
+  );
+}
+
 export function SimulationPanel({ config, onChange }: { config: PlaygroundConfig; onChange: Update }) {
   const { say } = useSpeaker();
   const delay = normalizeDelay(config.delay);
-  const active = !!delay || config.trickle > 0 || config.status > 0 || config.failRate > 0 || config.messy > 0;
   return (
-    <details className="simulation-details" open={active || undefined}>
-      <summary>
-        {say('simulate.heading')} <span>{say(active ? 'simulate.active' : 'simulate.optional')}</span>
-      </summary>
+    <div className="simulation-details" data-testid="simulation-panel">
       <div className="simulation-grid">
         <label className="control">
           <span>{say('simulate.delay')}</span>
@@ -151,6 +154,6 @@ export function SimulationPanel({ config, onChange }: { config: PlaygroundConfig
           </select>
         </label>
       </div>
-    </details>
+    </div>
   );
 }

@@ -14,16 +14,7 @@ export function SessionPanel({ session }: { session: SessionState }) {
   const changes = summary?.datasets ?? [];
 
   return (
-    <details
-      className="simulation-details panel-details session-panel"
-      open={keeping || undefined}
-      data-testid="session-panel"
-    >
-      <summary>
-        {say('session.heading')}{' '}
-        <span>{keeping ? say('session.on', { count: changes.length }) : say('session.off')}</span>
-      </summary>
-
+    <div className="simulation-details panel-details session-panel" data-testid="session-panel">
       {session.switchable ? (
         <label className="check-control">
           <input
@@ -82,6 +73,6 @@ export function SessionPanel({ session }: { session: SessionState }) {
           </div>
         </>
       )}
-    </details>
+    </div>
   );
 }

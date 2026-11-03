@@ -50,19 +50,10 @@ export function SignInPanel({
   const [lifetime, setLifetime] = useState<Lifetime>('15m');
   const now = useNow(auth.expiresAt !== null);
   const left = auth.expiresAt === null ? null : timeLeft(auth.expiresAt, now);
-  const active = auth.user !== null || config.auth !== '';
   const { answer } = auth;
 
   return (
-    <details
-      className="simulation-details panel-details auth-panel"
-      open={active || undefined}
-      data-testid="sign-in-panel"
-    >
-      <summary>
-        {say('auth.heading')}{' '}
-        <span>{auth.user ? say('auth.signedInShort', { role: auth.user.role }) : say('simulate.optional')}</span>
-      </summary>
+    <div className="simulation-details panel-details auth-panel" data-testid="sign-in-panel">
       <p className="inline-note">{say('auth.notSecurity')}</p>
 
       <label className="control">
@@ -180,6 +171,6 @@ export function SignInPanel({
           </pre>
         </details>
       )}
-    </details>
+    </div>
   );
 }

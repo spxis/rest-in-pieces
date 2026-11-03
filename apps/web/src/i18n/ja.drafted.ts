@@ -433,6 +433,7 @@ export const JA_DRAFTED: Record<PhraseKey, { text: string; back: string }> = {
   },
   'auth.claims': { text: 'トークンのクレーム', back: 'Token claims' },
   'session.heading': { text: 'セッション', back: 'Session' },
+  'controls.tabs': { text: 'リハーサル', back: 'Rehearsals' },
   'session.on': { text: '書き込みを保持中 · 変更 {count} 件', back: 'Keeping writes · {count} changes' },
   'session.off': { text: '書き込みは保持されません', back: 'Writes are not kept' },
   'session.keepInTab': { text: 'このタブで書き込みを保持する', back: 'Keep writes in this tab' },

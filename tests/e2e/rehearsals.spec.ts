@@ -15,7 +15,7 @@ test.beforeEach(async ({ page }) => {
 
 test.describe('sign-in rehearsal', () => {
   test('a protected request answers 401 until signed in, and the preview offers the sign-in', async ({ page }) => {
-    await page.locator('[data-testid=sign-in-panel] > summary').click();
+    await page.getByTestId('sign-in-tab').click();
     await page.getByRole('combobox', { name: 'Protect this request' }).selectOption('required');
     await expect(snippet(page)).toContainText('auth=required');
     await send(page);
@@ -35,7 +35,7 @@ test.describe('sign-in rehearsal', () => {
   });
 
   test('a role that is not enough answers 403, and an expired token 401 token_expired', async ({ page }) => {
-    await page.locator('[data-testid=sign-in-panel] > summary').click();
+    await page.getByTestId('sign-in-tab').click();
     await page.getByRole('combobox', { name: 'Protect this request' }).selectOption('admin');
     await page.getByRole('combobox', { name: 'Account' }).selectOption('editor');
     await page.getByRole('button', { name: 'Sign in', exact: true }).click();
@@ -56,7 +56,7 @@ test.describe('sign-in rehearsal', () => {
   });
 
   test('a wrong password and a disabled account are refused', async ({ page }) => {
-    await page.locator('[data-testid=sign-in-panel] > summary').click();
+    await page.getByTestId('sign-in-tab').click();
     await page.getByRole('combobox', { name: 'Account' }).selectOption('wrong');
     await page.getByRole('button', { name: 'Sign in', exact: true }).click();
     await expect(page.getByTestId('auth-answer')).toContainText('401');
@@ -70,13 +70,16 @@ test.describe('sign-in rehearsal', () => {
 
 test.describe('session', () => {
   test('a server without --session says it keeps nothing', async ({ page }) => {
-    await page.locator('[data-testid=session-panel] > summary').click();
+    await page.getByTestId('session-tab').click();
     await expect(page.getByTestId('session-panel')).toContainText('This API does not keep writes');
   });
 
   test('a server with --session keeps a delete until the reset', async ({ page }) => {
     await page.getByLabel('API BASE URL').fill(SESSION_API);
-    await expect(page.getByTestId('session-panel')).toContainText('Keeping writes');
+    // The tab says it is keeping writes before it is opened.
+    await expect(page.getByTestId('session-tab')).toContainText('Keeping writes');
+    await page.getByTestId('session-tab').click();
+    await expect(page.getByTestId('session-panel')).toContainText('This API keeps writes in its memory');
     await page.getByRole('button', { name: 'Reset to the seed' }).click();
     await expect(page.getByTestId('session-panel')).toContainText('No writes yet');
 
@@ -167,20 +170,65 @@ test('switches between the system, light and dark colours, and remembers', async
 
 test('the new panels speak Japanese', async ({ page }) => {
   await page.getByRole('button', { name: '日本語' }).click();
-  await expect(page.getByTestId('sign-in-panel')).toContainText('サインイン（模擬認証）');
-  await expect(page.getByTestId('session-panel')).toContainText('セッション');
+  await expect(page.getByTestId('sign-in-tab')).toContainText('サインイン（模擬認証）');
+  await expect(page.getByTestId('session-tab')).toContainText('セッション');
+  await page.getByTestId('session-tab').click();
+  await expect(page.getByTestId('session-panel')).toBeVisible();
   await page.getByRole('button', { name: /リクエストを送信/ }).click();
   await expect(page.getByRole('tab', { name: 'UI プレビュー' })).toBeVisible();
 });
 
 test('nothing on a phone scrolls the page sideways', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.locator('[data-testid=sign-in-panel] > summary').click();
-  await page.locator('[data-testid=session-panel] > summary').click();
+  await page.getByTestId('sign-in-tab').click();
+  await page.getByTestId('session-tab').click();
   await page.getByRole('tab', { name: 'openapi-fetch' }).click();
   await send(page);
   await page.getByRole('tab', { name: 'UI preview' }).click();
   await expect(page.getByTestId('ui-cards')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBe(
+    0,
+  );
+});
+
+test('the rehearsal controls are tabs, one panel at a time, not folds stacked in the column', async ({ page }) => {
+  const tabs = page.getByRole('tablist', { name: 'Rehearsals' });
+  await expect(tabs.getByRole('tab')).toHaveCount(3);
+  await expect(page.locator('details.simulation-details, details.panel-details')).toHaveCount(0);
+
+  // Simulate is open to begin with, and the others are not in the page.
+  await expect(page.getByRole('tab', { name: /SIMULATE/ })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByTestId('simulation-panel')).toBeVisible();
+  await expect(page.getByTestId('sign-in-panel')).toHaveCount(0);
+  await expect(page.getByTestId('session-panel')).toHaveCount(0);
+
+  await page.getByTestId('sign-in-tab').click();
+  await expect(page.getByTestId('sign-in-panel')).toBeVisible();
+  await expect(page.getByTestId('simulation-panel')).toHaveCount(0);
+  await expect(page.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', /sign-in-tab$/);
+
+  // Arrow keys move between them, wrapping at the ends, and Home and End jump.
+  await page.getByTestId('sign-in-tab').focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(page.getByTestId('session-panel')).toBeVisible();
+  await expect(page.getByTestId('session-tab')).toBeFocused();
+  await page.keyboard.press('ArrowRight');
+  await expect(page.getByTestId('simulation-panel')).toBeVisible();
+  await page.keyboard.press('ArrowLeft');
+  await expect(page.getByTestId('session-panel')).toBeVisible();
+  await page.keyboard.press('Home');
+  await expect(page.getByTestId('simulate-tab')).toBeFocused();
+  await page.keyboard.press('End');
+  await expect(page.getByTestId('session-tab')).toBeFocused();
+
+  // A tab says what is switched on in it while another is open.
+  await page.getByTestId('simulate-tab').click();
+  await page.getByPlaceholder('1500 or 200-800').fill('300');
+  await page.getByTestId('sign-in-tab').click();
+  await expect(page.getByTestId('simulate-tab')).toHaveClass(/\bon\b/);
+
+  // The tabs and the panel fit a phone with no sideways scroll, and the column is not taller than one panel plus the tabs.
+  await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBe(
     0,
   );
