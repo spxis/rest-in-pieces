@@ -194,6 +194,7 @@
   "files": [
     "bin",
     "dist",
+    "NOTICE.md",
     "!dist/main.d.ts",
     "!dist/server.*",
     "web"

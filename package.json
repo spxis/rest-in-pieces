@@ -12,7 +12,7 @@
   },
   "scripts": {
     "build": "pnpm --filter @rest-in-pieces/web build",
-    "check": "pnpm --filter @johnmorrisdotca/rest-in-pieces build && node --test scripts/family.test.mjs scripts/demo.test.mjs && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm pack:test",
+    "check": "pnpm --filter @johnmorrisdotca/rest-in-pieces build && node --test scripts/family.test.mjs scripts/demo.test.mjs scripts/notice.test.mjs && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm pack:test",
     "collections": "node scripts/collections.ts",
     "dev": "pnpm -r --parallel dev",
     "dev:api": "pnpm --filter @johnmorrisdotca/rest-in-pieces dev",

@@ -1,7 +1,7 @@
 /**
  * Builds what the npm package runs: JavaScript and type declarations in `dist/`, the OpenAPI
  * document and the types generated from it beside them, the built playground in `web/`, and the
- * repository's README and licence.
+ * repository's README, licence and notice.
  */
 import { execFileSync } from 'node:child_process';
 import { cpSync, existsSync, rmSync, writeFileSync } from 'node:fs';
@@ -47,7 +47,7 @@ if (existsSync(new URL('index.html', playground))) {
 } else {
   console.warn('No playground build in apps/web/dist; the package will serve the API without it.');
 }
-for (const file of ['README.md', 'LICENSE']) cpSync(at(`../../${file}`), at(file));
+for (const file of ['README.md', 'LICENSE', 'NOTICE.md']) cpSync(at(`../../${file}`), at(file));
 
 // Browser-loadable UI entries bundle the native app; type declarations remain those written by tsc.
 execFileSync(

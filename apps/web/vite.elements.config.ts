@@ -1,6 +1,8 @@
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
+import { thirdPartyLicences } from '../../scripts/third-party-licences.mjs';
 export default defineConfig({
+  plugins: [thirdPartyLicences({ title: 'Third-party licences of the browser elements and shared chunks' })],
   build: {
     target: 'es2022',
     outDir: '../api/dist',

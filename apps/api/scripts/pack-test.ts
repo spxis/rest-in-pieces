@@ -251,8 +251,39 @@ try {
     'dist/types.d.ts',
     'dist/openapi.json',
     'web/index.html',
+    'LICENSE',
+    'NOTICE.md',
+    'dist/THIRD-PARTY-LICENSES.md',
+    'web/THIRD-PARTY-LICENSES.md',
   ]) {
     assert(files.includes(required), `The tarball is missing ${required}.`);
+  }
+  // The browser entries copy these packages, so their licence texts travel with them.
+  const unpacked = join(work, 'unpacked');
+  mkdirSync(unpacked);
+  run('tar', ['-xzf', join(work, report.filename), '-C', unpacked], work);
+  const licences = readFileSync(join(unpacked, 'package', 'dist', 'THIRD-PARTY-LICENSES.md'), 'utf8');
+  const notice = readFileSync(join(unpacked, 'package', 'NOTICE.md'), 'utf8');
+  for (const copied of [
+    'hono',
+    'zod',
+    '@faker-js/faker',
+    '@johnmorrisdotca/kuni',
+    '@johnmorrisdotca/address-plus',
+    'yaml',
+  ]) {
+    assert(licences.includes(`## ${copied} `), `dist/THIRD-PARTY-LICENSES.md has no section for ${copied}.`);
+    assert(notice.includes(copied), `NOTICE.md does not name ${copied}.`);
+  }
+  assert(licences.includes('UNICODE LICENSE V3'), "dist/THIRD-PARTY-LICENSES.md does not carry Kuni's Unicode text.");
+  for (const credit of [
+    'GeoNames',
+    'Australian Bureau of Statistics',
+    'Ordnance Survey',
+    'Royal Mail',
+    'Licence Ouverte',
+  ]) {
+    assert(notice.includes(credit), `NOTICE.md does not credit ${credit}.`);
   }
   const stray = files.filter((path) => /^(src|test|scripts)\/|\.map$|\.test\./.test(path));
   assert(stray.length === 0, `The tarball carries files that do not run: ${stray.join(', ')}`);

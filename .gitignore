@@ -21,6 +21,7 @@ test-results/
 apps/api/web/
 apps/api/README.md
 apps/api/LICENSE
+apps/api/NOTICE.md
 *.tgz
 .next/
 

@@ -9,6 +9,7 @@ import {
   familyHeader,
   familyUnreviewed,
 } from '../../scripts/family-template.mjs';
+import { thirdPartyLicences } from '../../scripts/third-party-licences.mjs';
 import apiPackage from '../api/package.json' with { type: 'json' };
 
 /** The short SHA of the commit being built: GitHub's `GITHUB_SHA` in Actions, otherwise the checkout's HEAD. */
@@ -28,6 +29,7 @@ const SOURCE = 'rest-in-pieces:source';
 export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
+    thirdPartyLicences({ title: 'Third-party licences of the playground' }),
     {
       name: 'family-builder-frame',
       transformIndexHtml(html: string) {
