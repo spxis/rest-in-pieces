@@ -23,7 +23,7 @@ A free, open-source **mock data generator and test data generator**: rule-based 
 It plugs into [Vite, MSW, Storybook, Next.js, Playwright, Cypress and openapi-fetch](#use-with), and answers any origin.
 
 
-Every dataset is generated from a seed. The same URL returns the same records on every machine and after every restart, so a bug can be reproduced from its URL instead of disappearing with a new random dataset. (One exception, documented in [Coherent records](https://github.com/spxis/rest-in-pieces/blob/main/docs/coherent-records.md#today-and-the-dates-generators-measure-from): `/generate` fields that measure from "now", such as `date.past` and `date.birthdate`, measure from the start of today, UTC, so their dates move once a day.)
+Every dataset is generated from a seed. The same URL returns the same records on every machine and after every restart, so a bug can be reproduced from its URL instead of disappearing with a new random dataset. (`/generate` dates measured from "now" move daily.)
 
 
 [Documentation](https://spxis.github.io/rest-in-pieces/docs/index.html) · [Getting started](https://spxis.github.io/rest-in-pieces/docs/guides/getting-started.html) · [SDK reference](https://spxis.github.io/rest-in-pieces/api.html)
@@ -50,12 +50,9 @@ Requires Node.js 22.13 or later (24 LTS recommended). Nothing to clone or instal
 npx @johnmorrisdotca/rest-in-pieces
 ```
 
-| Service    | URL                                                  |
-| ---------- | ---------------------------------------------------- |
-| API, playground and docs | [http://localhost:6800](http://localhost:6800) |
-| API docs   | [http://localhost:6800/docs](http://localhost:6800/docs) |
+The API, the playground and the docs are on [http://localhost:6800](http://localhost:6800) (the docs at [/docs](http://localhost:6800/docs)).
 
-To work on the project itself, clone it (Node.js 22.18 or later and pnpm are needed for that) and run `pnpm install` then `pnpm dev`: the API is on port 6800 and the playground, in development, on [http://localhost:6801](http://localhost:6801).
+To work on the project, clone it and run `pnpm install` and `pnpm dev` (Node.js 22.18 and pnpm; playground on port 6801).
 
 Or run everything from one container, with nothing to install but Docker:
 
@@ -77,7 +74,7 @@ docker run --rm -p 6800:6800 rest-in-pieces   # playground, API and docs on :680
 - **Repeatable data.** `?seed=42` always returns the same records. Screenshots, snapshot tests and bug reports stay stable.
 - **Realistic collections.** People, users, products, companies and the real countries, plus any shape you describe with 239 generator types, with arguments (`number.int(18,65)`), weighted choices (`pick(active,paused|80,20)`) and blank rates (`?blank=15`).
 - **Related data with referential integrity.** Orders with line items, posts, comments, todos and reviews, joined to users and products by ids that always resolve. `/users/7/orders`, `/posts/1/comments` and `/products/3/reviews` list one record's children, `expand=user,items.product` embeds related records, order totals add up with the local tax in the local currency, and dates follow one another. See [Relations](#relations).
-- **Safe values, on by default.** Every request writes emails at `example.com`, phone numbers kept for fiction, test card numbers, documentation IP addresses and avatars served by the API itself, so seeded data never mails, rings or loads anything real, in the answer to a write as in a read. See [Safe values](#safe-values).
+- **Safe values, on by default.** Every request writes emails at `example.com`, phone numbers kept for fiction, test card numbers, documentation IP addresses and avatars served by the API itself, so seeded data never mails, rings or loads anything real, even in a write's answer. See [Safe values](#safe-values).
 - **Placeholder images and avatars, self-hosted.** `/avatars/{seed}.svg` and `/images/{w}x{h}.svg`, drawn from the URL alone. See [Images](#images-avatars-and-placeholders).
 - **Fifteen countries, and a global mix.** `?locale=de`, `?locale=pt-BR` or `?locale=ko` writes every dataset for that country: native names, addresses, postal codes and phone numbers, and prices in the local currency. `?locale=global` mixes them record by record, the way a real international user table looks, and still repeats per seed. See [Data locales](#data-locales).
 - **Real places, invented people.** `/countries`, `/subdivisions`, `/groupings` and `/countries/withdrawn` are real reference data (countries with names in English and Japanese, capitals, population and borders; states, provinces and prefectures; the EU and the G7; the Soviet Union's old code and its successors), served with the paging, filters and formats of the invented datasets. See [Real places, invented people](#real-places-invented-people).
@@ -187,10 +184,9 @@ The alias recipe is checked by the consumer's installed alias, not this checkout
 
 ### Run it
 
-**With npx**, with nothing to clone (Node.js 22.13 or later; the same as the quick start above):
+**With npx**, with nothing to clone (Node.js 22.13 or later):
 
 ```sh
-npx @johnmorrisdotca/rest-in-pieces                  # API, playground and docs on http://localhost:6800
 npx @johnmorrisdotca/rest-in-pieces --port 6900      # another port; PORT works too
 npx @johnmorrisdotca/rest-in-pieces --host 0.0.0.0   # reachable from other machines and containers
 npx @johnmorrisdotca/rest-in-pieces --session        # keep writes in memory until POST /reset
@@ -509,9 +505,7 @@ The native playground has its light/dark theme control. Generated SVG avatars an
 
 ## Limits
 
-The main size badge includes the bundled Node app and its dependencies/data, minified for ES2020 and gzipped at level 9, with Node built-ins external. The small `/images`, `/cursor` and `/serialize` entries have their own measured sizes in the reference. This is not the installed tarball or the browser's complete download.
-
-The badge bundles every entry as one file, so the Kuni subdivisions, the address data and the groupings, which the package loads only when a request reads them, are counted in it. With code splitting (`pnpm --dir apps/api size:split`, recorded in `apps/api/docs/bundle-size-split.json`), `/core` is 740 kB gzipped (2.7 MB minified) to import and a further 610 kB gzipped of data fetched on demand; `/browser`, `/msw`, `/vite` and `/element` are 1 to 9 kB to import and fetch the app, with that data, when the first request is made. Summed chunk by chunk these are a little over the badge's one-file figure. For a Node app the number that matters is the install: about 3 MB to download, 12 MB unpacked, and about 50 MB with its dependencies.
+The size badge counts each entry as one file, so data loaded only when a request reads it is in it. With code splitting `/core` loads 740 kB gzipped with the import and 610 kB of data on demand; the in-page entries are 1 to 9 kB. [docs/size.md](docs/size.md) has the numbers.
 
 Requests, sessions, streams, OpenAPI documents and generated responses retain their native caps. See [the HTTP guide](docs/api-guide.md), [mock limits](https://spxis.github.io/rest-in-pieces/docs/api/mock/mocklimits.html), [sessions](docs/writes-sessions-auth.md) and [architecture and limits](docs/guides/architecture-and-limits.md). Optional flag/map routes require their actual peer packages.
 
