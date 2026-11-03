@@ -61,6 +61,28 @@ jobs:
           name: playwright-report
           path: playwright-report
 
+  # The package says it runs on Node 22.13 (engines.node), though building it needs a newer one to strip types: pack it with
+  # the repository's Node, then install and use that tarball on the floor.
+  node-floor:
+    name: Installed package on Node 22.13
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @johnmorrisdotca/rest-in-pieces pack --pack-destination "$RUNNER_TEMP/tarball"
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22.13.0
+      - run: node --version
+      - run: node apps/api/scripts/floor-check.mjs "$RUNNER_TEMP"/tarball/*.tgz
+        env:
+          FLOOR_CHECK_EXACT: '1'
+
   docker:
     name: Docker image
     runs-on: ubuntu-latest
