@@ -208,7 +208,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -444,7 +450,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -609,7 +621,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -845,7 +863,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -1009,7 +1033,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -1243,7 +1273,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -1409,7 +1445,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -1575,7 +1617,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -1739,7 +1787,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -1973,7 +2027,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -2137,7 +2197,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -2371,7 +2437,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -2537,7 +2609,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -2800,7 +2878,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -2890,7 +2974,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -3053,7 +3143,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -3143,7 +3239,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -3229,7 +3331,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -3390,7 +3498,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -3480,7 +3594,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -3643,7 +3763,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -3733,7 +3859,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -3819,7 +3951,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -3982,7 +4120,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -4148,7 +4292,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -4314,7 +4464,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -4478,7 +4634,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -4568,7 +4730,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -4731,7 +4899,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -4821,7 +4995,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -4907,7 +5087,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -5070,7 +5256,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -5234,7 +5426,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -5324,7 +5522,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -5487,7 +5691,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -5577,7 +5787,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -5663,7 +5879,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -5824,7 +6046,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -6056,7 +6284,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -6146,7 +6380,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -6309,7 +6549,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -6399,7 +6645,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -6485,7 +6737,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -6646,7 +6904,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -6736,7 +7000,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -6899,7 +7169,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -6989,7 +7265,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -7075,7 +7357,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -7238,7 +7526,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -7402,7 +7696,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -7492,7 +7792,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -7655,7 +7961,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -7745,7 +8057,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -7831,7 +8149,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -7992,7 +8316,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -8082,7 +8412,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -8245,7 +8581,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -8335,7 +8677,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -8421,7 +8769,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -8582,7 +8936,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -8672,7 +9032,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -8835,7 +9201,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -8925,7 +9297,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -9011,7 +9389,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -9172,7 +9556,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -9392,7 +9782,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -9612,7 +10008,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -9832,7 +10234,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -10052,7 +10460,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -10272,7 +10686,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -10492,7 +10912,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -10712,7 +11138,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -10932,7 +11364,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -11152,7 +11590,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -11372,7 +11816,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -11592,7 +12042,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -11812,7 +12268,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -12032,7 +12494,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -12269,7 +12737,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -12443,7 +12917,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -12592,6 +13072,12 @@
                   "key": "fail",
                   "value": "",
                   "description": "`true` refuses with a 500; a number from 0 to 1 refuses that share of connections.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 },
                 {
@@ -12926,7 +13412,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 }
               ]
@@ -12990,7 +13482,13 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
+                  "disabled": true
+                },
+                {
+                  "key": "failSeed",
+                  "value": "7",
+                  "description": "Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.",
                   "disabled": true
                 }
               ]
@@ -13037,7 +13535,7 @@
                 {
                   "key": "fail",
                   "value": "",
-                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests.",
+                  "description": "`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.",
                   "disabled": true
                 }
               ]

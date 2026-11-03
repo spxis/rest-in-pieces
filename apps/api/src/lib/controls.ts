@@ -23,12 +23,32 @@ export const REASONS: Record<number, string> = {
   504: 'Gateway Timeout',
 };
 
-/** `fail=true` always fails; a number between 0 and 1 fails that fraction of requests. */
-export function shouldFail(value: string | undefined, random: () => number): boolean {
+/**
+ * `fail=true` always fails; a number between 0 and 1 fails that fraction of requests. A fraction fails at random,
+ * unless `key` is given: then whether a request fails depends only on the key, so the same URL (with the same
+ * `failSeed`) fails or succeeds the same way every time, and `fail=0.5` fails every request `fail=0.2` does.
+ */
+export function shouldFail(value: string | undefined, random: () => number, key?: string): boolean {
   if (value === undefined) return false;
   const rate = Number(value);
-  if (Number.isFinite(rate) && rate > 0 && rate < 1) return random() < rate;
+  if (Number.isFinite(rate) && rate > 0 && rate < 1)
+    return (key === undefined ? random() : hashText(key) / 2 ** 32) < rate;
   return flagParam(value, false);
+}
+
+/**
+ * The key that makes `fail=0.2` repeatable: the request's path and its other parameters (in any order), when it
+ * carries a `failSeed`; otherwise none. The other controls (`fail`, `delay`, `trickle`, `status`) are left out, so
+ * raising the rate or adding a wait does not change which requests are chosen.
+ */
+export function failKey(failSeed: string | undefined, url: string, path: string): string | undefined {
+  if (failSeed === undefined || failSeed === '') return undefined;
+  const params = new URL(url).searchParams;
+  // `_fail` and the like are how a mock of an OpenAPI document spells a control its operation declares itself.
+  for (const control of ['fail', 'delay', 'trickle', 'status'])
+    for (const name of [control, `_${control}`]) params.delete(name);
+  params.sort();
+  return `${path}?${params.toString()}`;
 }
 
 /** FNV-1a with a final mix, so nearby URLs land far apart. The same text gives the same number everywhere. */
@@ -103,7 +123,8 @@ export function parseStatus(value: string | undefined): number | null {
  *   ?delay=1500    wait before responding (up to 10 s); `delay=200-800` picks a repeatable wait in the range
  *   ?trickle=200   send the headers at once and the body in pieces 200 ms apart
  *   ?status=503    respond with that status; 4xx and 5xx return a simulated error body
- *   ?fail=true     fail with a 500 (or `status`); `fail=0.2` fails 20% of requests
+ *   ?fail=true     fail with a 500 (or `status`); `fail=0.2` fails 20% of requests, at random
+ *   ?failSeed=7    with a fraction in `fail`, fail the same requests every time: the URL decides, not chance
  * Out-of-range values are ignored. `delay` and the trickle together stay within 10 s.
  * Simulated responses carry `X-Simulated: true`.
  */
@@ -116,7 +137,9 @@ export const simulate = (random: () => number = Math.random) =>
     const slowly = (res: Response) => trickle(res, gap, MAX_DELAY_MS - delay);
 
     const status = parseStatus(pick(query, 'status'));
-    const failing = shouldFail(pick(query, 'fail'), random) || (status !== null && status >= 400);
+    const failing =
+      shouldFail(pick(query, 'fail'), random, failKey(pick(query, 'failSeed'), c.req.url, c.req.path)) ||
+      (status !== null && status >= 400);
     if (failing) {
       const code = status !== null && status >= 400 ? status : 500;
       c.header('X-Simulated', 'true');

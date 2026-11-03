@@ -1,17 +1,16 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
-import { Scalar } from '@scalar/hono-api-reference';
 import { bodyLimit } from 'hono/body-limit';
 import { cors } from 'hono/cors';
 import { etag } from 'hono/etag';
 import { HTTPException } from 'hono/http-exception';
 import { logger } from 'hono/logger';
-import { secureHeaders } from 'hono/secure-headers';
 import pkg from '../package.json' with { type: 'json' };
 import { FieldError, SchemaError } from './data/generators.ts';
 import { NotInstalledError } from './data/geo.ts';
 import { requireAuth, TOKEN_KEY } from './lib/auth.ts';
 import { simulate } from './lib/controls.ts';
 import { CursorError } from './lib/cursor.ts';
+import { docsPage, useSecurityHeaders } from './lib/docsPage.ts';
 import { ExpressionError } from './lib/expression.ts';
 import { UnsupportedFormatError } from './lib/format.ts';
 import { JsonSchemaError } from './lib/jsonschema.ts';
@@ -107,7 +106,7 @@ export function createApp({
   const session = createSession(option);
 
   if (log) app.use(logger());
-  app.use(secureHeaders({ crossOriginResourcePolicy: 'cross-origin' }));
+  useSecurityHeaders(app);
   app.use(
     cors({
       origin: '*',
@@ -210,7 +209,7 @@ export function createApp({
       { name: 'Service', description: 'Discovery and health.' },
     ],
   });
-  app.get('/docs', Scalar({ url: specUrl, pageTitle: 'REST in Pieces API', theme: 'default' }));
+  app.get('/docs', docsPage({ url: specUrl, pageTitle: 'REST in Pieces API', theme: 'default' }));
 
   mount?.(app);
   app.route('/', home);

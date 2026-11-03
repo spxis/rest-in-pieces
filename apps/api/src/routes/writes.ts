@@ -47,6 +47,7 @@ const WriteQuery = z.object({
   trickle: ListQuery.shape.trickle,
   status: ListQuery.shape.status,
   fail: ListQuery.shape.fail,
+  failSeed: ListQuery.shape.failSeed,
   auth: ListQuery.shape.auth,
   safe: z
     .string()

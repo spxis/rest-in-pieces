@@ -18,16 +18,24 @@
  * (`SCHEMA_LIMITS`), a response `MOCK_LIMITS`, and a request body is at most 64 KB. A `$ref` anywhere must be local.
  * Nothing here imports a Node module, so it runs in a worker or a browser as it does in Node.
  */
-import { Scalar } from '@scalar/hono-api-reference';
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
-import { secureHeaders } from 'hono/secure-headers';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { build, hash } from '../data/build.ts';
 import type { GenerateContext } from '../data/generators.ts';
-import { chooseDelay, MAX_DELAY_MS, parseStatus, REASONS, requestKey, shouldFail, trickle } from './controls.ts';
+import {
+  chooseDelay,
+  failKey,
+  MAX_DELAY_MS,
+  parseStatus,
+  REASONS,
+  requestKey,
+  shouldFail,
+  trickle,
+} from './controls.ts';
+import { docsPage, useSecurityHeaders } from './docsPage.ts';
 import { startOfToday } from './expression.ts';
 import { JsonSchemaError, type PreparedSchema, prepareSchemaIn } from './jsonschema.ts';
 import { type CountryLocale, parseLocale, UnsupportedLocaleError } from './locale.ts';
@@ -93,7 +101,7 @@ export const LIMIT_NAMES = [
  * console.log(CONTROLS.includes("delay"), CONTROLS.includes("safe"));
  * ```
  */
-export const CONTROLS = ['delay', 'trickle', 'status', 'fail', 'seed', 'locale', 'safe'] as const;
+export const CONTROLS = ['delay', 'trickle', 'status', 'fail', 'failSeed', 'seed', 'locale', 'safe'] as const;
 
 /** Properties that usually hold a response's list, when a response has more than one array. */
 const LIST_NAMES = ['data', 'items', 'results', 'content', 'records', 'rows', 'list'];
@@ -465,7 +473,7 @@ export function createMock(input: unknown, options: MockOptions = {}): Mock {
   const app = new Hono();
 
   if (options.log) app.use('*', logger());
-  app.use('*', secureHeaders({ crossOriginResourcePolicy: 'cross-origin' }));
+  useSecurityHeaders(app);
   app.use(
     '*',
     cors({
@@ -492,7 +500,7 @@ export function createMock(input: unknown, options: MockOptions = {}): Mock {
   app.get('/__mock/openapi.json', (c) => c.json(spec.document));
   app.get(
     '/__mock/docs',
-    Scalar({ url: options.specUrl ?? '/__mock/openapi.json', pageTitle: `${spec.title} (mock)` }),
+    docsPage({ url: options.specUrl ?? '/__mock/openapi.json', pageTitle: `${spec.title} (mock)` }),
   );
 
   app.use(
@@ -545,7 +553,9 @@ export function createMock(input: unknown, options: MockOptions = {}): Mock {
     const slowly = (res: Response) => trickle(res, gap, MAX_DELAY_MS - delay);
 
     const wanted = parseStatus(control('status'));
-    const failing = shouldFail(control('fail'), Math.random) || (wanted !== null && wanted >= 400);
+    const failing =
+      shouldFail(control('fail'), Math.random, failKey(control('failSeed'), c.req.url, url.pathname)) ||
+      (wanted !== null && wanted >= 400);
     if (failing) {
       const code = wanted !== null && wanted >= 400 ? wanted : 500;
       const listed = declaredFor(route.responses, code);

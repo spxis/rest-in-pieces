@@ -51,8 +51,8 @@ curl -i 'http://localhost:6800/users?auth=admin' -H 'Authorization: Bearer <acce
 # Data that breaks layouts: nulls, 2,000-character descriptions, emoji, Arabic, edge numbers and dates
 curl 'http://localhost:6800/products?messy=true&seed=1'
 
-# A flaky backend: 30% of requests fail
-curl -i 'http://localhost:6800/users?fail=0.3'
+# A flaky backend: 30% of requests fail, the same ones every time
+curl -i 'http://localhost:6800/users?fail=0.3&failSeed=7'
 
 # Uneven latency, then a body that arrives in pieces 200 ms apart
 curl -N 'http://localhost:6800/users?delay=200-800&trickle=200'
@@ -100,7 +100,7 @@ curl -N 'http://localhost:6800/users?delay=200-800&trickle=200'
 | `GET /resources`           | The datasets and their fields, per locale, with what each can `expand` and list under a record. |
 | `GET /locales`             | The data locales, with their names, BCP 47 tag, country, currency and the tax rate orders use. |
 | `GET /health`              | Status, version and uptime. |
-| `GET /docs`, `/openapi.json` | Interactive reference and the OpenAPI 3.1 document. |
+| `GET /docs`, `/openapi.json` | Interactive reference and the OpenAPI 3.1 document. `/docs` loads Scalar's script from jsDelivr, pinned to one version and checked against its SRI hash, so it needs the network; the document at `/openapi.json` does not. |
 
 ### Query parameters
 
@@ -129,7 +129,8 @@ These work on every collection, including `/generate`.
 | `delay`         | `0`       | Milliseconds to wait before responding, up to 10000. A range such as `200-800` picks a wait inside it from the request, seed included, so the same URL waits the same time on every machine. |
 | `trickle`       | `0`       | Sends the headers at once and the body in pieces this many milliseconds apart, in any format, so time to first byte and total time can be told apart. With `delay`, the response still takes no more than 10 s. |
 | `status`        | none      | Respond with this status. 4xx and 5xx return a simulated error; 2xx and 3xx override the success status. |
-| `fail`          | off       | `true` fails the request with a 500 (or `status`); a fraction such as `0.2` fails that share of requests. |
+| `fail`          | off       | `true` fails the request with a 500 (or `status`); a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given. |
+| `failSeed`      | none      | Makes a fraction in `fail` repeatable: any value, and whether a request fails is decided by its URL alone (path and parameters in any order, apart from `fail`, `delay`, `trickle` and `status`). The same URL fails or succeeds the same way on every call and machine, another `failSeed` fails a different share, and `fail=0.5` fails every request `fail=0.2` does. |
 | `auth`          | off       | Makes the request a protected route: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. `401` without a valid token, `403` when the role is not enough. Also on items and writes. See [Sign-in](#sign-in-fake-auth). |
 
 Simulated responses carry `X-Simulated: true`, and 429 and 503 carry `Retry-After`. Simulation never applies to `/health` or the docs.

@@ -81,6 +81,7 @@ const TokenQuery = z.object({
   delay: ListQuery.shape.delay,
   status: ListQuery.shape.status,
   fail: ListQuery.shape.fail,
+  failSeed: ListQuery.shape.failSeed,
 });
 
 const json = (schema: z.ZodType, description: string) => ({

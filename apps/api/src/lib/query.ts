@@ -57,6 +57,7 @@ export const RESERVED_PARAMS = new Set([
   'trickle',
   'status',
   'fail',
+  'failSeed',
   'fields',
   'constraints',
   'q',

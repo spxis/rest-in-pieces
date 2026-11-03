@@ -89,6 +89,13 @@ export const AuthErrors = {
   },
 };
 
+/** The `failSeed` description, shared by every route that takes `fail`. */
+export const FAIL_SEED_DOCS =
+  'Makes `fail=0.2` repeatable. With any `failSeed`, whether a request fails is decided by its URL alone (path and ' +
+  'query, in any order, apart from `fail`, `delay`, `trickle` and `status`), so the same URL fails or succeeds the ' +
+  'same way on every call and every machine, and a different `failSeed` fails a different 20%. `fail=0.5` fails ' +
+  'every request `fail=0.2` does. Without it, a fraction fails at random, which suits a retry drill.';
+
 /**
  * Query parameters shared by every collection. Parsing is deliberately lenient,
  * so they are documented as strings and bad values fall back to defaults.
@@ -123,7 +130,10 @@ export const ListQuery = z
       'Send the headers at once and the body in pieces this many milliseconds apart, whatever the format. With `delay`, the whole response takes no more than 10000 ms.',
     ),
     status: param('Respond with this status (200–599). 4xx and 5xx return a simulated error.'),
-    fail: param('`true` fails the request; a fraction such as `0.2` fails that share of requests.'),
+    fail: param(
+      '`true` fails the request; a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given.',
+    ),
+    failSeed: param(FAIL_SEED_DOCS, '7'),
     auth: param(AUTH_DOCS),
   })
   .catchall(z.string().optional());

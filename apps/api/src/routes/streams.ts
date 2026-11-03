@@ -13,11 +13,12 @@
  * to stop. A stream that must fail or drop on purpose can (`status`, `fail`, `drop`), to rehearse a client's reconnecting.
  */
 import { OpenAPIHono, z } from '@hono/zod-openapi';
-import { chooseDelay, MAX_DELAY_MS, parseStatus, REASONS, requestKey, shouldFail } from '../lib/controls.ts';
+import { chooseDelay, failKey, MAX_DELAY_MS, parseStatus, REASONS, requestKey, shouldFail } from '../lib/controls.ts';
 import { parseLocale } from '../lib/locale.ts';
 import { intParam, pick } from '../lib/query.ts';
 import { publicBase, safeRecord, wantsSafe } from '../lib/safe.ts';
 import { DEFAULT_SEED, MAX_SEED, resources } from '../resources.ts';
+import { FAIL_SEED_DOCS } from '../schemas.ts';
 
 export const LIMITS = {
   /** Events in a whole stream: the default, and the most a request may ask for. */
@@ -113,7 +114,10 @@ export function streamRoutes({ safe = true }: { safe?: boolean } = {}): OpenAPIH
 
     // The simulation controls that make sense for a stream: a refusal before it opens, and a wait before its first event.
     const status = parseStatus(pick(query, 'status'));
-    if (shouldFail(pick(query, 'fail'), Math.random) || (status !== null && status >= 400)) {
+    if (
+      shouldFail(pick(query, 'fail'), Math.random, failKey(pick(query, 'failSeed'), c.req.url, c.req.path)) ||
+      (status !== null && status >= 400)
+    ) {
       const code = status !== null && status >= 400 ? status : 500;
       c.header('X-Simulated', 'true');
       if (code === 429 || code === 503) c.header('Retry-After', '1');
@@ -232,6 +236,7 @@ export function documentStreams(app: OpenAPIHono): void {
       .string()
       .optional()
       .openapi({ description: '`true` refuses with a 500; a number from 0 to 1 refuses that share of connections.' }),
+    failSeed: z.string().optional().openapi({ description: FAIL_SEED_DOCS }),
     safe: z.string().optional().openapi({ description: 'Safe values: example-domain emails (messages).' }),
   });
   app.openAPIRegistry.registerPath({

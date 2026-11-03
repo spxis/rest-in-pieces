@@ -44,7 +44,7 @@ The event's `id` is the record's own `id`, and `data` is the record as one line 
 | `seed`, `locale`, `safe` | 1, `en-CA`, off | As on the datasets: another seed, [another locale](https://github.com/spxis/rest-in-pieces#data-locales), [safe values](https://github.com/spxis/rest-in-pieces#safe-values) |
 | `drop` | 0 | Close the connection without `end` after this many events, to rehearse a client that reconnects |
 | `delay` | none | Wait this many milliseconds before the first event |
-| `status`, `fail` | none | Refuse with that status (`?status=503`, with `Retry-After`) or a share of connections (`?fail=0.3`), as on every route |
+| `status`, `fail`, `failSeed` | none | Refuse with that status (`?status=503`, with `Retry-After`) or a share of connections (`?fail=0.3`, repeatable with `failSeed`), as on every route |
 | `lastEventId` | none | Start after this id, for a client that cannot send `Last-Event-ID` |
 
 An unsupported locale is `400`, an unknown stream `404`.

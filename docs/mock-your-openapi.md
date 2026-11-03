@@ -71,6 +71,7 @@ On any route, in the query string, as on the built-in datasets:
 | `?delay=1500`, `?delay=200-800` | Wait that many milliseconds (up to 10,000); a range picks the same wait for the same request |
 | `?status=404` | Answer that status. If the document lists the status (or its `4XX` range, or `default`) with a schema, the body is made from it; otherwise `{ "error", "status", "simulated": true }`. `X-Simulated: true` marks it, and `429` and `503` carry `Retry-After`. A `2xx` the operation lists is answered with the body listed for it |
 | `?fail=0.3` | Fail 30% of requests with a `500`, as above; `?fail=true` fails every one |
+| `?failSeed=7` | With a fraction in `fail`, fail the same requests every time: the URL decides, not chance |
 | `?trickle=200` | Send the body in pieces 200 ms apart |
 | `?seed=7`, `?locale=ja`, `?safe=false` | Another seed, another [data locale](https://github.com/spxis/rest-in-pieces#data-locales), [safe values](https://github.com/spxis/rest-in-pieces#safe-values) (on by default; `?safe=false` turns them off) |
 

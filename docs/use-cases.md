@@ -78,7 +78,7 @@ curl -i 'http://localhost:6800/users?limit=1&status=503'
 curl 'http://localhost:6800/users?limit=3&q=zzzz'
 ```
 
-`delay=200-800` picks a wait inside the range from the request, so the same URL waits the same time everywhere. `fail=0.3` is the one parameter that is random per request, which is the point of a flaky backend: `status=500` fails every time and `fail=0.3` about three requests in ten. Simulated answers carry `X-Simulated: true`, and `429` and `503` carry `Retry-After`. See [Query parameters](https://github.com/spxis/rest-in-pieces#query-parameters).
+`delay=200-800` picks a wait inside the range from the request, so the same URL waits the same time everywhere. `fail=0.3` is random per request, which is the point of a flaky backend: `status=500` fails every time and `fail=0.3` about three requests in ten. Add `failSeed=7` and the URL decides instead: the same requests fail on every run, which suits a test that must not flake. Simulated answers carry `X-Simulated: true`, and `429` and `503` carry `Retry-After`. See [Query parameters](https://github.com/spxis/rest-in-pieces#query-parameters).
 
 ## 4. Data that breaks layouts
 
