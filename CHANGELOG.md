@@ -4,6 +4,8 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ## Unreleased
 
+## 3.3.1 - 2026-11-03
+
 ### Fixed
 
 - `/docs` (and `/__mock/docs`) loads Scalar's API reference pinned to version 1.75.0 with a Subresource Integrity hash, instead of whatever `@scalar/api-reference` was newest on jsDelivr with nothing checking it. The page still needs the network for that script (the Scalar bundle is 4.6 MB, too large to ship); `/openapi.json` does not.
