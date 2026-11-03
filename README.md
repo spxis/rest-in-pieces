@@ -511,6 +511,8 @@ The native playground has its light/dark theme control. Generated SVG avatars an
 
 The main size badge includes the bundled Node app and its dependencies/data, minified for ES2020 and gzipped at level 9, with Node built-ins external. The small `/images`, `/cursor` and `/serialize` entries have their own measured sizes in the reference. This is not the installed tarball or the browser's complete download.
 
+The badge bundles every entry as one file, so the Kuni subdivisions, the address data and the groupings, which the package loads only when a request reads them, are counted in it. With code splitting (`pnpm --dir apps/api size:split`, recorded in `apps/api/docs/bundle-size-split.json`), `/core` is 740 kB gzipped (2.7 MB minified) to import and a further 610 kB gzipped of data fetched on demand; `/browser`, `/msw`, `/vite` and `/element` are 1 to 9 kB to import and fetch the app, with that data, when the first request is made. Summed chunk by chunk these are a little over the badge's one-file figure. For a Node app the number that matters is the install: about 3 MB to download, 12 MB unpacked, and about 50 MB with its dependencies.
+
 Requests, sessions, streams, OpenAPI documents and generated responses retain their native caps. See [the HTTP guide](docs/api-guide.md), [mock limits](https://spxis.github.io/rest-in-pieces/docs/api/mock/mocklimits.html), [sessions](docs/writes-sessions-auth.md) and [architecture and limits](docs/guides/architecture-and-limits.md). Optional flag/map routes require their actual peer packages.
 
 ## Troubleshooting

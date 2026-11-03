@@ -1,0 +1,126 @@
+{
+  "measured": "esbuild 0.28.2, bundled with splitting, minified, ES2020, each chunk gzipped at level 9 and summed",
+  "entries": {
+    ".": {
+      "eager": {
+        "minified": 2818970,
+        "gzip": 764881
+      },
+      "later": {
+        "minified": 1479297,
+        "gzip": 609503
+      },
+      "chunks": 418
+    },
+    "./core": {
+      "eager": {
+        "minified": 2743995,
+        "gzip": 739718
+      },
+      "later": {
+        "minified": 1479297,
+        "gzip": 609548
+      },
+      "chunks": 418
+    },
+    "./browser": {
+      "eager": {
+        "minified": 2260,
+        "gzip": 1247
+      },
+      "later": {
+        "minified": 4221894,
+        "gzip": 1348547
+      },
+      "chunks": 419
+    },
+    "./cursor": {
+      "eager": {
+        "minified": 1122,
+        "gzip": 658
+      },
+      "later": {
+        "minified": 0,
+        "gzip": 0
+      },
+      "chunks": 1
+    },
+    "./images": {
+      "eager": {
+        "minified": 2690,
+        "gzip": 1545
+      },
+      "later": {
+        "minified": 0,
+        "gzip": 0
+      },
+      "chunks": 1
+    },
+    "./serialize": {
+      "eager": {
+        "minified": 1419,
+        "gzip": 807
+      },
+      "later": {
+        "minified": 0,
+        "gzip": 0
+      },
+      "chunks": 1
+    },
+    "./mock": {
+      "eager": {
+        "minified": 1794900,
+        "gzip": 517549
+      },
+      "later": {
+        "minified": 0,
+        "gzip": 0
+      },
+      "chunks": 1
+    },
+    "./msw": {
+      "eager": {
+        "minified": 2100,
+        "gzip": 1192
+      },
+      "later": {
+        "minified": 4221894,
+        "gzip": 1348547
+      },
+      "chunks": 419
+    },
+    "./vite": {
+      "eager": {
+        "minified": 22823,
+        "gzip": 8780
+      },
+      "later": {
+        "minified": 4287260,
+        "gzip": 1369638
+      },
+      "chunks": 419
+    },
+    "./element": {
+      "eager": {
+        "minified": 9121,
+        "gzip": 3712
+      },
+      "later": {
+        "minified": 4221894,
+        "gzip": 1348547
+      },
+      "chunks": 419
+    },
+    "./element/define": {
+      "eager": {
+        "minified": 9125,
+        "gzip": 3717
+      },
+      "later": {
+        "minified": 4221894,
+        "gzip": 1348547
+      },
+      "chunks": 419
+    }
+  }
+}

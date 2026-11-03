@@ -211,6 +211,7 @@
     "docs:site": "pnpm build && node scripts/docs-site.mjs build",
     "docs:check": "pnpm build && node scripts/docs-site.mjs check",
     "size": "node scripts/docs-site.mjs size",
+    "size:split": "node scripts/measure-size.mjs",
     "site": "node scripts/site.mjs",
     "test:demo": "pnpm site && node scripts/docs-site.mjs build && playwright test",
     "test:readme": "node scripts/check-readme.mjs"
