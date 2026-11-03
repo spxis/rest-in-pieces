@@ -14,7 +14,7 @@ const FILTER_KEY = /^([\w-]+)(?:\[(\w+)\])?$/;
 /**
  * Turns query parameters that name a record field into filters:
  *   gender=female            equality (case-insensitive)
- *   province=Ontario,Quebec  any of several values
+ *   province=Ontario,Quebec  any of several values (a repeated parameter reaches here already joined)
  *   age[gte]=30&age[lt]=40   ranges: eq, ne, gt, gte, lt, lte
  *   borders=FR               a list field matches when any entry does
  * Unknown fields and reserved parameters are ignored.

@@ -39,5 +39,5 @@ params:query {
 docs {
   To-do items, joined to `/users` by `userId`: JSONPlaceholder's shape (`userId`, `id`, `title`, `completed`) plus `dueOn` and `createdAt`. `/users/{id}/todos` lists one user's.
 
-  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
+  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec` (or the parameter repeated, `province=Ontario&province=Quebec`, which means the same), or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
 }

@@ -107,7 +107,7 @@ These work on every collection, including `/generate`.
 | `sortBy`        | none      | Field to sort by. Append `:numeric` to compare as numbers, e.g. `age:numeric`. |
 | `sortDirection` | `asc`     | `desc` (also `descending`, `reverse`, `rev`, `backwards`, `-1`). Alias: `sortOrder`. |
 | `q`             | none      | Case-insensitive search across every field. |
-| *field name*    | none      | Filters: `gender=female`, `province=Ontario,Quebec`, `age[gte]=30`. Operators: `eq`, `ne`, `gt`, `gte`, `lt`, `lte`. |
+| *field name*    | none      | Filters: `gender=female`, `province=Ontario,Quebec` (or `province=Ontario&province=Quebec`), `age[gte]=30`. Operators: `eq`, `ne`, `gt`, `gte`, `lt`, `lte`. Any other parameter takes one value: giving it twice is a `400` (`{"error":"Invalid request at \"limit\": give it once, not 2 times"}`). |
 | `seed`          | `1`       | Selects a repeatable dataset. |
 | `locale`        | `en-CA`   | Which country the data is written for, or `global` for a mix. See [Data locales](../README.md#data-locales). |
 | `messy`         | off       | Rewrites a share of values into the ones that break layouts: null and missing keys, empty and whitespace-only strings, very long strings (120 characters, 2,000 for descriptions), emoji, combining marks and zero-width joiners, right-to-left text, leading and trailing whitespace, edge numbers (0, negative, very large, many decimals) and edge dates (the epoch, the far future, 29 February). `true` rewrites about 15%; `0.5` sets the share. The same `seed` gives the same mess, so a bug can be shared by URL. Values keep their type, but any field except the id may be null or missing. Also on `/{dataset}/{id}`. |

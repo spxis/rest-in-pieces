@@ -43,5 +43,5 @@ params:path {
 docs {
   The countries this geographic feature lists in its `countries`, in the order it lists them. Paging, sorting, filters, search, formats, `expand`, `messy`, `safe` and the simulation all work as they do on `/countries`.
 
-  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
+  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec` (or the parameter repeated, `province=Ontario&province=Quebec`, which means the same), or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
 }

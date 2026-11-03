@@ -2,6 +2,7 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import type { Context } from 'hono';
 import { buildBody, pageLinks, queryCollection, setPaginationHeaders } from '../lib/collection.ts';
 import { requestedFormat, respond } from '../lib/format.ts';
+import { invalidRequest, queryWithRepeats } from '../lib/invalid.ts';
 import { contentLanguage, parseLocale } from '../lib/locale.ts';
 import { parseMessy } from '../lib/messy.ts';
 import { intParam, pick } from '../lib/query.ts';
@@ -31,6 +32,9 @@ import {
   TEXT_FORMATS,
 } from '../schemas.ts';
 import { writeRoutes } from './writes.ts';
+
+/** `ListQuery`, where a filter may be repeated (`city=a&city=b` is `city=a,b`). Every named parameter still takes one value. */
+const Listing = ListQuery.catchall(z.union([z.string(), z.array(z.string())]).optional());
 
 export interface CollectionRouteOptions {
   /** Marks a legacy alias in the docs. An alias takes no writes. */
@@ -87,7 +91,7 @@ export function collectionRoutes(
     description: `${resource.description}\n\n${FILTER_DOCS}`,
     deprecated,
     security: OPTIONAL_BEARER,
-    request: { query: ListQuery.extend(extraQuery(resource)) },
+    request: { query: Listing.extend(extraQuery(resource)) },
     responses: {
       200: {
         description: `A page of ${resource.name}. \`X-Total-Count\` and \`Link\` headers describe the whole result.`,
@@ -143,9 +147,12 @@ export function collectionRoutes(
     await Promise.all(resources.map((one) => one.ready?.(request)));
   };
 
+  /** The request's query, with a filter repeated as a list (`city=a&city=b`) and a one-value parameter repeated refused. */
+  const queryOf = (c: Context) => queryWithRepeats(c.req.queries());
+
   /** One request's view of every dataset, with its seed, locale, session, safe values and mess. */
   const dataFor = (c: Context) => {
-    const query = c.req.query();
+    const query = queryOf(c);
     const seed = resource.seeded ? intParam(pick(query, 'seed'), DEFAULT_SEED, MAX_SEED) : DEFAULT_SEED;
     const locale = parseLocale(pick(query, 'locale'));
     const safe = wantsSafe(query, safeByDefault)
@@ -157,10 +164,10 @@ export function collectionRoutes(
   /** Lists `records` (with each one's position in its whole dataset) through the shared pipeline, then expands the page. */
   const list = async (c: Context, target: Resource, data: RequestData, records: object[], positions?: number[]) => {
     requestedFormat(c);
-    const tree = parseExpand(c.req.query(), target, lookup);
+    const tree = parseExpand(queryOf(c), target, lookup);
     contentLanguage(c, data.locale);
     const shown = data.safe ? safeRecords(target.name, records, data.safe) : records;
-    const page = queryCollection(shown, c.req.query(), target.defaults, data.locale, {
+    const page = queryCollection(shown, queryOf(c), target.defaults, data.locale, {
       seed: data.seed,
       keep: target.keep ?? [target.idField],
       ...(positions ? { positions } : {}),
@@ -174,19 +181,19 @@ export function collectionRoutes(
     return respond(c, buildBody(expanded, links, meta), expanded.records, target.name);
   };
 
-  let routes = new OpenAPIHono()
+  let routes = new OpenAPIHono({ defaultHook: invalidRequest })
     .openapi(listRoute, async (c) => {
       const data = dataFor(c);
-      await prepare([resource], { query: c.req.query() });
+      await prepare([resource], { query: queryOf(c) });
       return (await list(c, resource, data, data.records(resource))) as never;
     })
     .openapi(itemRoute, async (c) => {
       requestedFormat(c);
       const data = dataFor(c);
-      const tree = parseExpand(c.req.query(), resource, lookup);
+      const tree = parseExpand(queryOf(c), resource, lookup);
       contentLanguage(c, data.locale);
       const { id: recordId } = c.req.valid('param');
-      await prepare([resource], { query: c.req.query(), id: recordId });
+      await prepare([resource], { query: queryOf(c), id: recordId });
       const records = data.records(resource);
       const found = resource.find(records, recordId);
       if (!found) return c.json({ error: `No ${resource.title.toLowerCase()} with id "${recordId}".` }, 404);
@@ -216,7 +223,7 @@ export function collectionRoutes(
       security: OPTIONAL_BEARER,
       request: {
         params: z.object({ id: z.string().openapi({ description: resource.idDescription }) }),
-        query: ListQuery.extend(extraQuery(child)),
+        query: Listing.extend(extraQuery(child)),
       },
       responses: {
         200: {
@@ -237,14 +244,14 @@ export function collectionRoutes(
     routes = routes.openapi(nestedRoute, async (c) => {
       const data = dataFor(c);
       const { id: asked } = c.req.valid('param');
-      await prepare([resource], { query: c.req.query(), id: asked });
+      await prepare([resource], { query: queryOf(c), id: asked });
       // The id the route was given may be another spelling of the record's own (`CAN` for `CA`).
       const parent = resource.find(data.records(resource), asked) as Record<string, unknown> | undefined;
       const parentId = parent ? String(parent[resource.idField]) : asked;
       if (!parent || data.indexOf(resource, parentId) < 0) {
         return c.json({ error: `No ${resource.title.toLowerCase()} with id "${asked}".` }, 404) as never;
       }
-      await prepare([child], { query: c.req.query(), hint: [parentId, ...countriesOfRecords([parent])] });
+      await prepare([child], { query: queryOf(c), hint: [parentId, ...countriesOfRecords([parent])] });
       const records = data.records(child);
       const positions =
         relation.kind === 'list'

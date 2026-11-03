@@ -38,5 +38,5 @@ params:query {
 docs {
   Bank-style transactions in the locale's currency: card payments, transfers, deposits, withdrawals, fees, refunds and interest. `amount` is negative for money out and positive for money in; a transaction posts after it happened, and a pending or declined one has no `postedAt`.
 
-  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
+  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec` (or the parameter repeated, `province=Ontario&province=Quebec`, which means the same), or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
 }

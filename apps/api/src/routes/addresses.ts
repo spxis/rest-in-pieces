@@ -1,6 +1,7 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import * as main from '@johnmorrisdotca/address-plus';
 import { ADDRESS_COUNTRIES, type AddressCountry, loadAddressModules } from '../data/addresses.ts';
+import { invalidRequest } from '../lib/invalid.ts';
 import { ErrorBody } from '../schemas.ts';
 
 /** The longest address either route reads, in characters: a postal address is a few lines, never a document. */
@@ -101,7 +102,7 @@ export function addressRoutes() {
     responses: responses(Formatted, 'The address as its country writes it.'),
   });
 
-  return new OpenAPIHono()
+  return new OpenAPIHono({ defaultHook: invalidRequest })
     .openapi(validateRoute, async (c) => {
       const { address, country } = c.req.valid('query');
       const wrong = problem(address, country);

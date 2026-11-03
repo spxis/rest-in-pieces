@@ -38,5 +38,5 @@ params:query {
 docs {
   Calendar events around 2026-01-01: meetings, conferences, appointments, socials, deadlines and holidays, with an IANA `timeZone` for the locale's country. Every event ends after it starts; an all-day event runs from midnight to midnight, and only meetings recur.
 
-  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
+  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec` (or the parameter repeated, `province=Ontario&province=Quebec`, which means the same), or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
 }

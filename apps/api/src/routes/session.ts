@@ -1,4 +1,5 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
+import { invalidRequest } from '../lib/invalid.ts';
 import { pick } from '../lib/query.ts';
 import type { Session } from '../lib/session.ts';
 
@@ -85,7 +86,7 @@ const resetRoute = createRoute({
 
 /** `GET /session` and `POST /reset` for the app's session. */
 export function sessionRoutes(session: Session) {
-  return new OpenAPIHono()
+  return new OpenAPIHono({ defaultHook: invalidRequest })
     .openapi(getRoute, (c) => c.json(session.summary()))
     .openapi(resetRoute, (c) => {
       const reset = session.reset(pick(c.req.query(), 'dataset'));

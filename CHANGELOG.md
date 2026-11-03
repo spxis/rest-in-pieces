@@ -6,6 +6,7 @@ Notable user-facing changes are recorded here. The project follows [Semantic Ver
 
 ### Fixed
 
+- A query parameter given twice (`/users?limit=1&limit=2`, `?seed=1&seed=2`, `?size=1&size=2`) answers `400` with the standard `{"error": "Invalid request at \"limit\": give it once, not 2 times"}` on every route that validates its query (datasets and their items and nested lists, writes, `/addresses`, `/session`, `/reset`, sign-in, `/generate`), where it used to dump a raw validator error (`{"success":false,"error":{"name":"ZodError",...`). A filter repeated is a list, as the docs already say a filter takes: `/users?city=a&city=b` is `?city=a,b`. A range (`age[gte]`) repeated is refused.
 - `POST`, `PUT` and `PATCH` answer with safe values, like a read of the same record: `PATCH /users/3` no longer returns a real-looking email, phone and avatar where `GET /users/3` is safe. A write takes `?safe=` (and the app's `safe` setting) as a read does, and `safe=false` answers with the values as sent. The test that pinned the old answer ("a write answers with the record as stored") now asks for `safe=false`, because the old behaviour broke the promise that no seeded value reaches anybody and made a write's answer differ from the next read.
 
 ## 3.3.0 - 2026-11-03

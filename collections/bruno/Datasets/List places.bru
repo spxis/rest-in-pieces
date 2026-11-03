@@ -38,5 +38,5 @@ params:query {
 docs {
   Points of interest in the locale's best-known city, with `latitude`, `longitude` and the same point as a GeoJSON `geometry`. Every place is within 15 km of the city centre, and `distanceKm` says how far, so a list can be sorted nearest first.
 
-  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
+  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec` (or the parameter repeated, `province=Ontario&province=Quebec`, which means the same), or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
 }

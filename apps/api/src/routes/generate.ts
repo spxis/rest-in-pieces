@@ -14,6 +14,7 @@ import {
 } from '../data/generators.ts';
 import { buildBody, MAX_RECORDS, pageLinks, queryCollection, setPaginationHeaders } from '../lib/collection.ts';
 import { requestedFormat, respond } from '../lib/format.ts';
+import { invalidRequest } from '../lib/invalid.ts';
 import { generateFromSchema, prepareSchema, SCHEMA_LIMITS, SUPPORTED } from '../lib/jsonschema.ts';
 import { contentLanguage, type Locale, parseLocale } from '../lib/locale.ts';
 import { intParam, pick } from '../lib/query.ts';
@@ -213,15 +214,7 @@ export function generateRoutes({ safe = true }: { safe?: boolean } = {}) {
     return respond(c, buildBody(page, links, { generatedAt: new Date(), seed, locale }), page.records, 'generated');
   };
 
-  return new OpenAPIHono({
-    defaultHook: (result, c) => {
-      if (!result.success) {
-        const issue = result.error.issues[0];
-        const where = issue?.path.length ? ` at "${issue.path.join('.')}"` : '';
-        return c.json({ error: `Invalid request${where}: ${issue?.message ?? 'unknown problem'}` }, 400);
-      }
-    },
-  })
+  return new OpenAPIHono({ defaultHook: invalidRequest })
     .openapi(getRoute, (c) => {
       const query = c.req.query();
       const list = pick(query, 'fields');

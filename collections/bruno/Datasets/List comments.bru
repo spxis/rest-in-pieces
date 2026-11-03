@@ -39,5 +39,5 @@ params:query {
 docs {
   Comments on `/posts`, by `postId`, written by `/users`, by `userId`: JSONPlaceholder's shape (`postId`, `id`, `name`, `email`, `body`) plus `userId` and `createdAt`. Each comes after its post and after the comments before it, and nobody comments on their own post.
 
-  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
+  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec` (or the parameter repeated, `province=Ontario&province=Quebec`, which means the same), or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
 }

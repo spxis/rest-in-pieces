@@ -129,7 +129,8 @@ export const ListQuery = z
   .catchall(z.string().optional());
 
 export const FILTER_DOCS =
-  'Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, ' +
+  'Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec` ' +
+  '(or the parameter repeated, `province=Ontario&province=Quebec`, which means the same), ' +
   'or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).';
 
 export const ErrorBody = z.object({ error: z.string().openapi({ example: 'Not Found' }) }).openapi('Error');

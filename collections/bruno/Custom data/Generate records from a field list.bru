@@ -53,5 +53,5 @@ docs {
 
   Commas inside parentheses belong to the arguments. A type that takes no arguments, a wrong count, a value out of range or a bad weight answers `422` with `error` and the `field` it is about; an unknown type answers `400`. With `safe=true`, these types come from the safe ranges: `finance.creditCardNumber`, `image.avatar`, `image.avatarGitHub`, `image.url`, `image.urlPicsumPhotos`, `internet.domainName`, `internet.domainSuffix`, `internet.email`, `internet.ip`, `internet.ipv4`, `internet.ipv6`, `internet.url`, `phone.number`; any email inside other text moves to an example domain.
 
-  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
+  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec` (or the parameter repeated, `province=Ontario&province=Quebec`, which means the same), or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
 }

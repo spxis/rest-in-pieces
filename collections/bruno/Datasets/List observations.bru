@@ -38,5 +38,5 @@ params:query {
 docs {
   FHIR R4-shaped Observation resources for the patients in `/patients`: vital signs and a few laboratory values, with UCUM units, a typical reference range and an interpretation. Each is dated after its patient was born and before they died, and the value is plausible for their age. `status` is also the simulation parameter, so filter it as `status[eq]=final` here or `status=final` on `/fhir/Observation`. Synthetic: every record is invented, none comes from or is de-identified from a real person or record, and the codes are this project's own lists, not SNOMED CT, LOINC, ICD or CPT. For building and testing software only. `GET /fhir/{type}` answers the same data as a FHIR Bundle.
 
-  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec`, or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
+  Any other parameter that names a field filters the results: `gender=female`, `province=Ontario,Quebec` (or the parameter repeated, `province=Ontario&province=Quebec`, which means the same), or ranges with `age[gte]=30&age[lt]=40` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`).
 }

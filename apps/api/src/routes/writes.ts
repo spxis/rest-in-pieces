@@ -1,6 +1,7 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import type { Context } from 'hono';
 import { cascade, checkReferences } from '../lib/integrity.ts';
+import { invalidRequest } from '../lib/invalid.ts';
 import { contentLanguage, parseLocale } from '../lib/locale.ts';
 import { flagParam, intParam, pick } from '../lib/query.ts';
 import { RequestData } from '../lib/relations.ts';
@@ -248,9 +249,10 @@ export function writeRoutes(
   };
 
   return new OpenAPIHono({
-    // Only the body can fail: every query parameter and the id are free-form strings.
     defaultHook: (result, c) => {
-      if (result.success || result.target !== 'json') return;
+      if (result.success) return;
+      // A query parameter given twice is a 400 like any other refusal; only the body has fields to name.
+      if (result.target !== 'json') return invalidRequest(result, c);
       const fields = fieldErrors(result.error.issues, (result as { data?: unknown }).data);
       return c.json({ error: 'Validation failed', fields }, 422);
     },
