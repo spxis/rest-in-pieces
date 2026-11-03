@@ -17,6 +17,7 @@ import { JsonSchemaError } from './lib/jsonschema.ts';
 import { UnsupportedLocaleError } from './lib/locale.ts';
 import { ExpandError } from './lib/relations.ts';
 import { createSession, type SessionOption } from './lib/session.ts';
+import { StrictError } from './lib/strict.ts';
 import { mountOf, resources } from './resources.ts';
 import { addressRoutes } from './routes/addresses.ts';
 import { authRoutes } from './routes/auth.ts';
@@ -223,6 +224,7 @@ export function createApp({
       err instanceof UnsupportedFormatError ||
       err instanceof UnsupportedLocaleError ||
       err instanceof CursorError ||
+      err instanceof StrictError ||
       err instanceof ExpandError ||
       err instanceof SqlTableError
     ) {

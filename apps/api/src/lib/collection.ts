@@ -6,6 +6,7 @@ import { DEFAULT_LOCALE, type Locale } from './locale.ts';
 import { messyRecords, parseMessy } from './messy.ts';
 import { flagParam, intParam, paginate, pick, type Query } from './query.ts';
 import { parseSort, type SortOptions, sortRecords } from './sort.ts';
+import { checkStrict } from './strict.ts';
 
 export const MAX_RECORDS = 1000;
 export const DEFAULT_RESULTS_NAME = 'results';
@@ -89,6 +90,8 @@ export interface Page<T> {
 /** What `messy` needs besides its share: the dataset's seed and the fields it must leave alone. */
 export interface MessyContext {
   seed: number;
+  /** Refuse a query the default would ignore or clamp (`strict=true`), answered `400`. */
+  strict?: boolean;
   keep?: readonly string[];
   /** Each record's position in the whole dataset, when the collection is only part of it. */
   positions?: readonly number[];
@@ -105,12 +108,13 @@ export function queryCollection<T extends object>(
   query: Query,
   defaults: CollectionDefaults,
   locale: Locale = DEFAULT_LOCALE,
-  { seed, keep = [], positions }: MessyContext = { seed: 1 },
+  { seed, keep = [], positions, strict = false }: MessyContext = { seed: 1 },
 ) {
   const options = parseListOptions(query, defaults, clean.length);
   const source = messyRecords(clean, { share: options.messy, seed, keep }, positions);
   // Every key any record has: a messy or mixed-locale record may lack one the first record has.
   const fields = new Set(source.flatMap((record) => Object.keys(record)));
+  if (strict) checkStrict(query, fields);
   const filtered = filterRecords(source, parseFilters(query, fields), options.q);
   const dataset = sortRecords(filtered, options.sort, locale).slice(0, options.max);
   return { records: paginate(dataset, options.offset, options.limit), total: dataset.length, options };

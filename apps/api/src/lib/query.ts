@@ -13,6 +13,9 @@ export function pick(query: Query, ...aliases: string[]): string | undefined {
 
 const nonNegativeInt = z.coerce.number().int().nonnegative();
 
+/** Whether a value reads as a whole number of zero or more, the way `intParam` reads it. */
+export const isCount = (value: string): boolean => nonNegativeInt.safeParse(value).success;
+
 /** Parses a non-negative integer, clamped to `max`. Falls back when missing or invalid. */
 export function intParam(value: string | undefined, fallback: number, max = Number.MAX_SAFE_INTEGER): number {
   if (value === undefined) return fallback;
@@ -67,4 +70,5 @@ export const RESERVED_PARAMS = new Set([
   'expand',
   'safe',
   'table',
+  'strict',
 ]);

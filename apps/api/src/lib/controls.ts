@@ -1,6 +1,7 @@
 import { createMiddleware } from 'hono/factory';
 import type { ContentfulStatusCode, StatusCode } from 'hono/utils/http-status';
 import { flagParam, intParam, pick } from './query.ts';
+import { failProblem } from './strict.ts';
 
 /** The longest any request may take: `delay` and a trickled body together never exceed it. */
 export const MAX_DELAY_MS = 10_000;
@@ -31,8 +32,12 @@ export const REASONS: Record<number, string> = {
 export function shouldFail(value: string | undefined, random: () => number, key?: string): boolean {
   if (value === undefined) return false;
   const rate = Number(value);
-  if (Number.isFinite(rate) && rate > 0 && rate < 1)
-    return (key === undefined ? random() : hashText(key) / 2 ** 32) < rate;
+  if (value.trim() !== '' && Number.isFinite(rate)) {
+    // A share: `0.2` fails one request in five, `0` and `0.0` never fail. Whole numbers from 1 up always fail.
+    if (rate <= 0) return false;
+    if (rate < 1) return (key === undefined ? random() : hashText(key) / 2 ** 32) < rate;
+    return true;
+  }
   return flagParam(value, false);
 }
 
@@ -131,6 +136,10 @@ export function parseStatus(value: string | undefined): number | null {
 export const simulate = (random: () => number = Math.random) =>
   createMiddleware(async (c, next) => {
     const query = c.req.query();
+    if (flagParam(pick(query, 'strict'), false)) {
+      const problem = failProblem(pick(query, 'fail'));
+      if (problem) return c.json({ error: problem }, 400);
+    }
     const delay = chooseDelay(pick(query, 'delay'), requestKey(c.req.url, c.req.path));
     if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay));
     const gap = intParam(pick(query, 'trickle'), 0, MAX_DELAY_MS);

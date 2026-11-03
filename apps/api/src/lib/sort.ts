@@ -9,8 +9,8 @@ export interface SortOptions {
   sortDirection: SortDirection;
 }
 
-const DESCENDING = new Set(['desc', 'descending', 'backwards', 'rev', 'reverse', '-1']);
-const NUMERIC = new Set(['int', 'integer', 'num', 'number', 'numeric', 'double', 'float']);
+export const DESCENDING: ReadonlySet<string> = new Set(['desc', 'descending', 'backwards', 'rev', 'reverse', '-1']);
+export const NUMERIC: ReadonlySet<string> = new Set(['int', 'integer', 'num', 'number', 'numeric', 'double', 'float']);
 
 /**
  * Reads `sortBy` and `sortDirection`. A type hint can be appended to the field,

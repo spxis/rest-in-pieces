@@ -5,7 +5,7 @@ import { requestedFormat, respond } from '../lib/format.ts';
 import { invalidRequest, queryWithRepeats } from '../lib/invalid.ts';
 import { contentLanguage, parseLocale } from '../lib/locale.ts';
 import { parseMessy } from '../lib/messy.ts';
-import { intParam, pick } from '../lib/query.ts';
+import { flagParam, intParam, pick } from '../lib/query.ts';
 import type { RelatedResource } from '../lib/relations.ts';
 import {
   countriesOfRecords,
@@ -169,6 +169,7 @@ export function collectionRoutes(
     const shown = data.safe ? safeRecords(target.name, records, data.safe) : records;
     const page = queryCollection(shown, queryOf(c), target.defaults, data.locale, {
       seed: data.seed,
+      strict: flagParam(pick(queryOf(c), 'strict'), false),
       keep: target.keep ?? [target.idField],
       ...(positions ? { positions } : {}),
     });

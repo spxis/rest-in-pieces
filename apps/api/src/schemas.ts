@@ -27,6 +27,15 @@ export const MESSY_DOCS =
   'date field a date in the same format), but while `messy` is on every field except the id may be null or ' +
   'missing, whatever the schema says.';
 
+/** The `strict` description. */
+export const STRICT_DOCS =
+  '`true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is not one of these or a field ' +
+  'of the dataset (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a ' +
+  'field the dataset lacks or with an unknown type, a count that is not a whole number, and `messy` or `fail` outside ' +
+  '0 to 1. Off by default, so a request that works today keeps working. Units: `messy` and `fail` are shares from 0 to ' +
+  "1 (`0.2` is one in five), a `/generate` field's `?blank=15` is a percent, `delay` and `trickle` are milliseconds " +
+  'and `expiresIn` is seconds or a unit.';
+
 /** The `auth` description, shared by every data endpoint. */
 export const AUTH_DOCS =
   'Makes this request a protected route, to rehearse sign-in: `required` (or `true`) wants any signed-in ' +
@@ -135,6 +144,7 @@ export const ListQuery = z
     ),
     failSeed: param(FAIL_SEED_DOCS, '7'),
     auth: param(AUTH_DOCS),
+    strict: param(STRICT_DOCS),
   })
   .catchall(z.string().optional());
 

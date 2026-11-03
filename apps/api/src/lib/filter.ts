@@ -8,8 +8,8 @@ export interface Filter {
   values: string[];
 }
 
-const OPERATORS = new Set<Operator>(['eq', 'ne', 'gt', 'gte', 'lt', 'lte']);
-const FILTER_KEY = /^([\w-]+)(?:\[(\w+)\])?$/;
+export const OPERATORS: ReadonlySet<string> = new Set<Operator>(['eq', 'ne', 'gt', 'gte', 'lt', 'lte']);
+export const FILTER_KEY = /^([\w-]+)(?:\[(\w+)\])?$/;
 
 /**
  * Turns query parameters that name a record field into filters:
