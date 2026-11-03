@@ -122,9 +122,13 @@ These work on every collection, including `/generate`.
 | `status`        | none      | Respond with this status. 4xx and 5xx return a simulated error; 2xx and 3xx override the success status. |
 | `fail`          | off       | `true` fails the request with a 500 (or `status`); a fraction such as `0.2` fails that share of requests, at random unless `failSeed` is given. |
 | `failSeed`      | none      | Makes a fraction in `fail` repeatable: any value, and whether a request fails is decided by its URL alone (path and parameters in any order, apart from `fail`, `delay`, `trickle` and `status`). The same URL fails or succeeds the same way on every call and machine, another `failSeed` fails a different share, and `fail=0.5` fails every request `fail=0.2` does. |
+| `strict`        | off       | `true` answers `400` naming what it would otherwise ignore or clamp: a parameter that is neither one of these nor a field (`foo=bar`, `sort=email.asc`), an operator that does not exist (`id[bogus]`), a `sortBy` on a field the dataset lacks or with an unknown type, a count that is not a whole number, `messy` outside 0 to 1, `fail` that is not `true`, `false` or a share from 0 to 1. The body lists the dataset's fields. Off by default, so a request that works today keeps working. |
 | `auth`          | off       | Makes the request a protected route: `required` (or `true`) wants any signed-in account, `editor` the editor or admin role, `admin` the admin role. `401` without a valid token, `403` when the role is not enough. Also on items and writes. See [Sign-in](#sign-in-fake-auth). |
 
 Simulated responses carry `X-Simulated: true`, and 429 and 503 carry `Retry-After`. Simulation never applies to `/health` or the docs.
+
+**Units.** The parameters were named one at a time and do not share a unit, so check this table: `messy` and `fail` are shares from 0 to 1 (`0.2` is one in five; `messy=true` is about 0.15); a `/generate` field's `?blank=15` is a percent (`15%` works too); `delay` and `trickle` are milliseconds; `expiresIn` on `/auth/login` is seconds, or a number with a unit (`15m`, `1h`); `limit`, `offset` and `max` count records. The default stays lenient (an unknown parameter is ignored, a bad number falls back to its default, `messy=100` clamps to 1); `strict=true` is how to be told about it.
+
 
 ### Response shape
 
